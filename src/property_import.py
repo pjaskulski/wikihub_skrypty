@@ -147,3 +147,5 @@ if __name__ == "__main__":
             dane['inverse_property'] = row[col_names['inverse_property']].value
             
             result, info = add_property(login_instance, dane)
+            if result:
+                print(f'Property added: {info}')
