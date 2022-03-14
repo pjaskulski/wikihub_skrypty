@@ -1,2 +1,3 @@
-wikibaseintegrator=0.11.1
-python-dotenv=0.19.2
+wikibaseintegrator~=0.11.1
+python-dotenv~=0.19.2
+openpyxl~=3.0.9

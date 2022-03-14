@@ -30,7 +30,7 @@ wd_item.set_label('styl architektoniczny',lang='pl')
 wd_item.set_description('architectural style of a structure', lang='en')
 wd_item.set_description('styl architektoniczny konstrukcji', lang='pl')
 
-# typy danych dla property: 'string', 'wikibase-item', 'monolingualtext', 'external-id'
+# typy danych dla property: 'string', 'wikibase-item', 'wikibase-property', 'monolingualtext', 'external-id'
 # 'quantity', 'time', 'geo-shape', 'url', 'globe-coordinate'
 options = {'property_datatype':'wikibase-item'}
 id = wd_item.write(login_instance, bot_account=True, entity_type='property', **options)

@@ -1,0 +1,1 @@
+Folder na dane do importu np. pliki XLSX.
