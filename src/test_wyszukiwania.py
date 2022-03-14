@@ -16,7 +16,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 
 if __name__ == "__main__":
-    
+
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q30')
@@ -28,15 +28,18 @@ if __name__ == "__main__":
         print(len(data))
         print(data["labels"]["pl"]["value"])
 
-    print(element_exists('Q30'))
-    print(element_exists('Q3000'))
-    print(element_exists('P4'))
-    print(element_exists('Q4000'))
+    print('Q30: ', element_exists('Q30'))
+    print('Q3000: ', element_exists('Q3000'))
+    print('P4: ', element_exists('P4'))
+    print('Q4000: ', element_exists('Q4000'))
 
-    print(element_search('subclass of', 'property', 'en'))
-    print(element_search('date of birth', 'property', 'en'))
-    print(element_search('very unique property', 'property', 'en'))
-    print(element_search('place of', 'property', 'en'))
+    print('subclass of: ', element_search('subclass of', 'property', 'en'))
+    print('date of birth: ', element_search('date of birth', 'property', 'en'))
+    print('very unique property: ', element_search('very unique property', 'property', 'en'))
+    print('place of: ', element_search('place of', 'property', 'en'))
+
+    print('Świeżawski Tadeusz Michał: ', element_search('Świeżawski Tadeusz Michał', 'item', 'en'))
+    print('Świeżowiecki Edwin Gerhard: ', element_search('Świeżowiecki Edwin Gerhard', 'item', 'en'))
 
     # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47 
     # (instance_of) o wartości Q32 (human), z limitem do 5 resultatów
