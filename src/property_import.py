@@ -30,7 +30,7 @@ def add_property(login_instance: wbi_login.Login, data: dict) -> tuple:
         return False, f"[{data['label_en']}] exists - > {id}" 
     else:
         if TEST_ONLY:
-            print(f"Property: '{data['label_en']}' is new and should be added.")
+            print(f"Property: '{data['label_en']}' is new.")
             return True, "ID" 
 
         wd_item = wbi_core.ItemEngine(new_item=True)
