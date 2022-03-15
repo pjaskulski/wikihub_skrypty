@@ -1,5 +1,4 @@
 import os
-from numpy import append 
 import openpyxl
 import sys
 from wikibaseintegrator import wbi_core
