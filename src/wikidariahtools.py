@@ -1,4 +1,5 @@
 # funkcje pomocniczne do obsługi skryptów wikibase
+
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_functions import execute_sparql_query
 from wikibaseintegrator import wbi_login, wbi_datatype

@@ -1,3 +1,5 @@
+# skrypt dodaje nową właściwość z etykietami, opisem (en, pl) oraz typem danych 
+
 import os
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config

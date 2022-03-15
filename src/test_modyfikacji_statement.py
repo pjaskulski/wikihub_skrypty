@@ -1,3 +1,5 @@
+# skrypt modyfikuje wartość istniejącej deklaracji (statement) w elemencie Q
+
 import os
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config

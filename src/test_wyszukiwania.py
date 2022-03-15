@@ -1,3 +1,5 @@
+# Skrypt wyszukuje informacje w Wikibase 
+
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_functions import execute_sparql_query
