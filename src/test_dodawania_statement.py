@@ -1,10 +1,8 @@
 # skrypt dodaje deklarację (statement) do właściwości P, wraz z referencją
 
-from importlib.resources import is_resource
 import os
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_functions import execute_sparql_query
 from wikibaseintegrator import wbi_login, wbi_datatype
 from dotenv import load_dotenv
 from pathlib import Path
