@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 
-TEST_ONLY = True
+TEST_ONLY = True     # jeżeli True to nie dodaje danych tylko informuje, czy jest to nowa właściwość
 PROP_WIKI_ID = ''
 PROP_WIKI_URL = ''
 PROP_INVERSE = ''
@@ -70,7 +70,7 @@ def add_property(login_instance: wbi_login.Login, dane: dict) -> tuple:
                 get_wiki_properties()
             property_name = dane['inverse_property'].strip()
             result, pid = element_search(property_name, 'property', 'en')
-            if result:
+            if result and PROP_INVERSE != '':
                 inverse_dane = wbi_datatype.Property(value=pid, prop_nr=PROP_INVERSE)
             
         # typy danych dla property: 'string', 'wikibase-item', 'wikibase-property', 
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         print(f"ERROR. Expected worksheet '{sheet}' is missing in the file.")
         exit(1)
 
-    ws = wb['P_list']
+    ws = wb[sheet]
 
     # słownik kolumn w arkuszu
     col_names = {}
@@ -211,5 +211,5 @@ if __name__ == "__main__":
             dane['inverse_property'] = row[col_names['inverse_property']].value
             
             result, info = add_property(login_instance, dane)
-            if result:
+            if result and not TEST_ONLY:
                 print(f'Property added: {info}')

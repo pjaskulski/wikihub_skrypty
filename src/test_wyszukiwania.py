@@ -58,3 +58,5 @@ if __name__ == "__main__":
     results = execute_sparql_query(query)
     for result in results["results"]["bindings"]:
         print(result["item"]["value"])
+
+    print('inverse property: ', element_search('inverse property', 'property', 'en'))
