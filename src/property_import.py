@@ -89,7 +89,7 @@ def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
 
     # odwrotność właściwości
     inverse_dane = None
-    if dane['inverse_property']:
+    if p_dane['inverse_property']:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
         search_result, pid = element_search(p_dane['inverse_property'].strip(), 'property', 'en')
@@ -129,12 +129,24 @@ def test_xlsx_columns(t_col_names: dict) -> bool:
     """
     expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
     is_ok = True
-    for item in expected:
-        if not item in t_col_names:
+    for col in expected:
+        if not col in t_col_names:
             is_ok = False
             break
 
     return is_ok
+
+
+def get_col_names(sheet) -> dict:
+    """ funkcja zwraca słownik nazw kolumn
+    """
+    names = {}
+    nr_col = 0
+    for column in sheet.iter_cols(1, sheet.max_column):
+        names[column[0].value] = nr_col
+        nr_col += 1
+
+    return names
 
 
 def correct_type(t_datatype: str) -> str:
@@ -151,6 +163,37 @@ def correct_type(t_datatype: str) -> str:
             t_datatype = 'external-id'
 
     return t_datatype
+
+
+def get_property_list(sheet) -> list:
+    """ zwraca listę właściwości do dodania
+    """
+    max_row = sheet.max_row
+    p_list = []
+    for row in sheet.iter_rows(2, max_row):
+        basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+        p_item = {}
+        for col in basic_cols:
+            key = col.lower()
+            p_item[key] = row[col_names[col]].value
+            if p_item[key] is not None:
+                p_item[key] = p_item[key].strip()
+                if key == 'datatype':
+                    p_item[key] = correct_type(p_item[key])
+
+        # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
+        # dane właściwości są dodawane do listy
+        if p_item['label_en'] and p_item['description_en'] and p_item['datatype']:
+            extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
+            for col in extend_cols:
+                key = col.lower()
+                p_item[key] = row[col_names[col]].value
+                if p_item[key] is not None:
+                    p_item[key] = p_item[key].strip()
+
+            p_list.append(p_item)
+
+    return p_list
 
 
 if __name__ == "__main__":
@@ -184,41 +227,24 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # czy to jest właściwy plik? cz. 1
-    SHEET = 'P_list'
-    if not SHEET in wb.sheetnames:
-        print(f"ERROR. Expected worksheet '{SHEET}' is missing in the file.")
-        sys.exit(1)
+    SHEETS = ['P_list', 'P_statments']
+    for item in SHEETS:
+        if not item in wb.sheetnames:
+            print(f"ERROR. Expected worksheet '{item}' is missing in the file.")
+            sys.exit(1)
 
-    ws = wb[SHEET]
+    ws = wb[SHEETS[0]]
 
     # słownik kolumn w arkuszu
-    col_names = {}
-    nr_col = 0
-    for column in ws.iter_cols(1, ws.max_column):
-        col_names[column[0].value] = nr_col
-        nr_col += 1
+    col_names = get_col_names(ws)
 
     # czy to właściwy plik?, cz.2
     if not test_xlsx_columns(col_names):
         print('ERROR. There are no expected columns in the worksheet.')
         sys.exit(1)
 
-    max_row = ws.max_row
-
-    for row in ws.iter_rows(2, max_row):
-        dane = {}
-        dane['label_en'] = row[col_names['Label_en']].value
-        dane['description_en'] = row[col_names['Description_en']].value
-        datatype = row[col_names['datatype']].value
-        dane['datatype'] = correct_type(datatype)
-        dane['label_pl'] = row[col_names['Label_pl']].value
-
-        # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
-        if dane['label_en'] and dane['description_en'] and dane['datatype']:
-            dane['description_pl'] = row[col_names['Description_pl']].value
-            dane['wiki_id'] = row[col_names['Wiki_id']].value
-            dane['inverse_property'] = row[col_names['inverse_property']].value
-
-            result, info = add_property(login_instance, dane)
-            if result and not TEST_ONLY:
-                print(f'Property added: {info}')
+    dane = get_property_list(ws)
+    for wb_property in dane:
+        result, info = add_property(login_instance, wb_property)
+        if result and not TEST_ONLY:
+            print(f'Property added: {info}')
