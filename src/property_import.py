@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login, wbi_datatype
+from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
 from wikidariahtools import element_search
@@ -45,7 +46,7 @@ class BasicProp:
                 self.inverse = pid
 
 
-def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
+def add_property(p_dane: dict) -> tuple:
     """
     funkcja dodaje nową właściwość
     zwraca tuple: (True/False, ID/ERROR)
@@ -77,14 +78,13 @@ def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
         if wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == '':
             wikibase_prop.get_wiki_properties()
 
-        wiki_id = p_dane['wiki_id'].strip()
-        url = f"https://www.wikidata.org/wiki/Property:{wiki_id}"
+        url = f"https://www.wikidata.org/wiki/Property:{p_dane['wiki_id']}"
         references = [
             [
                 wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
             ]
         ]
-        wiki_dane = wbi_datatype.ExternalID(value=wiki_id, prop_nr=wikibase_prop.wiki_id,
+        wiki_dane = wbi_datatype.ExternalID(value=p_dane['wiki_id'], prop_nr=wikibase_prop.wiki_id,
             references=references)
 
     # odwrotność właściwości
@@ -92,7 +92,7 @@ def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
     if p_dane['inverse_property']:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
-        search_result, pid = element_search(p_dane['inverse_property'].strip(), 'property', 'en')
+        search_result, pid = element_search(p_dane['inverse_property'], 'property', 'en')
         if search_result and wikibase_prop.inverse != '':
             inverse_dane = wbi_datatype.Property(value=pid, prop_nr=wikibase_prop.inverse)
 
@@ -102,7 +102,7 @@ def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
     options = {'property_datatype':p_dane['datatype']}
 
     try:
-        p_new_id = wd_item.write(p_login_instance, entity_type='property', **options)
+        p_new_id = wd_item.write(login_instance, entity_type='property', **options)
 
         # deklaracje dla właściwości
         data = []
@@ -113,7 +113,7 @@ def add_property(p_login_instance: wbi_login.Login, p_dane: dict) -> tuple:
 
         if len(data) > 0:
             wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
-            wd_statement.write(p_login_instance, entity_type='property')
+            wd_statement.write(login_instance, entity_type='property')
 
         add_result = (True, p_new_id)
 
@@ -196,6 +196,21 @@ def get_property_list(sheet) -> list:
     return p_list
 
 
+def get_property_type(p_id: str) -> str:
+    """ Funkcja zwraca typ właściwości na podstawie jej identyfikatora
+    """
+    params = {'action': 'wbgetentities', 'ids': p_id,
+              'props': 'datatype'}
+
+    search_results = mediawiki_api_call_helper(data=params, login=None, mediawiki_api_url=None,
+                                               user_agent=None, allow_anonymous=True)
+    data_type = None
+    if search_results:
+        data_type = search_results['entities'][p_id]['datatype']
+
+    return data_type
+
+
 if __name__ == "__main__":
     # login i hasło ze zmiennych środowiskowych
     env_path = Path('.') / '.env'
@@ -245,6 +260,6 @@ if __name__ == "__main__":
 
     dane = get_property_list(ws)
     for wb_property in dane:
-        result, info = add_property(login_instance, wb_property)
+        result, info = add_property(wb_property)
         if result and not TEST_ONLY:
             print(f'Property added: {info}')

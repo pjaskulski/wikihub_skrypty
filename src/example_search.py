@@ -2,7 +2,8 @@
 
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator.wbi_functions import execute_sparql_query
+from wikibaseintegrator.wbi_functions import execute_sparql_query, mediawiki_api_call_helper
+from wikibaseintegrator.wbi_exceptions import (MWApiError)
 # do odczytywania danych z naszej wikibase nie trzeba się logować
 #from wikibaseintegrator import wbi_login
 from wikidariahtools import element_exists, element_search
@@ -20,15 +21,21 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 if __name__ == "__main__":
 
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
+    # i P 
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q30')
         data = my_first_wikidata_item.get_json_representation()
-    except:
-        data = None
+        my_first_wikidata_prop = wbi_core.ItemEngine(item_id='P47')
+        data_p = my_first_wikidata_prop.get_json_representation()
+        data_p2 = my_first_wikidata_prop.get_entity()
+    except MWApiError:
+        data = data_p = data_p2 = None
 
     if data:
         print(len(data))
         print(data["labels"]["pl"]["value"])
+    if data_p2:
+        print(data_p2)
 
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))
@@ -60,3 +67,12 @@ if __name__ == "__main__":
         print(result["item"]["value"])
 
     print('inverse property: ', element_search('inverse property', 'property', 'en'))
+
+    # wyszukanie typu właściwości na podstawie ID
+    params = {'action': 'wbgetentities', 'ids': 'P47',
+              'props': 'datatype'}
+
+    search_results = mediawiki_api_call_helper(data=params, login=None, mediawiki_api_url=None, 
+                                               user_agent=None, allow_anonymous=True)
+    data_type = search_results['entities']['P47']['datatype']
+    print(data_type)
