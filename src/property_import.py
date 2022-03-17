@@ -54,16 +54,17 @@ def add_property(p_dane: dict) -> tuple:
     """
 
     # test czy właściwość już nie istnieje
-    search_result, search_id = element_search(p_dane['label_en'], 'property', 'en')
-    if search_result:
-        print(f"Property: '{p_dane['label_en']}' already exists: {search_id}")
-        return False, f"[{p_dane['label_en']}] exists - > {search_id}"
+    search_property, search_id = element_search(p_dane['label_en'], 'property', 'en')
+    if search_property:
+        print(f"Property: '{p_dane['label_en']}' already exists: {search_id}, update mode.")
+        #return False, f"[{p_dane['label_en']}] exists - > {search_id}"
+        wd_item = wbi_core.ItemEngine(item_id=search_id)
+    else:
+        wd_item = wbi_core.ItemEngine(new_item=True)
 
-    if TEST_ONLY:
-        print(f"Property: '{p_dane['label_en']}' is new.")
-        return True, "ID"
-
-    wd_item = wbi_core.ItemEngine(new_item=True)
+    # if TEST_ONLY:
+    #     print(f"Property: '{p_dane['label_en']}' is new.")
+    #     return True, "ID"
 
     # etykiety i opisy
     wd_item.set_label(p_dane['label_en'], lang='en')
@@ -93,9 +94,9 @@ def add_property(p_dane: dict) -> tuple:
     if p_dane['inverse_property']:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
-        search_result, pid = element_search(p_dane['inverse_property'], 'property', 'en')
-        if search_result and wikibase_prop.inverse != '':
-            inverse_dane = wbi_datatype.Property(value=pid, prop_nr=wikibase_prop.inverse)
+        search_inverse, inv_pid = element_search(p_dane['inverse_property'], 'property', 'en')
+        if search_inverse and wikibase_prop.inverse != '':
+            inverse_dane = wbi_datatype.Property(value=inv_pid, prop_nr=wikibase_prop.inverse)
 
     # typy danych dla property: 'string', 'wikibase-item', 'wikibase-property',
     # 'monolingualtext', 'external-id', 'quantity', 'time', 'geo-shape', 'url',
@@ -104,6 +105,8 @@ def add_property(p_dane: dict) -> tuple:
 
     try:
         p_new_id = wd_item.write(login_instance, entity_type='property', **options)
+        if search_property:
+            p_new_id = search_id
 
         # deklaracje dla właściwości
         data = []
@@ -115,6 +118,13 @@ def add_property(p_dane: dict) -> tuple:
         if len(data) > 0:
             wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
             wd_statement.write(login_instance, entity_type='property')
+
+        # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy 
+        # dodać odwrotność: nową właściwość jako jej inverse_property
+        if inverse_dane:
+            add_res, add_info = add_property_statement(inv_pid, wikibase_prop.inverse, p_new_id)
+            if not add_res:
+                print(f'{add_info}')
 
         add_result = (True, p_new_id)
 

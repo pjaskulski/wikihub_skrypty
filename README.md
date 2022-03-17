@@ -15,9 +15,6 @@ Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe warto
  - WIKIDARIAH_USER login użytkownika, który utworzył hasło bota
  - WIKIDARIAH_PWD hasło bota
 
-Skrypt może funkcjonować w trybie testowym, sprawdzając jedynie które property z arkusza już istnieją
-a które należy dodać. Aby skrypt faktycznie dodawał property należy wartość zmiennej TEST_ONLY ustawić na False.
-
 Plik xlsx, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
 znajdują się kolumny (obecnie 7):
 
@@ -52,9 +49,13 @@ P151                | P47                | Q703
 
 W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
 
+Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
+przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w skrypcie.
+Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko modyfikowane i dodawane, usunięcie wartości z kolumny 'Wiki ID' nie powoduje usunięcia odpowiediej deklaracji z wikibase. 
+
 ## TODO
 
-- [ ]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
+- [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
-- [ ]  modyfikacja istniejących właściwości i deklaracji
+- [x]  modyfikacja istniejących właściwości i deklaracji
 - [ ]  druga zakładka (P_statements): obsługa referencji
