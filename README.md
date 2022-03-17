@@ -3,7 +3,7 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 ## property_import.py
 
-Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy tworzy właściwości oraz dodaje do nich deklaracje. 
+Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie xlsx tworzy właściwości oraz dodaje do nich deklaracje. 
 
 Skrypt odczytuje zawartość pliku xlsx wskazanego jako parametr z linii komend np.:
 ```
@@ -15,10 +15,10 @@ Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe warto
  - WIKIDARIAH_USER login użytkownika, który utworzył hasło bota
  - WIKIDARIAH_PWD hasło bota
 
-Domyślnie skrypt działa w trybie testowym, sprawdzając, które property z arkusza już istnieją
+Skrypt może funkcjonować w trybie testowym, sprawdzając jedynie które property z arkusza już istnieją
 a które należy dodać. Aby skrypt faktycznie dodawał property należy wartość zmiennej TEST_ONLY ustawić na False.
 
-Plik xlsx, z którym współpracuje skrypt powinien mieć arkusz o nazwie **P_list**, w którym 
+Plik xlsx, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
 znajdują się kolumny (obecnie 7):
 
 - Label_en - etykieta ang.
@@ -37,8 +37,13 @@ followed by         | następca              | wikibase-item | immediately follo
 follows             | poprzednik            | wikibase-item | immediately prior item in a series     | poprzedni element z serii    | P155  | followed by
 ```
 
-Plik xlsx może też mieć arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
-Arkusz powinien mieć trzy kolumny: 1) właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 2) właściwość którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 3) wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345 
+Istnienie arkuszy i kolumn o oczekiwanych nazwach jest weryfikowane przez skrypt.
+
+Plik xlsx powinien też posiadać arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
+Arkusz powinien mieć trzy kolumny: 
+- 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
+- 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
+- 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345 
 ```
 architectural style | refers to          | architecture
 architectural style | related properties | painting style
