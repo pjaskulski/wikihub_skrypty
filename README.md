@@ -32,9 +32,9 @@ znajdują się kolumny (obecnie 7):
 Dwie ostatnie nie są wymagane. Przykład:
 
 ```
-architectural style | styl architektoniczny | item | architectural style of a structure     | styl architektoniczny konstrukcji | P 149 | 
-followed by         | następca              | item | immediately following item in a series | następny element z serii     | P156  | 
-follows             | poprzednik            | item | immediately prior item in a series     | poprzedni element z serii    | P155  | followed by
+architectural style | styl architektoniczny | wikibase-item | architectural style of a structure     | styl architektoniczny konstrukcji | P 149 | 
+followed by         | następca              | wikibase-item | immediately following item in a series | następny element z serii     | P156  | 
+follows             | poprzednik            | wikibase-item | immediately prior item in a series     | poprzedni element z serii    | P155  | followed by
 ```
 
 Plik xlsx może też mieć arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
