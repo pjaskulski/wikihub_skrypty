@@ -4,6 +4,7 @@ import os
 import sys
 import re
 from pathlib import Path
+from typing import Union
 from openpyxl import load_workbook
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -11,7 +12,6 @@ from wikibaseintegrator import wbi_login, wbi_datatype
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
-from typing import Union
 from wikidariahtools import element_search
 
 
@@ -33,7 +33,6 @@ class BasicProp:
     def get_wiki_properties(self):
         """ funkcja ustala nr podstawowych property związanych z wikidata.org
         """
-
         if self.wiki_id == '':
             search_result, pid = element_search('Wikidata ID', 'property', 'en')
             if search_result:
@@ -181,10 +180,10 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
     if not check_id:
         return (False, 'INVALID DATA')
 
-     # test czy statement już nie istnieje?
-
     st_data = None
-    res, prop_id = element_search(prop_label, 'property', 'en')
+    # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli 
+    # jest ID, zwraca bez zmian 
+    res, prop_id = prop_name_qid(prop_label)   
     if res:
         property_type = get_property_type(prop_id)
         st_data = create_statement_data(property_type, prop_id, value)

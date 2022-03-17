@@ -1,4 +1,4 @@
-# Skrypt wyszukuje informacje w Wikibase 
+""" Skrypt wyszukuje informacje w Wikibase """
 
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -19,9 +19,8 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 
 if __name__ == "__main__":
-
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
-    # i P 
+    # i P47 (instance of)
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q30')
         data = my_first_wikidata_item.get_json_representation()
@@ -48,7 +47,8 @@ if __name__ == "__main__":
     print('place of: ', element_search('place of', 'property', 'en'))
 
     print('Świeżawski Tadeusz Michał: ', element_search('Świeżawski Tadeusz Michał', 'item', 'en'))
-    print('Świeżowiecki Edwin Gerhard: ', element_search('Świeżowiecki Edwin Gerhard', 'item', 'en'))
+    print('Świeżowiecki Edwin Gerhard: ', 
+          element_search('Świeżowiecki Edwin Gerhard', 'item', 'en'))
 
     # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47 
     # (instance_of) o wartości Q32 (human), z limitem do 5 resultatów
