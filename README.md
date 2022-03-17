@@ -1,6 +1,8 @@
 # wikidariah_skrypty
 Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiDARIAH 
 
+## property_import.py
+
 Skrypt **property_import.py** odczytuje zawartość pliku xlsx wskazanego jako parametr z linii komend np.:
 ```
 python property_import.py data/test.xlsx
