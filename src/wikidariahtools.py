@@ -33,5 +33,5 @@ def element_search(search_string: str, element_type: str, lang: str) -> tuple:
     if len(results) == 1:
         return True, results[0]
 
-    return False, "NOT FOUND" if len(results) == 0 else "MULTIPLE FOUND"
+    return False, "NOT FOUND" if len(results) == 0 else f"MULTIPLE FOUND {results}"
     

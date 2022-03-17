@@ -140,7 +140,7 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
     if not match:
         output = element_search(name, elem_type, 'en')
         if not output[0]:
-            output =  (False, f'INVALID DATA, unknown {elem_type}: {name}')
+            output =  (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
 
     return output
 
@@ -160,10 +160,16 @@ def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi
         res, value_property = find_name_qid(value, 'property')
         if res:
             output_data = wbi_datatype.Property(value=value_property, prop_nr=prop_id)
+        else:
+            # drukuje opis problemu w konsoli
+            print(value_property)
     elif prop_type == 'wikibase-item':
         res, value_item = find_name_qid(value, 'item')
         if res:
             output_data = wbi_datatype.ItemID(value=value_item, prop_nr=prop_id)
+        else:
+            # drukuje opis problemu w konsoli
+            print(value_item)
     elif prop_type == "external-id":
         output_data = wbi_datatype.ExternalID(value=value, prop_nr=prop_id)
     elif prop_type == "url":
@@ -192,7 +198,7 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
     res, prop_id = find_name_qid(prop_label, 'property')
     if res:
         property_type = get_property_type(prop_id)
-        print('ID:', p_id, 'WHAT:', prop_id, 'TYPE:', property_type)
+        #print('ID:', p_id, 'WHAT:', prop_id, 'TYPE:', property_type)
         st_data = create_statement_data(property_type, prop_id, value)
         if st_data:
             try:
@@ -204,6 +210,8 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
                 add_result = (False, f'ERROR, {p_id}: - {prop_id} -> {value}')
         else:
             add_result = (False, f'INVALID DATA, {p_id}: - {prop_id} -> {value}')
+    else:
+        add_result = (res, prop_id)
 
     return add_result
 
