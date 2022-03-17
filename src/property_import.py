@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 from pathlib import Path
 from openpyxl import load_workbook
 from wikibaseintegrator import wbi_core
@@ -10,6 +11,7 @@ from wikibaseintegrator import wbi_login, wbi_datatype
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
+from typing import Union
 from wikidariahtools import element_search
 
 
@@ -123,18 +125,95 @@ def add_property(p_dane: dict) -> tuple:
     return add_result
 
 
-def test_xlsx_columns(t_col_names: dict) -> bool:
+def prop_name_qid(name: str) -> tuple:
+    """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości
+       jeżeli nir to szuka w wikibase właściwości o etykiecie (ang) równej argumentowi
+       i zwraca jej id
+    """
+    output = (True, name)               # zakładamy, że w name jest id (np. P47)
+    pattern = r'^P\d{1,5}$'             # ale jeżeli nie, to szukamy w wikibase
+    match = re.search(pattern, name)
+    if not match:
+        output = element_search(name, 'property', 'en')
+        if not output[0]:
+            output =  (False, 'INVALID DATA')
+
+    return output
+
+
+def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi_datatype.String, 
+                                                       wbi_datatype.Property,
+                                                       wbi_datatype.ExternalID,
+                                                       wbi_datatype.Url,
+                                                       wbi_datatype.MonolingualText]:
+    """Funkcja tworzy dane deklaracji
+    """
+    output_data = None
+    if prop_type == 'string':
+        output_data = wbi_datatype.String(value=value, prop_nr=prop_id)
+    elif prop_type == 'wikibase-property':
+        res, value_property = element_search(value, 'property', 'en')
+        if res:
+            output_data = wbi_datatype.Property(value=value_property, prop_nr=prop_id)
+    elif prop_type == 'wikibase-item':
+        res, value_item = element_search(value, 'item', 'en')
+        if res:
+            output_data = wbi_datatype.Property(value=value_item, prop_nr=prop_id)
+    elif prop_type == "external-id":
+        output_data = wbi_datatype.ExternalID(value=value, prop_nr=prop_id)
+    elif prop_type == "url":
+        output_data = wbi_datatype.Url(value=value, prop_nr=prop_id)
+    elif prop_type == "monolingualtext":
+        output_data = wbi_datatype.MonolingualText(text=value, prop_nr=prop_id)
+
+    return output_data
+
+
+def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
+    """
+    Funkcja dodaje deklaracje (statement) do właściwości
+    Parametry:
+        p_id - etykieta właściwości lub jej P, do której jest dodawana deklaracja
+        prop_label - etykieta właściwości
+        value - dodawana wartość
+    """
+    check_id, p_id = prop_name_qid(p_id)
+    if not check_id:
+        return (False, 'INVALID DATA')
+
+     # test czy statement już nie istnieje?
+
+    st_data = None
+    res, prop_id = element_search(prop_label, 'property', 'en')
+    if res:
+        property_type = get_property_type(prop_id)
+        st_data = create_statement_data(property_type, prop_id, value)
+        if st_data:
+            try:
+                data =[st_data]
+                wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                wd_statement.write(login_instance, entity_type='property')
+                add_result = (True, "STATEMENT ADDED")
+            except MWApiError:
+                add_result = (False, 'ERROR')
+        else:
+            add_result = (False, 'INVALID DATA')
+
+    return add_result
+
+
+def test_xlsx_columns(t_col_names: dict, expected: list) -> tuple:
     """
     funkcja weryfikuje czy XLSX zawiera oczekiwane kolumny
     """
-    expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
-    is_ok = True
+    missing_cols = []
+    res = True
     for col in expected:
         if not col in t_col_names:
-            is_ok = False
-            break
+            missing_cols.append(col)
+            res = False
 
-    return is_ok
+    return res, ",".join(missing_cols)
 
 
 def get_col_names(sheet) -> dict:
@@ -196,6 +275,28 @@ def get_property_list(sheet) -> list:
     return p_list
 
 
+def get_statement_list(sheet) -> list:
+    """ zwraca listę deklaracji do dodania
+    """
+    max_row = sheet.max_row
+    s_list = []
+    for row in sheet.iter_rows(2, max_row):
+        basic_cols = ['Label_en', 'P', 'value']
+        s_item = {}
+        for col in basic_cols:
+            key = col.lower()
+            s_item[key] = row[col_names[col]].value
+            if s_item[key] is not None:
+                s_item[key] = s_item[key].strip()
+
+        # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
+        # dane deklaracji są dodawane do listy
+        if s_item['label_en'] and s_item['p'] and s_item['value']:
+            s_list.append(s_item)
+
+    return s_list
+
+
 def get_property_type(p_id: str) -> str:
     """ Funkcja zwraca typ właściwości na podstawie jej identyfikatora
     """
@@ -253,9 +354,11 @@ if __name__ == "__main__":
     # słownik kolumn w arkuszu
     col_names = get_col_names(ws)
 
-    # czy to właściwy plik?, cz.2
-    if not test_xlsx_columns(col_names):
-        print('ERROR. There are no expected columns in the worksheet.')
+    # czy to właściwa struktura skoroszytu arkusza xmlx?
+    exp_col_names = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+    result, info = test_xlsx_columns(col_names, exp_col_names)
+    if not result:
+        print(f'ERROR. The expected columns ({info}) are missing.')
         sys.exit(1)
 
     dane = get_property_list(ws)
@@ -263,3 +366,21 @@ if __name__ == "__main__":
         result, info = add_property(wb_property)
         if result and not TEST_ONLY:
             print(f'Property added: {info}')
+
+    ws = wb[SHEETS[1]]
+
+    # słownik kolumn w arkuszu
+    col_names = get_col_names(ws)
+
+    # czy to właściwa struktura skoroszytu arkusza xmlx?
+    exp_col_names = ['Label_en', 'P', 'value']
+    result, info = test_xlsx_columns(col_names, exp_col_names)
+    if not result:
+        print(f'ERROR. The expected columns ({info}) are missing.')
+        sys.exit(1)
+
+    dane = get_statement_list(ws)
+    for stm in dane:
+        result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'])
+        if result and not TEST_ONLY:
+            print(f'Statement added: {info}')
