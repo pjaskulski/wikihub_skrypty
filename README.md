@@ -50,8 +50,8 @@ P151                | P47                | Q703
 W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
 
 Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
-przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w skrypcie.
-Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko modyfikowane i dodawane, usunięcie wartości z kolumny 'Wiki ID' nie powoduje usunięcia odpowiediej deklaracji z wikibase. 
+przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu.
+Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko modyfikowane i dodawane, usunięcie np. wartości z kolumny 'Wiki ID' nie spowoduje usunięcia odpowiedniej deklaracji z wikibase. 
 
 ## TODO
 
