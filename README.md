@@ -3,7 +3,9 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 ## property_import.py
 
-Skrypt **property_import.py** odczytuje zawartość pliku xlsx wskazanego jako parametr z linii komend np.:
+Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy tworzy właściwości oraz dodaje do nich deklaracje. 
+
+Skrypt odczytuje zawartość pliku xlsx wskazanego jako parametr z linii komend np.:
 ```
 python property_import.py data/test.xlsx
 ```
@@ -13,21 +15,21 @@ Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe warto
  - WIKIDARIAH_USER login użytkownika, który utworzył hasło bota
  - WIKIDARIAH_PWD hasło bota
 
-Domyślnie skrypt działa w trybie testowym, sprawdzając które property z arkusza już istnieją
+Domyślnie skrypt działa w trybie testowym, sprawdzając, które property z arkusza już istnieją
 a które należy dodać. Aby skrypt faktycznie dodawał property należy wartość zmiennej TEST_ONLY ustawić na False.
 
 Plik xlsx, z którym współpracuje skrypt powinien mieć arkusz o nazwie **P_list**, w którym 
-znajdują się kolumny:
+znajdują się kolumny (obecnie 7):
 
 - Label_en - etykieta ang.
 - Label_pl - etykieta pl.
 - datatype - typ danych (string', 'wikibase-item', 'wikibase-property', 'monolingualtext', 'external-id', 'quantity', 'time', 'geo-shape', 'url', 'globe-coordinate')
 - Description_en - opis ang.
-- Description_pl - opis. pl
+- Description_pl - opis pl.
 - Wiki_id - identyfiktor odpowiednika właściwości w wikidata.org
 - inverse_property - odwrotna właściwość
 
-Dwie ostatnie mogą być puste.
+Dwie ostatnie nie są wymagane.
 
 Plik xlsx może też mieć arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
 Arkusz powinien mieć trzy kolumny: 1) właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 2) właściwość którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 3) wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345 
