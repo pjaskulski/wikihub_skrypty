@@ -15,8 +15,6 @@ from dotenv import load_dotenv
 from wikidariahtools import element_search
 
 
-TEST_ONLY = True     # jeżeli True to nie dodaje danych tylko informuje, czy jest to nowa właściwość
-
 # adresy dla API Wikibase
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
@@ -61,10 +59,6 @@ def add_property(p_dane: dict) -> tuple:
         wd_item = wbi_core.ItemEngine(item_id=search_id)
     else:
         wd_item = wbi_core.ItemEngine(new_item=True)
-
-    # if TEST_ONLY:
-    #     print(f"Property: '{p_dane['label_en']}' is new.")
-    #     return True, "ID"
 
     # etykiety i opisy
     wd_item.set_label(p_dane['label_en'], lang='en')
@@ -388,7 +382,7 @@ if __name__ == "__main__":
     dane = get_property_list(ws)
     for wb_property in dane:
         result, info = add_property(wb_property)
-        if result and not TEST_ONLY:
+        if result:
             print(f'Property added: {info}')
 
     ws = wb[SHEETS[1]]
