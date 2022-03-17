@@ -124,24 +124,30 @@ def add_property(p_dane: dict) -> tuple:
     return add_result
 
 
-def prop_name_qid(name: str) -> tuple:
-    """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości
-       jeżeli nir to szuka w wikibase właściwości o etykiecie (ang) równej argumentowi
+def find_name_qid(name: str, elem_type: str) -> tuple:
+    """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości/elementu
+       jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang) równej argumentowi
        i zwraca jej id
     """
     output = (True, name)               # zakładamy, że w name jest id (np. P47)
-    pattern = r'^P\d{1,5}$'             # ale jeżeli nie, to szukamy w wikibase
+                                        # ale jeżeli nie, to szukamy w wikibase
+    if elem_type == 'property':
+        pattern = r'^P\d{1,9}$'
+    elif elem_type == 'item':
+        pattern = r'^Q\d{1,9}$'
+
     match = re.search(pattern, name)
     if not match:
-        output = element_search(name, 'property', 'en')
+        output = element_search(name, elem_type, 'en')
         if not output[0]:
-            output =  (False, 'INVALID DATA')
+            output =  (False, f'INVALID DATA, unknown {elem_type}: {name}')
 
     return output
 
 
-def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi_datatype.String, 
+def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi_datatype.String,
                                                        wbi_datatype.Property,
+                                                       wbi_datatype.ItemID,
                                                        wbi_datatype.ExternalID,
                                                        wbi_datatype.Url,
                                                        wbi_datatype.MonolingualText]:
@@ -151,13 +157,13 @@ def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi
     if prop_type == 'string':
         output_data = wbi_datatype.String(value=value, prop_nr=prop_id)
     elif prop_type == 'wikibase-property':
-        res, value_property = element_search(value, 'property', 'en')
+        res, value_property = find_name_qid(value, 'property')
         if res:
             output_data = wbi_datatype.Property(value=value_property, prop_nr=prop_id)
     elif prop_type == 'wikibase-item':
-        res, value_item = element_search(value, 'item', 'en')
+        res, value_item = find_name_qid(value, 'item')
         if res:
-            output_data = wbi_datatype.Property(value=value_item, prop_nr=prop_id)
+            output_data = wbi_datatype.ItemID(value=value_item, prop_nr=prop_id)
     elif prop_type == "external-id":
         output_data = wbi_datatype.ExternalID(value=value, prop_nr=prop_id)
     elif prop_type == "url":
@@ -176,27 +182,28 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
         prop_label - etykieta właściwości
         value - dodawana wartość
     """
-    check_id, p_id = prop_name_qid(p_id)
+    check_id, p_id = find_name_qid(p_id, 'property')
     if not check_id:
-        return (False, 'INVALID DATA')
+        return (False, p_id)
 
     st_data = None
-    # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli 
-    # jest ID, zwraca bez zmian 
-    res, prop_id = prop_name_qid(prop_label)   
+    # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli
+    # jest ID, zwraca bez zmian
+    res, prop_id = find_name_qid(prop_label, 'property')
     if res:
         property_type = get_property_type(prop_id)
+        print('ID:', p_id, 'WHAT:', prop_id, 'TYPE:', property_type)
         st_data = create_statement_data(property_type, prop_id, value)
         if st_data:
             try:
                 data =[st_data]
                 wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                 wd_statement.write(login_instance, entity_type='property')
-                add_result = (True, "STATEMENT ADDED")
-            except (MWApiError, KeyError):
-                add_result = (False, 'ERROR')
+                add_result = (True, f'STATEMENT ADDED, {p_id}: - {prop_id} -> {value}')
+            except (MWApiError, KeyError, ValueError):
+                add_result = (False, f'ERROR, {p_id}: - {prop_id} -> {value}')
         else:
-            add_result = (False, 'INVALID DATA')
+            add_result = (False, f'INVALID DATA, {p_id}: - {prop_id} -> {value}')
 
     return add_result
 
@@ -381,5 +388,4 @@ if __name__ == "__main__":
     dane = get_statement_list(ws)
     for stm in dane:
         result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'])
-        if result and not TEST_ONLY:
-            print(f'Statement added: {info}')
+        print(f'{info}')
