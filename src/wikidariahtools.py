@@ -13,11 +13,10 @@ def element_exists(element_id: str) -> bool:
         element_exist('P4')
     zwraca: True/False
     """
-
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id=element_id)
         data = my_first_wikidata_item.get_json_representation()
-    except MWApiError:
+    except (MWApiError, KeyError):
         data = None
 
     return bool(data)
@@ -30,9 +29,9 @@ def element_search(search_string: str, element_type: str, lang: str) -> tuple:
         element_search('subclass of', 'property', 'en')
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
-
     results = search_entities(search_string, language=lang, search_type=element_type, max_results=5)
     if len(results) == 1:
         return True, results[0]
 
     return False, "NOT FOUND" if len(results) == 0 else "MULTIPLE FOUND"
+    

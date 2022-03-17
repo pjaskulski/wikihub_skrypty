@@ -27,7 +27,7 @@ if __name__ == "__main__":
         my_first_wikidata_prop = wbi_core.ItemEngine(item_id='P47')
         data_p = my_first_wikidata_prop.get_json_representation()
         data_p2 = my_first_wikidata_prop.get_entity()
-    except MWApiError:
+    except (MWApiError, KeyError):
         data = data_p = data_p2 = None
 
     if data:

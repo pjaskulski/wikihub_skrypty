@@ -118,7 +118,7 @@ def add_property(p_dane: dict) -> tuple:
 
         add_result = (True, p_new_id)
 
-    except MWApiError:
+    except (MWApiError, KeyError):
         add_result = (False, 'ERROR')
 
     return add_result
@@ -193,7 +193,7 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
                 wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                 wd_statement.write(login_instance, entity_type='property')
                 add_result = (True, "STATEMENT ADDED")
-            except MWApiError:
+            except (MWApiError, KeyError):
                 add_result = (False, 'ERROR')
         else:
             add_result = (False, 'INVALID DATA')
