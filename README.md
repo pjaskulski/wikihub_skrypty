@@ -36,3 +36,10 @@ P151                | P47                | Q703
 ```
 
 W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
+
+## TODO
+
+- [ ]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
+- [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
+- [ ]  modyfikacja istniejących właściwości i deklaracji
+- [ ]  druga zakładka (P_statements): obsługa referencji
