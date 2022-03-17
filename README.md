@@ -29,7 +29,13 @@ znajdują się kolumny (obecnie 7):
 - Wiki_id - identyfiktor odpowiednika właściwości w wikidata.org
 - inverse_property - odwrotna właściwość
 
-Dwie ostatnie nie są wymagane.
+Dwie ostatnie nie są wymagane. Przykład:
+
+```
+architectural style | styl architektoniczny | item | architectural style of a structure | styl architektoniczny konstrukcji | P 149 | 
+followed by | następca | item | immediately following item in a series | następny element z serii |	P156
+follows | poprzednik | item | immediately prior item in a series | poprzedni element z serii | P155 | followed by
+```
 
 Plik xlsx może też mieć arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
 Arkusz powinien mieć trzy kolumny: 1) właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 2) właściwość którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 3) wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345 
