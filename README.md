@@ -50,6 +50,8 @@ Arkusz powinien mieć trzy kolumny:
 - 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
 - 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
 - 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345. Skrypt rozpoznaje typ danych właściwości z kolumny 'P'. Obecnie obsługiwane typy danych: 'string', 'wikibase-property', 'wikibase-item', 'external-id', 'url', 'monolingualtext', 'quantity', 'time', 'geo-shape', 'url', 'globe-coordinate'.
+- 'reference_property' - właściwość referencji
+- 'reference_value' - wartość referencji
 
 Dla właściwości o type danych 'globe-coordinate' należy wprowadzić wartość w formie 'latitude,longitude,precision' zgodnie z dokumentacją (https://www.wikidata.org/wiki/Help:Data_type#Globe_coordinate), np. '19.9,54.8,0.01', jeżeli wartość precision zostanie pominięta skrypt przyjmie domyślną wartość 0.1.
 
@@ -58,21 +60,21 @@ Dla właściwości o typie danych 'time' (https://www.wikidata.org/wiki/Help:Dat
 
 Przykład zawartości arkusza:
 ```
-architectural style | refers to          | architecture
-architectural style | related properties | painting style
-P151                | P47                | Q703
+architectural style | refers to          | architecture   |      |
+architectural style | related properties | painting style | P144 | Id_Testowe_0150 
+P151                | P47                | Q703           |      |
 ```
 
 W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
 
 Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
-przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu.
-Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko modyfikowane i dodawane, usunięcie np. wartości z kolumny 'Wiki ID' nie spowoduje usunięcia odpowiedniej deklaracji z wikibase. 
+przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
+W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już istniejące w wikibase dla danej właściwości deklaracje. 
 
 ## TODO
 
 - [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
-- [x]  modyfikacja istniejących właściwości i deklaracji
+- [x]  modyfikacja istniejących właściwości
 - [ ]  druga zakładka (P_statements): obsługa referencji
 - [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 

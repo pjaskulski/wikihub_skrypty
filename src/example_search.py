@@ -34,9 +34,11 @@ if __name__ == "__main__":
     #     print(len(data))
     #     print(data["labels"]["pl"]["value"])
     if data_p:
-        print(data_p)
-    if data_p2:
-        print(data_p2)
+        claims = data_p['claims']
+        if 'P162' in claims:
+            print('jest')
+            
+    exit()
 
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))

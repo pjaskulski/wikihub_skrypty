@@ -56,8 +56,10 @@ def add_property(p_dane: dict) -> tuple:
     if search_property:
         print(f"Property: '{p_dane['label_en']}' already exists: {search_id}, update mode.")
         wd_item = wbi_core.ItemEngine(item_id=search_id)
+        mode = 'updated: '
     else:
         wd_item = wbi_core.ItemEngine(new_item=True)
+        mode = 'added: '
 
     # etykiety i opisy
     wd_item.set_label(p_dane['label_en'], lang='en')
@@ -112,14 +114,14 @@ def add_property(p_dane: dict) -> tuple:
             wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
             wd_statement.write(login_instance, entity_type='property')
 
-        # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy 
+        # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy
         # dodać odwrotność: nową właściwość jako jej inverse_property
         if inverse_dane:
             add_res, add_info = add_property_statement(inv_pid, wikibase_prop.inverse, p_new_id)
             if not add_res:
                 print(f'{add_info}')
 
-        add_result = (True, p_new_id)
+        add_result = (True, mode + p_new_id)
 
     except (MWApiError, KeyError):
         add_result = (False, 'ERROR')
@@ -253,7 +255,6 @@ def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) 
     references = None
     if ref_prop and ref_value :
         references = create_references(ref_prop, ref_value)
-        print(references)
 
     output_data = create_statement(prop, value, is_ref=False, refs=references)
 
@@ -287,6 +288,9 @@ def add_property_statement(p_id: str, prop_label: str, value: str,
         is_ok, value_id = find_name_qid(value, 'property')
         if not is_ok:
             return (False, value_id)
+
+    if has_statement(p_id, prop_id):
+        return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
     st_data = None
     # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli
@@ -417,6 +421,20 @@ def get_property_type(p_id: str) -> str:
     return data_type
 
 
+def has_statement(pid_to_check: str, claim_to_check: str):
+    """
+    Funkcja weryfikuje czy właściwość ma już taką deklarację
+    """
+    has_claim = False
+    wb_prop = wbi_core.ItemEngine(item_id=pid_to_check)
+    data_prop = wb_prop.get_json_representation()
+    claims = data_prop['claims']
+    if claim_to_check in claims:
+        has_claim = True
+
+    return has_claim
+
+
 if __name__ == "__main__":
     # login i hasło ze zmiennych środowiskowych
     env_path = Path('.') / '.env'
@@ -470,7 +488,7 @@ if __name__ == "__main__":
     for wb_property in dane:
         result, info = add_property(wb_property)
         if result:
-            print(f'Property added: {info}')
+            print(f'Property {info}')
 
     ws = wb[SHEETS[1]]
 
