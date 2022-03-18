@@ -149,11 +149,16 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
     return output
 
 
-def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi_datatype.String,
+def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[
+                                                       wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
                                                        wbi_datatype.ExternalID,
                                                        wbi_datatype.Url,
+                                                       wbi_datatype.Quantity,
+                                                       wbi_datatype.Time,
+                                                       wbi_datatype.GeoShape,
+                                                       wbi_datatype.GlobeCoordinate,
                                                        wbi_datatype.MonolingualText]:
     """Funkcja tworzy dane deklaracji
     """
@@ -175,11 +180,37 @@ def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[wbi
             # drukuje opis problemu w konsoli
             print(value_item)
     elif prop_type == "external-id":
-        output_data = wbi_datatype.ExternalID(value=value, prop_nr=prop_id)
+        output_data = wbi_datatype.ExternalID(value, prop_nr=prop_id)
     elif prop_type == "url":
-        output_data = wbi_datatype.Url(value=value, prop_nr=prop_id)
+        output_data = wbi_datatype.Url(value, prop_nr=prop_id)
     elif prop_type == "monolingualtext":
-        output_data = wbi_datatype.MonolingualText(text=value, prop_nr=prop_id)
+        output_data = wbi_datatype.MonolingualText(value, prop_nr=prop_id)
+    elif prop_type =='quantity':
+        output_data = wbi_datatype.Quantity(value, prop_nr=prop_id)
+    elif prop_type == 'time':
+        tmp = value.split("/")
+        if len(tmp) == 2:
+            time_value = tmp[0]
+            precision = int(tmp[1])
+            output_data = wbi_datatype.Time(time_value, prop_nr=prop_id, precision=precision)
+        else:
+            print(f'ERROR: invalid value for time type: {value}.')
+    elif prop_type == 'geo-shape':
+        output_data = wbi_datatype.GeoShape(value, prop_nr=prop_id)
+    elif prop_type == 'globe-coordinate':
+        tmp = value.split(",")
+        try:
+            latitude = float(tmp[0])
+            longitude = float(tmp[1])
+            if len(tmp) > 2:
+                precision = float(tmp[2])
+            else:
+                precision = 0.1
+        except ValueError:
+            print(f'ERROR: invalid value for globe-coordinate type: {value}.')
+        else:
+            output_data = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
+                                                       prop_nr=prop_id)
 
     return output_data
 

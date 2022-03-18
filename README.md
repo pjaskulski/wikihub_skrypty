@@ -47,7 +47,12 @@ Plik xlsx powinien też posiadać arkusz **P_statments**, w którym dla istnie
 Arkusz powinien mieć trzy kolumny: 
 - 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
 - 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
-- 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345. Skrypt rozpoznaje typ danych właściwości z kolumny 'P'. Obecnie obsługiwane typy danych: 'string', 'wikibase-property', 'wikibase-item', 'external-id', 'url', 'monolingualtext'.
+- 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345. Skrypt rozpoznaje typ danych właściwości z kolumny 'P'. Obecnie obsługiwane typy danych: 'string', 'wikibase-property', 'wikibase-item', 'external-id', 'url', 'monolingualtext', 'quantity', 'time', 'geo-shape', 'url', 'globe-coordinate'.
+
+Dla właściwości o type danych 'globe-coordinate' należy wprowadzić wartość w formie 'latitude,longitude,precision' zgodnie z dokumentacją (https://www.wikidata.org/wiki/Help:Data_type#Globe_coordinate), np. '19.9,54.8,0.01', jeżeli wartość precision zostanie pominięta skrypt przyjmie domyślną wartość 0.1.
+
+Dla właściwości o typie danych 'time' (https://www.wikidata.org/wiki/Help:Data_type#Time) należy wprowadzić wartość w standardzie ISO 8601 z określeniem precyzji daty po znaku / (0-14, zgodnie z opisem: https://www.wikidata.org/wiki/Special:ListDatatypes#time) np. 
+'+1900-00-00T00:00:00Z/9' dla roku 1900.
 
 Przykład zawartości arkusza:
 ```
@@ -68,4 +73,4 @@ Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
 - [x]  modyfikacja istniejących właściwości i deklaracji
 - [ ]  druga zakładka (P_statements): obsługa referencji
-- [ ]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
+- [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
