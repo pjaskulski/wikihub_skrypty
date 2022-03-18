@@ -292,10 +292,6 @@ def add_property_statement(p_id: str, prop_label: str, value: str,
     if has_statement(p_id, prop_id):
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
-    st_data = None
-    # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli
-    # jest ID, zwraca bez zmian
-
     st_data = create_statement_data(prop_label, value, reference_type, reference_value)
     if st_data:
         try:
@@ -423,7 +419,7 @@ def get_property_type(p_id: str) -> str:
 
 def has_statement(pid_to_check: str, claim_to_check: str):
     """
-    Funkcja weryfikuje czy właściwość ma już taką deklarację
+    Funkcja weryfikuje czy właściwość (property) ma już taką deklarację (statement)
     """
     has_claim = False
     wb_prop = wbi_core.ItemEngine(item_id=pid_to_check)
