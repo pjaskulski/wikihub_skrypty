@@ -26,8 +26,10 @@ znajdują się kolumny (obecnie 7):
 - Wiki_id - identyfiktor odpowiednika właściwości w wikidata.org
 - inverse_property - odwrotna właściwość
 
-Dwie ostatnie nie są wymagane. Przykład:
+Dwie ostatnie nie są wymagane. Jeżeli podano wartość 'Wiki_id' skrypt doda do nowej właściwości deklarację (statement) używając property 'Wikidata ID' (zakładając, że tak już istnieje np. została dodano jako jedna z pierwszych właściwości w arkuszu) oraz doda referencje do tej deklaracji korzystając z property 'Wikidata URL' (również zakładając, że istnieje lub została dodana jako jedna z pierwszych) z wartością równą adresowi url utworzonemu na podstawie zawartości kolumny Wiki_id w arkuszu (np. dla 'P156' url to 'https://www.wikidata.org/wiki/Property:P156'). 
+Jeżeli podano wartość 'inverse_property', to właściwość będąca jej wartością automatycznie otrzyma  analogiczną właściwość 'odwrotną', np. jeżeli dodajemy właściwość 'followed by', dla której podaliśmy 'inverse_property' = 'follows' (P161) to skrypt utworzy także dla właścicowści P161 'follows' deklarację z właściwością 'inverse property' wskazującą na nowo dodaną właściwość 'followed by'.
 
+Przykład zawartości arkusza:
 ```
 architectural style | styl architektoniczny | wikibase-item | architectural style of a structure     | styl architektoniczny konstrukcji | P 149 | 
 followed by         | następca              | wikibase-item | immediately following item in a series | następny element z serii     | P156  | 
@@ -41,6 +43,8 @@ Arkusz powinien mieć trzy kolumny:
 - 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
 - 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
 - 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345. Skrypt rozpoznaje typ danych właściwości z kolumny 'P'. Obecnie obsługiwane typy danych: 'string', 'wikibase-property', 'wikibase-item', 'external-id', 'url', 'monolingualtext'.
+
+Przykład zawartości arkusza:
 ```
 architectural style | refers to          | architecture
 architectural style | related properties | painting style
