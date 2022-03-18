@@ -76,5 +76,5 @@ W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już 
 - [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
 - [x]  modyfikacja istniejących właściwości
-- [ ]  druga zakładka (P_statements): obsługa referencji
+- [x]  druga zakładka (P_statements): obsługa referencji
 - [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
