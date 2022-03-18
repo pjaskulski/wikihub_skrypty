@@ -12,8 +12,8 @@ python property_import.py data/test.xlsx
 jeżeli nie podano ścieżki do pliku, szuka domyślnego: `data/arkusz_import.xlsx`
 
 Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe wartości zmiennych:
- - WIKIDARIAH_USER login użytkownika, który utworzył hasło bota
- - WIKIDARIAH_PWD hasło bota
+ - WIKIDARIAH_USER login użytkownika, który utworzył hasło bota (sam login, bez nazwy bota)
+ - WIKIDARIAH_PWD hasło bota (przed hasłem nazwa bota oddzielona znakiem %)
 
 Plik xlsx, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
 znajdują się kolumny (obecnie 7):
@@ -40,7 +40,7 @@ Plik xlsx powinien też posiadać arkusz **P_statments**, w którym dla istnie
 Arkusz powinien mieć trzy kolumny: 
 - 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
 - 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
-- 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345 
+- 'value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości jest item Q lub property P w kolumnie powinna znaleźć się ang. etykieta takiego elementu lub konkretny identyfikator - np. Q2345. Skrypt rozpoznaje typ danych właściwości z kolumny 'P'. Obecnie obsługiwane typy danych: 'string', 'wikibase-property', 'wikibase-item', 'external-id', 'url', 'monolingualtext'.
 ```
 architectural style | refers to          | architecture
 architectural style | related properties | painting style
@@ -59,3 +59,4 @@ Podobnie w przypadku deklaracji w arkuszu 'P_statements'. Dane są jednak tylko
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
 - [x]  modyfikacja istniejących właściwości i deklaracji
 - [ ]  druga zakładka (P_statements): obsługa referencji
+- [ ]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
