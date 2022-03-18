@@ -32,11 +32,13 @@ Dwie ostatnie nie są wymagane. Jeżeli podano wartość 'Wiki_id' skrypt doda d
 
 Jeżeli podano wartość 'inverse_property', to właściwość będąca jej wartością automatycznie otrzyma  analogiczną właściwość 'odwrotną', np. jeżeli dodajemy właściwość 'followed by', dla której podaliśmy 'inverse_property' = 'follows' (P161) to skrypt utworzy także dla właścicowści P161 'follows' deklarację z właściwością 'inverse property' wskazującą na nowo dodaną właściwość 'followed by'.
 
+W przypadku importu do całkowicie nowej i pustej instancji Wikibase należałoby więc w pierwszej kolejności umieścić w arkuszu 'P_list' właściowości 'Wikidata ID', 'Wikidata URL', 'inverse property'.
+
 Przykład zawartości arkusza:
 ```
 architectural style | styl architektoniczny | wikibase-item | architectural style of a structure     | styl architektoniczny konstrukcji | P 149 | 
-followed by         | następca              | wikibase-item | immediately following item in a series | następny element z serii     | P156  | 
-follows             | poprzednik            | wikibase-item | immediately prior item in a series     | poprzedni element z serii    | P155  | followed by
+followed by         | następca              | wikibase-item | immediately following item in a series | następny element z serii          | P156  | 
+follows             | poprzednik            | wikibase-item | immediately prior item in a series     | poprzedni element z serii         | P155  | followed by
 ```
 
 Istnienie arkuszy i kolumn o oczekiwanych nazwach jest weryfikowane przez skrypt.
