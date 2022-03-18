@@ -55,7 +55,6 @@ def add_property(p_dane: dict) -> tuple:
     search_property, search_id = element_search(p_dane['label_en'], 'property', 'en')
     if search_property:
         print(f"Property: '{p_dane['label_en']}' already exists: {search_id}, update mode.")
-        #return False, f"[{p_dane['label_en']}] exists - > {search_id}"
         wd_item = wbi_core.ItemEngine(item_id=search_id)
     else:
         wd_item = wbi_core.ItemEngine(new_item=True)
@@ -149,7 +148,7 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
     return output
 
 
-def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[
+def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) ->Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -160,62 +159,109 @@ def create_statement_data(prop_type: str, prop_id: str, value: str) -> Union[
                                                        wbi_datatype.GeoShape,
                                                        wbi_datatype.GlobeCoordinate,
                                                        wbi_datatype.MonolingualText]:
-    """Funkcja tworzy dane deklaracji
     """
-    output_data = None
-    if prop_type == 'string':
-        output_data = wbi_datatype.String(value=value, prop_nr=prop_id)
-    elif prop_type == 'wikibase-property':
-        res, value_property = find_name_qid(value, 'property')
-        if res:
-            output_data = wbi_datatype.Property(value=value_property, prop_nr=prop_id)
-        else:
-            # drukuje opis problemu w konsoli
-            print(value_property)
-    elif prop_type == 'wikibase-item':
-        res, value_item = find_name_qid(value, 'item')
-        if res:
-            output_data = wbi_datatype.ItemID(value=value_item, prop_nr=prop_id)
-        else:
-            # drukuje opis problemu w konsoli
-            print(value_item)
-    elif prop_type == "external-id":
-        output_data = wbi_datatype.ExternalID(value, prop_nr=prop_id)
-    elif prop_type == "url":
-        output_data = wbi_datatype.Url(value, prop_nr=prop_id)
-    elif prop_type == "monolingualtext":
-        output_data = wbi_datatype.MonolingualText(value, prop_nr=prop_id)
-    elif prop_type =='quantity':
-        output_data = wbi_datatype.Quantity(value, prop_nr=prop_id)
-    elif prop_type == 'time':
-        tmp = value.split("/")
-        if len(tmp) == 2:
-            time_value = tmp[0]
-            precision = int(tmp[1])
-            output_data = wbi_datatype.Time(time_value, prop_nr=prop_id, precision=precision)
-        else:
-            print(f'ERROR: invalid value for time type: {value}.')
-    elif prop_type == 'geo-shape':
-        output_data = wbi_datatype.GeoShape(value, prop_nr=prop_id)
-    elif prop_type == 'globe-coordinate':
-        tmp = value.split(",")
-        try:
-            latitude = float(tmp[0])
-            longitude = float(tmp[1])
-            if len(tmp) > 2:
-                precision = float(tmp[2])
+    Funkcja tworzy obiekt będący deklaracją lub referencją
+    """
+    statement = None
+
+    res, property_nr = find_name_qid(prop, 'property')
+    if res:
+        property_type = get_property_type(property_nr)
+        if property_type == 'string':
+            statement = wbi_datatype.String(value=value, prop_nr=property_nr,
+                                            is_reference=is_ref, references=refs)
+        elif property_type == 'wikibase-item':
+            res, value_id = find_name_qid(value, 'item')
+            if res:
+                statement = wbi_datatype.ItemID(value=value_id, prop_nr=property_nr,
+                                                is_reference=is_ref, references=refs)
+        elif property_type == 'wikibase-property':
+            res, value_id = find_name_qid(value, 'property')
+            if res:
+                statement = wbi_datatype.Property(value=value_id, prop_nr=property_nr,
+                                                  is_reference=is_ref, references=refs)
+        elif property_type == 'external-id':
+            statement = wbi_datatype.ExternalID(value=value, prop_nr=property_nr,
+                                                is_reference=is_ref, references=refs)
+        elif property_type == 'url':
+            statement = wbi_datatype.Url(value=value, prop_nr=property_nr,
+                                         is_reference=is_ref, references=refs)
+        elif property_type == 'monolingualtext':
+            statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr,
+                                                     is_reference=is_ref, references=refs)
+        elif property_type == 'quantity':
+            statement = wbi_datatype.Quantity(quantity=value, prop_nr=property_nr,
+                                              is_reference=is_ref, references=refs)
+        elif property_type == 'time':
+            tmp = value.split("/")
+            if len(tmp) == 2:
+                time_value = tmp[0]
+                precision = int(tmp[1])
+                statement = wbi_datatype.Time(time_value, prop_nr=property_nr,
+                                              precision=precision, is_reference=is_ref,
+                                              references=refs)
             else:
-                precision = 0.1
-        except ValueError:
-            print(f'ERROR: invalid value for globe-coordinate type: {value}.')
-        else:
-            output_data = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
-                                                       prop_nr=prop_id)
+                print(f'ERROR: invalid value for time type: {value}.')
+        elif property_type == 'geo-shape':
+            statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
+                                              references=refs)
+        elif property_type == 'globe-coordinate':
+            tmp = value.split(",")
+            try:
+                latitude = float(tmp[0])
+                longitude = float(tmp[1])
+                if len(tmp) > 2:
+                    precision = float(tmp[2])
+                else:
+                    precision = 0.1
+            except ValueError:
+                print(f'ERROR: invalid value for globe-coordinate type: {value}.')
+            else:
+                statement = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
+                                                         prop_nr=property_nr, is_reference=is_ref,
+                                                         references=refs)
+
+    return statement
+
+
+def create_references(ref_property: str, ref_value: str) ->list:
+    """ Funkcja tworzy referencje
+    """
+    statement = create_statement(ref_property, ref_value, is_ref=True, refs=None)
+    if statement:
+        new_references = [[ statement ]]
+    else:
+        new_references = None
+
+    return new_references
+
+
+def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) -> Union[
+                                                       wbi_datatype.String,
+                                                       wbi_datatype.Property,
+                                                       wbi_datatype.ItemID,
+                                                       wbi_datatype.ExternalID,
+                                                       wbi_datatype.Url,
+                                                       wbi_datatype.Quantity,
+                                                       wbi_datatype.Time,
+                                                       wbi_datatype.GeoShape,
+                                                       wbi_datatype.GlobeCoordinate,
+                                                       wbi_datatype.MonolingualText]:
+    """
+    Funkcja tworzy dane deklaracji z opcjonalnymy referencjami
+    """
+    references = None
+    if ref_prop and ref_value :
+        references = create_references(ref_prop, ref_value)
+        print(references)
+
+    output_data = create_statement(prop, value, is_ref=False, refs=references)
 
     return output_data
 
 
-def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
+def add_property_statement(p_id: str, prop_label: str, value: str,
+                           reference_type: str = '', reference_value: str = '' ) -> tuple:
     """
     Funkcja dodaje deklaracje (statement) do właściwości
     Parametry:
@@ -223,30 +269,40 @@ def add_property_statement(p_id: str, prop_label: str, value: str) -> tuple:
         prop_label - etykieta właściwości
         value - dodawana wartość
     """
-    check_id, p_id = find_name_qid(p_id, 'property')
-    if not check_id:
+    is_ok, p_id = find_name_qid(p_id, 'property')
+    if not is_ok:
         return (False, p_id)
+
+    is_ok, prop_id = find_name_qid(prop_label, 'property')
+    if not is_ok:
+        return (False, prop_id)
+
+    prop_type = get_property_type(prop_id)
+    if prop_type == 'wikibase-item':
+        is_ok, value_id = find_name_qid(value, 'item')
+        if not is_ok:
+            return (False, value_id)
+
+    if prop_type == 'wikibase-property':
+        is_ok, value_id = find_name_qid(value, 'property')
+        if not is_ok:
+            return (False, value_id)
 
     st_data = None
     # jeżeli w prop_label jest ang. etykieta właściwości, zwraca jej ID, jeżeli
     # jest ID, zwraca bez zmian
-    res, prop_id = find_name_qid(prop_label, 'property')
-    if res:
-        property_type = get_property_type(prop_id)
-        #print('ID:', p_id, 'WHAT:', prop_id, 'TYPE:', property_type)
-        st_data = create_statement_data(property_type, prop_id, value)
-        if st_data:
-            try:
-                data =[st_data]
-                wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-                wd_statement.write(login_instance, entity_type='property')
-                add_result = (True, f'STATEMENT ADDED, {p_id}: - {prop_id} -> {value}')
-            except (MWApiError, KeyError, ValueError):
-                add_result = (False, f'ERROR, {p_id}: - {prop_id} -> {value}')
-        else:
-            add_result = (False, f'INVALID DATA, {p_id}: - {prop_id} -> {value}')
+
+    st_data = create_statement_data(prop_label, value, reference_type, reference_value)
+    if st_data:
+        try:
+            data =[st_data]
+            wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+            wd_statement.write(login_instance, entity_type='property')
+            add_result = (True, f'STATEMENT ADDED, {p_id}: - {prop_id} -> {value}')
+        except (MWApiError, KeyError, ValueError):
+            add_result = (False, f'ERROR, {p_id}: - {prop_id} -> {value}')
     else:
-        add_result = (res, prop_id)
+        add_result = (False, f'INVALID DATA, {p_id}: - {prop_id} -> {value}')
 
     return add_result
 
@@ -330,7 +386,7 @@ def get_statement_list(sheet) -> list:
     max_row = sheet.max_row
     s_list = []
     for row in sheet.iter_rows(2, max_row):
-        basic_cols = ['Label_en', 'P', 'value']
+        basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
         s_item = {}
         for col in basic_cols:
             key = col.lower()
@@ -430,5 +486,6 @@ if __name__ == "__main__":
 
     dane = get_statement_list(ws)
     for stm in dane:
-        result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'])
+        result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'],
+                                              stm['reference_property'], stm['reference_value'])
         print(f'{info}')

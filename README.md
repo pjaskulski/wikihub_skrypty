@@ -3,11 +3,11 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 ## property_import.py
 
-Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie xlsx tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania modyfikacji, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości do dodania/modyfikacji. 
+Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania modyfikacji, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości do dodania/modyfikacji. 
 
-W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski'.    
+W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).    
 
-Skrypt odczytuje zawartość pliku xlsx wskazanego jako parametr z linii komend np.:
+Skrypt odczytuje zawartość pliku XLSX wskazanego jako parametr z linii komend np.:
 ```
 python property_import.py data/test.xlsx
 ```
@@ -19,7 +19,7 @@ Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe warto
 
 Aby skrypt mógł wprowadzać i modyfikować dane użytkownik tworzący hasło bota w wikibase musi mieć nadane odpowiednie uprawnienia.
 
-Plik xlsx, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
+Plik XLSX, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
 znajdują się kolumny (obecnie 7):
 
 - Label_en - etykieta ang.
@@ -45,7 +45,7 @@ follows             | poprzednik            | wikibase-item | immediately prior 
 
 Istnienie arkuszy i kolumn o oczekiwanych nazwach jest weryfikowane przez skrypt.
 
-Plik xlsx powinien też posiadać arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
+Plik XLSX powinien też posiadać arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
 Arkusz powinien mieć trzy kolumny: 
 - 'Label_en' - właściwość do której dodajemy deklarację (jej ang. etykieta lub numer P), 
 - 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 

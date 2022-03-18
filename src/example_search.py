@@ -24,15 +24,17 @@ if __name__ == "__main__":
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q30')
         data = my_first_wikidata_item.get_json_representation()
-        my_first_wikidata_prop = wbi_core.ItemEngine(item_id='P47')
+        my_first_wikidata_prop = wbi_core.ItemEngine(item_id='P152')
         data_p = my_first_wikidata_prop.get_json_representation()
         data_p2 = my_first_wikidata_prop.get_entity()
     except (MWApiError, KeyError):
         data = data_p = data_p2 = None
 
-    if data:
-        print(len(data))
-        print(data["labels"]["pl"]["value"])
+    # if data:
+    #     print(len(data))
+    #     print(data["labels"]["pl"]["value"])
+    if data_p:
+        print(data_p)
     if data_p2:
         print(data_p2)
 
