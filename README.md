@@ -9,6 +9,8 @@ W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne eleme
 
 Celem prac nad tym skryptem nie jest stworzenie skomplikowanego systemu do zarządzania Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
 
+Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości ich angielskie etykiety są w danej instancji Wikibase unikalne. 
+
 ### Opis działania
 
 Skrypt odczytuje zawartość pliku XLSX wskazanego jako parametr z linii komend np.:
@@ -69,7 +71,7 @@ architectural style | related properties | painting style | P144 | Id_Testowe_01
 P151                | P47                | Q703           |      |
 ```
 
-W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
+W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. Można wówczas zmodyfikować zawartość arkusza wprowadzając zamiast ang. etykiety konkretny identyfikato P. 
 
 Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
 przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
