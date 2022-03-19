@@ -9,7 +9,7 @@ W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne eleme
 
 Celem prac nad tym skryptem nie jest stworzenie skomplikowanego systemu do zarządzania Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
 
-Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości ich angielskie etykiety są w danej instancji Wikibase unikalne. 
+Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) definicyjnych. 
 
 ### Opis działania
 
