@@ -5,7 +5,13 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
 
-W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).    
+W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).  
+
+Celem prac nad tym skryptem nie jest stworzenie skomplikowanego systemu do zarządzania Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
+
+Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) definicyjnych. 
+
+### Opis działania
 
 Skrypt odczytuje zawartość pliku XLSX wskazanego jako parametr z linii komend np.:
 ```
@@ -65,7 +71,7 @@ architectural style | related properties | painting style | P144 | Id_Testowe_01
 P151                | P47                | Q703           |      |
 ```
 
-W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. 
+W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (item) która nie jest jednoznaczna, skrypt zgłosi problem wraz z listą identyfikatów elementów pasujących do podanej etykiety. W razie braku pasującej właściwości lub elementu zgłoszony zostanie tylko komunikat o braku właściwości. W obu przypadkach deklaracja nie zostanie utworzona. Można wówczas zmodyfikować zawartość arkusza wprowadzając zamiast ang. etykiety konkretny identyfikato P. 
 
 Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
 przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
