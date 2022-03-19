@@ -20,6 +20,7 @@ wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
+
 class BasicProp:
     """ Identyfikatory podstawowych właściwości
     """
@@ -43,6 +44,162 @@ class BasicProp:
             search_result, pid = element_search('inverse property', 'property', 'en')
             if search_result:
                 self.inverse = pid
+
+
+class WDHSpreadsheet:
+    """ Plik arkusza kalkulacyjnego z modelem danych dla Wikibase
+    """
+    def __init__(self, path: str):
+        self.path = path
+        self.sheets = ['P_list', 'P_statments']
+        self.p_list = None
+        self.p_statements = None
+        self.workbook = None
+        self.property_columns = []
+        self.statement_columns = []
+
+    def open(self):
+        """ odczyt pliku i weryfikacja poprawności """
+        try:
+            self.workbook = load_workbook(self.path)
+        except IOError:
+            print(f"ERROR. Can't open and process file: {self.path}")
+            sys.exit(1)
+
+        # czy to jest właściwy plik? cz. 1
+        for sheet in self.sheets:
+            if not sheet in self.workbook.sheetnames:
+                print(f"ERROR. Expected worksheet '{sheet}' is missing in the file.")
+                sys.exit(1)
+
+        self.p_list = self.workbook[self.sheets[0]]
+        self.property_columns = self.get_col_names(self.p_list)
+        p_list_expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+        res, inf = self.test_columns(self.property_columns, p_list_expected)
+        if not res:
+            print(f'ERROR. Worksheet {self.sheets[0]}. The expected columns ({inf}) are missing.')
+            sys.exit(1)
+
+        self.p_statements = self.workbook[self.sheets[1]]
+        self.statement_columns = self.get_col_names(self.p_statements)
+        p_statements_expected = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
+        res, inf = self.test_columns(self.statement_columns, p_statements_expected)
+        if not res:
+            print(f'ERROR. Worksheet {self.sheets[1]}. The expected columns ({inf}) are missing.')
+            sys.exit(1)
+
+
+    def test_columns(self, t_col_names: dict, expected: list) -> tuple:
+        """ weryfikuje czy arkusz zawiera oczekiwane kolumny """
+        missing_cols = []
+        res = True
+        for col in expected:
+            if not col in t_col_names:
+                missing_cols.append(col)
+                res = False
+
+        return res, ",".join(missing_cols)
+
+
+    def get_col_names(self, sheet) -> dict:
+        """ funkcja zwraca słownik nazw kolumn
+        """
+        names = {}
+        nr_col = 0
+        for column in sheet.iter_cols(1, sheet.max_column):
+            names[column[0].value] = nr_col
+            nr_col += 1
+
+        return names
+
+
+    def correct_type(self, t_datatype: str) -> str:
+        """ Funkcja ewentualnie koryguje typ właściwości na właściwy, zgodny z oczekiwanym
+            przez Wikibase
+        """
+        if t_datatype is not None:
+            if t_datatype == 'item':
+                t_datatype = 'wikibase-item'
+            elif t_datatype == 'property':
+                t_datatype = 'wikibase-property'
+            elif t_datatype == 'external identifier':
+                t_datatype = 'external-id'
+
+        return t_datatype
+
+
+    def get_property_list(self) -> list:
+        """ zwraca listę właściwości do dodania
+        """
+        p_list = []
+        for row in self.p_list.iter_rows(2, self.p_list.max_row):
+            basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+            p_item = {}
+            for col in basic_cols:
+                key = col.lower()
+                p_item[key] = row[self.property_columns[col]].value
+                if p_item[key] is not None:
+                    p_item[key] = p_item[key].strip()
+                    if key == 'datatype':
+                        p_item[key] = self.correct_type(p_item[key])
+
+            # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
+            # dane właściwości są dodawane do listy
+            if p_item['label_en'] and p_item['description_en'] and p_item['datatype']:
+                extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
+                for col in extend_cols:
+                    key = col.lower()
+                    p_item[key] = row[self.property_columns[col]].value
+                    if p_item[key] is not None:
+                        p_item[key] = p_item[key].strip()
+
+                p_list.append(p_item)
+
+        return p_list
+
+    def get_statement_list(self) -> list:
+        """ zwraca listę deklaracji do dodania
+        """
+        s_list = []
+        for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
+            basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
+            s_item = {}
+            for col in basic_cols:
+                key = col.lower()
+                s_item[key] = row[self.statement_columns[col]].value
+                if s_item[key] is not None:
+                    s_item[key] = s_item[key].strip()
+
+            # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
+            # dane deklaracji są dodawane do listy
+            if s_item['label_en'] and s_item['p'] and s_item['value']:
+                s_list.append(s_item)
+
+        return s_list
+
+
+class WDHProperty:
+    """ Właściwość (property)
+    """
+    def __init__(self, label_en: str, description_en: str, datatype: str, label_pl: str):
+        self.label_en = label_en
+        self.description_en = description_en
+        self.datatype = datatype
+        self.label_pl = label_pl
+        self.description_pl = ''
+        self.wiki_id = ''
+        self.inverse_property = ''
+
+
+class WDHStatement:
+    """ Deklaracja (statement)
+    """
+    def __init__(self, label_en: str, prop: str, value: str):
+        self.label_en = label_en
+        self.statement_property = prop
+        self.statement_value = value
+        self.reference_property = ''
+        self.reference_value = ''
 
 
 def add_property(p_dane: dict) -> tuple:
@@ -307,101 +464,6 @@ def add_property_statement(p_id: str, prop_label: str, value: str,
     return add_result
 
 
-def test_xlsx_columns(t_col_names: dict, expected: list) -> tuple:
-    """
-    funkcja weryfikuje czy XLSX zawiera oczekiwane kolumny
-    """
-    missing_cols = []
-    res = True
-    for col in expected:
-        if not col in t_col_names:
-            missing_cols.append(col)
-            res = False
-
-    return res, ",".join(missing_cols)
-
-
-def get_col_names(sheet) -> dict:
-    """ funkcja zwraca słownik nazw kolumn
-    """
-    names = {}
-    nr_col = 0
-    for column in sheet.iter_cols(1, sheet.max_column):
-        names[column[0].value] = nr_col
-        nr_col += 1
-
-    return names
-
-
-def correct_type(t_datatype: str) -> str:
-    """
-    Funkcja ewentualnie koryguje typ właściwości na właściwy, zgodny z oczekiwanym
-    przez Wikibase
-    """
-    if t_datatype is not None:
-        if t_datatype == 'item':
-            t_datatype = 'wikibase-item'
-        elif t_datatype == 'property':
-            t_datatype = 'wikibase-property'
-        elif t_datatype == 'external identifier':
-            t_datatype = 'external-id'
-
-    return t_datatype
-
-
-def get_property_list(sheet) -> list:
-    """ zwraca listę właściwości do dodania
-    """
-    max_row = sheet.max_row
-    p_list = []
-    for row in sheet.iter_rows(2, max_row):
-        basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
-        p_item = {}
-        for col in basic_cols:
-            key = col.lower()
-            p_item[key] = row[col_names[col]].value
-            if p_item[key] is not None:
-                p_item[key] = p_item[key].strip()
-                if key == 'datatype':
-                    p_item[key] = correct_type(p_item[key])
-
-        # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
-        # dane właściwości są dodawane do listy
-        if p_item['label_en'] and p_item['description_en'] and p_item['datatype']:
-            extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
-            for col in extend_cols:
-                key = col.lower()
-                p_item[key] = row[col_names[col]].value
-                if p_item[key] is not None:
-                    p_item[key] = p_item[key].strip()
-
-            p_list.append(p_item)
-
-    return p_list
-
-
-def get_statement_list(sheet) -> list:
-    """ zwraca listę deklaracji do dodania
-    """
-    max_row = sheet.max_row
-    s_list = []
-    for row in sheet.iter_rows(2, max_row):
-        basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
-        s_item = {}
-        for col in basic_cols:
-            key = col.lower()
-            s_item[key] = row[col_names[col]].value
-            if s_item[key] is not None:
-                s_item[key] = s_item[key].strip()
-
-        # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
-        # dane deklaracji są dodawane do listy
-        if s_item['label_en'] and s_item['p'] and s_item['value']:
-            s_list.append(s_item)
-
-    return s_list
-
-
 def get_property_type(p_id: str) -> str:
     """ Funkcja zwraca typ właściwości na podstawie jej identyfikatora
     """
@@ -455,50 +517,18 @@ if __name__ == "__main__":
     else:
         filename = Path('.') / 'data/arkusz_import.xlsx'
 
-    try:
-        wb = load_workbook(filename)
-    except IOError:
-        print(f"ERROR. Can't open and process file: {filename}")
-        sys.exit(1)
+    plik_xlsx = WDHSpreadsheet(filename)
+    plik_xlsx.open()
 
-    # czy to jest właściwy plik? cz. 1
-    SHEETS = ['P_list', 'P_statments']
-    for item in SHEETS:
-        if not item in wb.sheetnames:
-            print(f"ERROR. Expected worksheet '{item}' is missing in the file.")
-            sys.exit(1)
-
-    ws = wb[SHEETS[0]]
-
-    # słownik kolumn w arkuszu
-    col_names = get_col_names(ws)
-
-    # czy to właściwa struktura skoroszytu arkusza xmlx?
-    exp_col_names = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
-    result, info = test_xlsx_columns(col_names, exp_col_names)
-    if not result:
-        print(f'ERROR. The expected columns ({info}) are missing.')
-        sys.exit(1)
-
-    dane = get_property_list(ws)
+    # właściwośći
+    dane = plik_xlsx.get_property_list()
     for wb_property in dane:
         result, info = add_property(wb_property)
         if result:
             print(f'Property {info}')
 
-    ws = wb[SHEETS[1]]
-
-    # słownik kolumn w arkuszu
-    col_names = get_col_names(ws)
-
-    # czy to właściwa struktura skoroszytu arkusza xmlx?
-    exp_col_names = ['Label_en', 'P', 'value']
-    result, info = test_xlsx_columns(col_names, exp_col_names)
-    if not result:
-        print(f'ERROR. The expected columns ({info}) are missing.')
-        sys.exit(1)
-
-    dane = get_statement_list(ws)
+    # dodatkowe deklaracje
+    dane = plik_xlsx.get_statement_list()
     for stm in dane:
         result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'],
                                               stm['reference_property'], stm['reference_value'])
