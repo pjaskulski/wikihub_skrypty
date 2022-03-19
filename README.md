@@ -5,7 +5,11 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
 
-W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).    
+W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).  
+
+Celem prac nad tym skryptem nie jest stworzenie skomplikowanego systemu do zarządzania Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
+
+### Opis działania
 
 Skrypt odczytuje zawartość pliku XLSX wskazanego jako parametr z linii komend np.:
 ```
