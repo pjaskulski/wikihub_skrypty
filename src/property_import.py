@@ -316,6 +316,10 @@ class WDHProperty:
         else:
             self._inverse_property = ''
 
+    def write_to_wikibase(self):
+        """ zapis właściwości w instancji wikibase """
+        pass
+
 
 class WDHStatement:
     """ Klasa dla deklaracji (statement)
@@ -393,6 +397,10 @@ class WDHStatement:
             self._reference_value = value.strip()
         else:
             self._reference_property = ''
+
+    def write_to_wikibase(self):
+        """ zapis deklaracji w instancji wikibase """
+        pass
 
 
 def add_property(p_dane: WDHProperty) -> tuple:
