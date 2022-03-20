@@ -158,21 +158,30 @@ class WDHSpreadsheet:
         return p_list
 
     def get_statement_list(self) -> list:
-        """ zwraca listę deklaracji do dodania
+        """ zwraca listę obiektów deklaracji do dodania
         """
         s_list = []
         for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
             basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
-            s_item = {}
+            s_item = WDHStatement()
             for col in basic_cols:
                 key = col.lower()
-                s_item[key] = row[self.statement_columns[col]].value
-                if s_item[key] is not None:
-                    s_item[key] = s_item[key].strip()
+                col_value = row[self.statement_columns[col]].value
+
+                if key == 'label_en':
+                    s_item.label_en = col_value
+                elif key == 'p':
+                    s_item.statement_property = col_value
+                elif key == 'value':
+                    s_item.statement_value = col_value
+                elif key == 'reference_property':
+                    s_item.reference_property = col_value
+                elif key == 'reference_value':
+                    s_item.reference_value = col_value
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
-            if s_item['label_en'] and s_item['p'] and s_item['value']:
+            if s_item.label_en and s_item.statement_property and s_item.statement_value:
                 s_list.append(s_item)
 
         return s_list
@@ -194,12 +203,67 @@ class WDHProperty:
 class WDHStatement:
     """ Deklaracja (statement)
     """
-    def __init__(self, label_en: str, prop: str, value: str):
-        self.label_en = label_en
-        self.statement_property = prop
-        self.statement_value = value
-        self.reference_property = ''
-        self.reference_value = ''
+    def __init__(self, label_en: str = '', prop: str = '', value: str = ''):
+        self._label_en = label_en
+        self._statement_property = prop
+        self._statement_value = value
+        self._reference_property = ''
+        self._reference_value = ''
+
+    def get_label_en(self) -> str:
+        """ getter: label_en """
+        return self._label_en
+
+    def set_label_en(self, label: str):
+        """ setter: label_en """
+        if label:
+            self._label_en = label.strip()
+
+    label_en = property(fget=get_label_en, fset=set_label_en)
+
+    def get_statement_property(self):
+        """ gettet: statement_property """
+        return self._statement_property
+
+    def set_statement_property(self, value: str):
+        """ setter: statement_property"""
+        if value:
+            self._statement_property = value.strip()
+
+    statement_property = property(fget=get_statement_property, fset=set_statement_property)
+
+    def get_statement_value(self):
+        """ gettet: statement_value """
+        return self._statement_value
+
+    def set_statement_value(self, value: str):
+        """ setter: statement_value"""
+        if value:
+            self._statement_value = value.strip()
+
+    statement_value = property(fget=get_statement_value, fset=set_statement_value)
+
+    def get_reference_property(self):
+        """ gettet: reference_property """
+        return self._reference_property
+
+    def set_reference_property(self, value: str):
+        """ setter: reference_property"""
+        if value:
+            self._reference_property = value.strip()
+
+    reference_property = property(fget=get_reference_property, fset=set_reference_property)
+
+    def get_reference_value(self):
+        """ gettet: reference_value """
+        return self._reference_value
+
+    def set_reference_value(self, value: str):
+        """ setter: reference_value"""
+        if value:
+            self._reference_value = value.strip()
+
+    reference_value = property(fget=get_reference_value, fset=set_reference_value)
 
 
 def add_property(p_dane: dict) -> tuple:
@@ -274,7 +338,8 @@ def add_property(p_dane: dict) -> tuple:
         # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy
         # dodać odwrotność: nową właściwość jako jej inverse_property
         if inverse_dane:
-            add_res, add_info = add_property_statement(inv_pid, wikibase_prop.inverse, p_new_id)
+            inv_statement = WDHStatement(inv_pid, wikibase_prop.inverse, p_new_id)
+            add_res, add_info = add_property_statement(inv_statement)
             if not add_res:
                 print(f'{add_info}')
 
@@ -418,48 +483,46 @@ def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) 
     return output_data
 
 
-def add_property_statement(p_id: str, prop_label: str, value: str,
-                           reference_type: str = '', reference_value: str = '' ) -> tuple:
+def add_property_statement(s_item: WDHStatement) -> tuple:
     """
     Funkcja dodaje deklaracje (statement) do właściwości
     Parametry:
-        p_id - etykieta właściwości lub jej P, do której jest dodawana deklaracja
-        prop_label - etykieta właściwości
-        value - dodawana wartość
+        s_item - obiekt z deklaracją
     """
-    is_ok, p_id = find_name_qid(p_id, 'property')
+    is_ok, p_id = find_name_qid(s_item.label_en, 'property')
     if not is_ok:
         return (False, p_id)
 
-    is_ok, prop_id = find_name_qid(prop_label, 'property')
+    is_ok, prop_id = find_name_qid(s_item.statement_property, 'property')
     if not is_ok:
         return (False, prop_id)
 
     prop_type = get_property_type(prop_id)
     if prop_type == 'wikibase-item':
-        is_ok, value_id = find_name_qid(value, 'item')
+        is_ok, value_id = find_name_qid(s_item.statement_value, 'item')
         if not is_ok:
             return (False, value_id)
 
     if prop_type == 'wikibase-property':
-        is_ok, value_id = find_name_qid(value, 'property')
+        is_ok, value_id = find_name_qid(s_item.statement_value, 'property')
         if not is_ok:
             return (False, value_id)
 
     if has_statement(p_id, prop_id):
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
-    st_data = create_statement_data(prop_label, value, reference_type, reference_value)
+    st_data = create_statement_data(s_item.statement_property, s_item.statement_value, 
+                                    s_item.set_reference_property, s_item.reference_value)
     if st_data:
         try:
             data =[st_data]
             wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
             wd_statement.write(login_instance, entity_type='property')
-            add_result = (True, f'STATEMENT ADDED, {p_id}: - {prop_id} -> {value}')
+            add_result = (True, f'STATEMENT ADDED, {p_id}: {prop_id} -> {s_item.statement_value}')
         except (MWApiError, KeyError, ValueError):
-            add_result = (False, f'ERROR, {p_id}: - {prop_id} -> {value}')
+            add_result = (False, f'ERROR, {p_id}: {prop_id} -> {s_item.statement_value}')
     else:
-        add_result = (False, f'INVALID DATA, {p_id}: - {prop_id} -> {value}')
+        add_result = (False, f'INVALID DATA, {p_id}: {prop_id} -> {s_item.statement_value}')
 
     return add_result
 
@@ -530,6 +593,5 @@ if __name__ == "__main__":
     # dodatkowe deklaracje
     dane = plik_xlsx.get_statement_list()
     for stm in dane:
-        result, info = add_property_statement(stm['label_en'], stm['p'], stm['value'],
-                                              stm['reference_property'], stm['reference_value'])
+        result, info = add_property_statement(stm)
         print(f'{info}')
