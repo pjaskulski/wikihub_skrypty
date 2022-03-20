@@ -58,6 +58,16 @@ class WDHSpreadsheet:
         self.property_columns = []
         self.statement_columns = []
 
+    @property
+    def path(self) -> str:
+        """ get path """
+        return self._path
+
+    @path.setter
+    def path(self, value: str):
+        """ set path """
+        self._path = value
+
     def open(self):
         """ odczyt pliku i weryfikacja poprawności """
         try:
@@ -127,31 +137,39 @@ class WDHSpreadsheet:
 
         return t_datatype
 
-
     def get_property_list(self) -> list:
-        """ zwraca listę właściwości do dodania
+        """ zwraca listę właściwości (w formie obiektów WDHProperty) do dodania
         """
         p_list = []
         for row in self.p_list.iter_rows(2, self.p_list.max_row):
             basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
             p_item = {}
+            p_item = WDHProperty()
             for col in basic_cols:
                 key = col.lower()
-                p_item[key] = row[self.property_columns[col]].value
-                if p_item[key] is not None:
-                    p_item[key] = p_item[key].strip()
-                    if key == 'datatype':
-                        p_item[key] = self.correct_type(p_item[key])
+                col_value = row[self.property_columns[col]].value
+                if key == 'label_en':
+                    p_item.label_en = col_value
+                elif key == 'description_en':
+                    p_item.description_en = col_value
+                elif key == 'datatype':
+                    p_item.datatype = col_value
+                elif key == 'label_pl':
+                    p_item.label_pl = col_value
 
             # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
             # dane właściwości są dodawane do listy
-            if p_item['label_en'] and p_item['description_en'] and p_item['datatype']:
+            if p_item.label_en and p_item.description_en and p_item.datatype and p_item.label_pl:
                 extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
                 for col in extend_cols:
                     key = col.lower()
-                    p_item[key] = row[self.property_columns[col]].value
-                    if p_item[key] is not None:
-                        p_item[key] = p_item[key].strip()
+                    col_value = row[self.property_columns[col]].value
+                    if key == 'description_pl':
+                        p_item.description_pl = col_value
+                    elif key == 'wiki_id':
+                        p_item.wiki_id = col_value
+                    elif key == 'inverse_property':
+                        p_item.inverse_property = col_value
 
                 p_list.append(p_item)
 
@@ -188,21 +206,119 @@ class WDHSpreadsheet:
 
 
 class WDHProperty:
-    """ Właściwość (property)
+    """ Klasa dla właściwości (property)
     """
     def __init__(self, label_en: str = '', description_en: str = '', datatype: str = '',
-                 label_pl: str = ''):
+                 label_pl: str = '', description_pl: str = '', wiki_id: str = '',
+                 inverse_property: str = ''):
         self.label_en = label_en
         self.description_en = description_en
         self.datatype = datatype
         self.label_pl = label_pl
-        self.description_pl = ''
-        self.wiki_id = ''
-        self.inverse_property = ''
+        self.description_pl = description_pl
+        self.wiki_id = wiki_id
+        self.inverse_property = inverse_property
+
+    @property
+    def label_en(self) -> str:
+        """ get label_en """
+        return self._label_en
+
+    @label_en.setter
+    def label_en(self, value: str):
+        """ set label_en """
+        if value:
+            self._label_en = value.strip()
+        else:
+            self._label_en = ''
+
+    @property
+    def description_en(self) -> str:
+        """ get description_en """
+        return self._description_en
+
+    @description_en.setter
+    def description_en(self, value: str):
+        """ set description_en """
+        if value:
+            self._description_en = value.strip()
+        else:
+            self._description_en = ''
+
+    @property
+    def datatype(self) -> str:
+        """ get datatype """
+        return self._datatype
+
+    @datatype.setter
+    def datatype(self, value: str):
+        """ set datatype """
+        if value:
+            if value == 'item':
+                value = 'wikibase-item'
+            elif value == 'property':
+                value = 'wikibase-property'
+            elif value == 'external identifier':
+                value = 'external-id'
+            self._datatype = value.strip()
+        else:
+            self._datatype = ''
+
+    @property
+    def label_pl(self) -> str:
+        """ get label_pl """
+        return self._label_pl
+
+    @label_pl.setter
+    def label_pl(self, value: str):
+        """ set label_pl """
+        if value:
+            self._label_pl = value.strip()
+        else:
+            self._label_pl = ''
+
+    @property
+    def description_pl(self) -> str:
+        """ get description_pl """
+        return self._description_pl
+
+    @description_pl.setter
+    def description_pl(self, value: str):
+        """ set description_pl """
+        if value:
+            self._description_pl = value.strip()
+        else:
+            self._description_pl = ''
+
+    @property
+    def wiki_id(self) -> str:
+        """ get wiki_id """
+        return self._wiki_id
+
+    @wiki_id.setter
+    def wiki_id(self, value: str):
+        """ set wiki_id """
+        if value:
+            self._wiki_id = value.strip()
+        else:
+            self._wiki_id = ''
+
+    @property
+    def inverse_property(self) -> str:
+        """ get inverse_property """
+        return self._inverse_property
+
+    @inverse_property.setter
+    def inverse_property(self, value: str):
+        """ set inverse_property """
+        if value:
+            self._inverse_property = value.strip()
+        else:
+            self._inverse_property = ''
 
 
 class WDHStatement:
-    """ Deklaracja (statement)
+    """ Klasa dla deklaracji (statement)
     """
     def __init__(self, label_en: str = '', statement_property: str = '',
                  statement_value: str = '', reference_property: str = '',
@@ -223,6 +339,8 @@ class WDHStatement:
         """ setter: label_en """
         if value:
             self._label_en = value.strip()
+        else:
+            self._label_en = ''
 
     @property
     def statement_property(self) -> str:
@@ -234,6 +352,8 @@ class WDHStatement:
         """ set statement_property"""
         if value:
             self._statement_property = value.strip()
+        else:
+            self._statement_property = ''
 
     @property
     def statement_value(self):
@@ -245,6 +365,8 @@ class WDHStatement:
         """ set statement_value"""
         if value:
             self._statement_value = value.strip()
+        else:
+            self._statement_value = ''
 
     @property
     def reference_property(self):
@@ -256,6 +378,8 @@ class WDHStatement:
         """ set reference_property"""
         if value:
             self._reference_property = value.strip()
+        else:
+            self._reference_property = ''
 
     @property
     def reference_value(self):
@@ -267,18 +391,20 @@ class WDHStatement:
         """ setter: reference_value"""
         if value:
             self._reference_value = value.strip()
+        else:
+            self._reference_property = ''
 
 
-def add_property(p_dane: dict) -> tuple:
+def add_property(p_dane: WDHProperty) -> tuple:
     """
     funkcja dodaje nową właściwość
     zwraca tuple: (True/False, ID/ERROR)
     """
 
     # test czy właściwość już nie istnieje
-    search_property, search_id = element_search(p_dane['label_en'], 'property', 'en')
+    search_property, search_id = element_search(p_dane.label_en, 'property', 'en')
     if search_property:
-        print(f"Property: '{p_dane['label_en']}' already exists: {search_id}, update mode.")
+        print(f"Property: '{p_dane.label_en}' already exists: {search_id}, update mode.")
         wd_item = wbi_core.ItemEngine(item_id=search_id)
         mode = 'updated: '
     else:
@@ -286,41 +412,41 @@ def add_property(p_dane: dict) -> tuple:
         mode = 'added: '
 
     # etykiety i opisy
-    wd_item.set_label(p_dane['label_en'], lang='en')
-    wd_item.set_description(p_dane['description_en'], lang='en')
-    if p_dane['label_pl']:
-        wd_item.set_label(p_dane['label_pl'],lang='pl')
-    if p_dane['description_pl']:
-        wd_item.set_description(p_dane['description_pl'], lang='pl')
+    wd_item.set_label(p_dane.label_en, lang='en')
+    wd_item.set_description(p_dane.description_en, lang='en')
+    if p_dane.label_pl:
+        wd_item.set_label(p_dane.label_pl,lang='pl')
+    if p_dane.description_pl:
+        wd_item.set_description(p_dane.description_pl, lang='pl')
 
     # Wikidata ID i Wikidata URL
     wiki_dane = None
-    if p_dane['wiki_id']:
+    if p_dane.wiki_id:
         if wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == '':
             wikibase_prop.get_wiki_properties()
 
-        url = f"https://www.wikidata.org/wiki/Property:{p_dane['wiki_id']}"
+        url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
         references = [
             [
                 wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
             ]
         ]
-        wiki_dane = wbi_datatype.ExternalID(value=p_dane['wiki_id'], prop_nr=wikibase_prop.wiki_id,
+        wiki_dane = wbi_datatype.ExternalID(value=p_dane.wiki_id, prop_nr=wikibase_prop.wiki_id,
             references=references)
 
     # odwrotność właściwości
     inverse_dane = None
-    if p_dane['inverse_property']:
+    if p_dane.inverse_property:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
-        search_inverse, inv_pid = element_search(p_dane['inverse_property'], 'property', 'en')
+        search_inverse, inv_pid = element_search(p_dane.inverse_property, 'property', 'en')
         if search_inverse and wikibase_prop.inverse != '':
             inverse_dane = wbi_datatype.Property(value=inv_pid, prop_nr=wikibase_prop.inverse)
 
     # typy danych dla property: 'string', 'wikibase-item', 'wikibase-property',
     # 'monolingualtext', 'external-id', 'quantity', 'time', 'geo-shape', 'url',
     # 'globe-coordinate'
-    options = {'property_datatype':p_dane['datatype']}
+    options = {'property_datatype':p_dane.datatype}
 
     try:
         p_new_id = wd_item.write(login_instance, entity_type='property', **options)
