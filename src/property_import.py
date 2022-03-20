@@ -190,7 +190,8 @@ class WDHSpreadsheet:
 class WDHProperty:
     """ Właściwość (property)
     """
-    def __init__(self, label_en: str, description_en: str, datatype: str, label_pl: str):
+    def __init__(self, label_en: str = '', description_en: str = '', datatype: str = '',
+                 label_pl: str = ''):
         self.label_en = label_en
         self.description_en = description_en
         self.datatype = datatype
@@ -203,67 +204,69 @@ class WDHProperty:
 class WDHStatement:
     """ Deklaracja (statement)
     """
-    def __init__(self, label_en: str = '', prop: str = '', value: str = ''):
-        self._label_en = label_en
-        self._statement_property = prop
-        self._statement_value = value
-        self._reference_property = ''
-        self._reference_value = ''
+    def __init__(self, label_en: str = '', statement_property: str = '',
+                 statement_value: str = '', reference_property: str = '',
+                 reference_value: str = ''):
+        self.label_en = label_en
+        self.statement_property = statement_property
+        self.statement_value = statement_value
+        self.reference_property = reference_property
+        self.reference_value = reference_value
 
-    def get_label_en(self) -> str:
+    @property
+    def label_en(self) -> str:
         """ getter: label_en """
         return self._label_en
 
-    def set_label_en(self, label: str):
+    @label_en.setter
+    def label_en(self, value: str):
         """ setter: label_en """
-        if label:
-            self._label_en = label.strip()
+        if value:
+            self._label_en = value.strip()
 
-    label_en = property(fget=get_label_en, fset=set_label_en)
-
-    def get_statement_property(self):
-        """ gettet: statement_property """
+    @property
+    def statement_property(self) -> str:
+        """ get statement_property """
         return self._statement_property
 
-    def set_statement_property(self, value: str):
-        """ setter: statement_property"""
+    @statement_property.setter
+    def statement_property(self, value: str):
+        """ set statement_property"""
         if value:
             self._statement_property = value.strip()
 
-    statement_property = property(fget=get_statement_property, fset=set_statement_property)
-
-    def get_statement_value(self):
-        """ gettet: statement_value """
+    @property
+    def statement_value(self):
+        """ get statement_value """
         return self._statement_value
 
-    def set_statement_value(self, value: str):
-        """ setter: statement_value"""
+    @statement_value.setter
+    def statement_value(self, value: str):
+        """ set statement_value"""
         if value:
             self._statement_value = value.strip()
 
-    statement_value = property(fget=get_statement_value, fset=set_statement_value)
-
-    def get_reference_property(self):
-        """ gettet: reference_property """
+    @property
+    def reference_property(self):
+        """ get reference_property """
         return self._reference_property
 
-    def set_reference_property(self, value: str):
-        """ setter: reference_property"""
+    @reference_property.setter
+    def reference_property(self, value: str):
+        """ set reference_property"""
         if value:
             self._reference_property = value.strip()
 
-    reference_property = property(fget=get_reference_property, fset=set_reference_property)
-
-    def get_reference_value(self):
+    @property
+    def reference_value(self):
         """ gettet: reference_value """
         return self._reference_value
 
-    def set_reference_value(self, value: str):
+    @reference_value.setter
+    def reference_value(self, value: str):
         """ setter: reference_value"""
         if value:
             self._reference_value = value.strip()
-
-    reference_value = property(fget=get_reference_value, fset=set_reference_value)
 
 
 def add_property(p_dane: dict) -> tuple:
