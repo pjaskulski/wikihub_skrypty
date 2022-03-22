@@ -2,6 +2,8 @@
 
 import sys
 import re
+import pickle
+import os
 from pathlib import Path
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -79,7 +81,18 @@ def text_clear(value: str) -> str:
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     output = Path('.').parent / 'out/biogramy.qs'
+    psb_pickle = Path('.').parent / 'out/psb.pickle'
+    autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
 
+    # odmrażanie słowników 
+    if os.path.isfile(psb_pickle):
+        with open(psb_pickle, 'rb') as handle:
+            PSB = pickle.load(handle)
+    
+    if os.path.isfile(autorzy_pickle):
+        with open(autorzy_pickle, 'rb') as handle:
+            AUTORZY = pickle.load(handle)    
+    
     with open(file_path, "r", encoding='utf-8') as f:
         indeks = f.readlines()
 
@@ -129,6 +142,8 @@ if __name__ == "__main__":
             # autor, autorzy
             for t_autor in l_autor:
                 if "na podstawie" in t_autor or "Wojewódzka Żydowska" in t_autor:
+                    o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"Red."\n')
+                elif "Wojewódzka Żydowska" in t_autor:
                     o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"{t_autor}"\n')
                 else:
                     if t_autor in AUTORZY:
@@ -140,13 +155,13 @@ if __name__ == "__main__":
                             AUTORZY[t_autor] = autor_qid
 
                     if ok:
-                        o.write(f'LAST\t{P_WRITTEN_BY}\t"{autor_qid}"\n')
+                        o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')
                     else:
                         t_autor = "{Q:" + t_autor + "}"
-                        o.write(f'LAST\t{P_WRITTEN_BY}\t"{t_autor}"\n')
+                        o.write(f'LAST\t{P_WRITTEN_BY}\t{t_autor}\n')
 
             #tytuł
-            o.write(f'LAST\t{P_TITLE}\t"{title}"\n')
+            o.write(f'LAST\t{P_TITLE}\tpl:"{title}"\n')
 
             # opublikowano w
             if tom in PSB:
@@ -158,8 +173,16 @@ if __name__ == "__main__":
                     PSB[tom] = tom_qid
 
             if ok:
-                o.write(f'LAST\t{P_PUBLISHED_IN}\t"{tom_qid}"\n')
+                o.write(f'LAST\t{P_PUBLISHED_IN}\t{tom_qid}\n')
             else:
                 print(f"ERROR: tom PSB {tom}, {tom_qid}")
             # nr stron
             o.write(f'LAST\t{P_PAGE}\t"{nr_strony}"\n')
+
+    # zamrażanie słowników 
+    with open(psb_pickle, 'wb') as handle:
+        pickle.dump(PSB, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    with open(autorzy_pickle, 'wb') as handle:
+        pickle.dump(AUTORZY, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    

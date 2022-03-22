@@ -3,12 +3,17 @@
 import sys
 from pathlib import Path
 from openpyxl import load_workbook
+import requests
+from urllib.parse import quote
+from time import sleep
 
 
 P_INSTANCE_OF = 'P47'
 Q_HUMAN = 'Q32'
 P_IMIE = 'P3'
 P_NAZWISKO = 'P4'
+P_VIAF = 'P79'
+P_REFERENCE_URL = 'S182'
 
 class Autor:
     """" klasa Autor """
@@ -19,7 +24,9 @@ class Autor:
         self.etykieta = p_etykieta.strip()
         self._alias = alias
         self.imie = p_imie.strip()
-        self. nazwisko = p_nazwisko.strip()
+        self.nazwisko = p_nazwisko.strip()
+        self.viaf = ''
+        self.viaf_url = ''
 
     @property
     def alias(self):
@@ -36,6 +43,62 @@ class Autor:
             self._alias = lista
         else:
             self._alias = []
+
+
+def viaf_search(name: str) -> tuple:
+    """ szukanie identyfikatora VIAF """
+    info = ""
+    result = False
+    identyfikatory = []  
+    urls = {}
+    id_url = ""
+    base = 'https://viaf.org/viaf/search'
+    format = 'application/json'
+    search_person = quote(f'"{name}"')
+    adres = f'{base}?query=local.personalNames+=+{search_person}&local.sources+=+"plwabn"&sortKeys=holdingscount&httpAccept={format}'
+    
+    # mały odstęp między poszukiwaniami
+    sleep(0.05)
+    
+    try:
+        response = requests.get(adres)
+        result = response.json()
+        if 'records' in result['searchRetrieveResponse']:
+            rekordy = result['searchRetrieveResponse']['records']
+        
+            for rekord in rekordy:
+                id = rekord['record']['recordData']['viafID']
+                if id:
+                    url = rekord['record']['recordData']['Document']['@about']
+                    if type(rekord['record']['recordData']['mainHeadings']['data']) == list:
+                        label = rekord['record']['recordData']['mainHeadings']['data'][0]['text']
+                    elif type(rekord['record']['recordData']['mainHeadings']['data']) == dict:
+                        label = rekord['record']['recordData']['mainHeadings']['data']['text']
+                    
+                    if label:
+                        label = label.replace(",", "")
+                        tmp = name.split(" ")
+                        find_items = True
+                        for item in tmp:
+                            if len(item) > 2 and not item in label:
+                                find_items = False
+                                break
+                        if find_items:
+                            identyfikatory.append(id)
+                            urls[id] = url
+                            break
+
+    except requests.exceptions.RequestException as e: 
+        print(f'Name: {name} ERROR {e}')
+
+    if len(identyfikatory) == 1:
+        result = True
+        info = identyfikatory[0]
+        id_url = urls[info]
+    else:
+        info = f"NOT FOUND"
+
+    return result, info, id_url
 
 
 def change_name_forname(name: str) -> str:
@@ -101,6 +164,16 @@ if __name__ == "__main__":
             if osoba_alias:
                 autor.alias = osoba_alias
 
+            if autor.etykieta:
+                # szukanie VIAF
+                ok, wynik, wynik_url = viaf_search(autor.etykieta)
+                if ok:
+                    autor.viaf = wynik
+                    autor.viaf_url = wynik_url
+                    print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url} ')
+                else: 
+                    print(f'VIAF, {autor.etykieta}, {wynik}, ')
+
             autor_list.append(autor)
 
     with open(output, "w", encoding='utf-8') as f:
@@ -115,3 +188,5 @@ if __name__ == "__main__":
                 for item in autor.alias:
                     f.write(f'LAST\tApl\t"{item}"\n')
                     f.write(f'LAST\tAen\t"{item}"\n')
+            if autor.viaf and autor.viaf_url:
+                f.write(f'LAST\t{P_VIAF}\t"{autor.viaf}"\t{P_REFERENCE_URL}\t{autor.viaf_url}\n')
