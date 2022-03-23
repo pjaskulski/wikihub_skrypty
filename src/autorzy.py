@@ -9,8 +9,6 @@ import requests
 from urllib.parse import quote
 from time import sleep
 
-from biogramy import LOAD_DICT
-
 
 P_INSTANCE_OF = 'P47'
 Q_HUMAN = 'Q32'
@@ -22,6 +20,7 @@ P_REFERENCE_URL = 'S182'
 # słownik na znalezione identyfikatory
 VIAF_ID = {}
 LOAD_DICT = True
+WERYFIKACJA_VIAF = {}
 
 
 class Autor:
@@ -33,6 +32,7 @@ class Autor:
         self.etykieta = p_etykieta.strip()
         self._alias = alias
         self.imie = p_imie.strip()
+        self.imie2 = ''
         self.nazwisko = p_nazwisko.strip()
         self.viaf = ''
         self.viaf_url = ''
@@ -122,6 +122,15 @@ def viaf_search(name: str) -> tuple:
     return result, info, id_url
 
 
+def is_inicial(imie) -> bool:
+    """ sprawdza czy przekazany tekst jest inicjałem imienia """
+    result = False
+    if len(imie) == 2 and imie[0].isupper() and imie.endswith("."):
+        result = True
+
+    return result
+
+
 def change_name_forname(name: str) -> str:
     """ change_name_forname"""
     name_parts = name.split(" ")
@@ -140,7 +149,8 @@ if __name__ == "__main__":
     output = Path('.').parent / 'out/autorzy.qs'
     log_path = Path('.').parent / 'out/autorzy.log'
     autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
-
+    html_path = Path('.').parent / 'out/autorzy_viaf.html'
+    
     # odmrażanie słownika identyfikatorów VIAF
     if LOAD_DICT:
         if os.path.isfile(autorzy_pickle):
@@ -155,14 +165,15 @@ if __name__ == "__main__":
 
     ws = wb['Arkusz1']
 
-    col_names = {'NAZWA WŁAŚCIWA':0, 'NAZWA WARIANTYWNA (znany też jako)':1}
+    col_names = {'NAZWA WŁAŚCIWA':0, 'NAZWA WARIANTYWNA (znany też jako)':1, 'Drugie': 2}
 
     autor_list = []
     with open(log_path, "w", encoding='utf-8') as f_log:
-        max_row = 50
+        max_row = ws.max_row
         for row in ws.iter_rows(2, max_row):
             osoba = row[col_names['NAZWA WŁAŚCIWA']].value
             osoba_alias = row[col_names['NAZWA WARIANTYWNA (znany też jako)']].value
+            osoba_drugie = row[col_names['Drugie']].value
 
             if osoba:
                 autor = Autor()
@@ -178,8 +189,14 @@ if __name__ == "__main__":
                     autor.nazwisko = tmp[0]
                 elif (len(tmp) == 3 and tmp[0][0].isupper() and tmp[1][0].isupper()
                         and tmp[2][0].isupper()):
+                    # zastąpienie inicjału drugim imieniem
+                    if len(tmp[2]) == 2 and tmp[2].endswith('.') and osoba_drugie:
+                        tmp[2] = osoba_drugie
                     autor.etykieta = tmp[1] + " " + tmp[2] + " " + tmp[0]
                     autor.imie = tmp[1]
+                    # drugie imię
+                    if len(tmp[2]) > 2:
+                        autor.imie2 = tmp[2]
                     autor.nazwisko = tmp[0]
                 elif tmp[0].startswith('d’'):
                     autor.etykieta = tmp[1] + " " + tmp[0]
@@ -192,9 +209,18 @@ if __name__ == "__main__":
                 else:
                     print(f'ERROR: {osoba}')
                     f_log.write(f'ERROR: {osoba}\n')
+                
+                if "_" in autor.etykieta:
+                    autor.etykieta = autor.etykieta.replace("_", "-")
+                
+                if "_" in autor.nazwisko:
+                    autor.nazwisko = autor.nazwisko.replace("_", "-")
 
                 if osoba_alias:
                     autor.alias = osoba_alias
+                
+                if "_" in autor.alias:
+                    autor.alias = autor.alias.replace("_", " ")
 
                 if autor.etykieta:
                     # szukanie VIAF
@@ -203,11 +229,14 @@ if __name__ == "__main__":
                         autor.viaf = wynik
                         autor.viaf_url = wynik_url
                         print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url} ')
+                        WERYFIKACJA_VIAF[autor.etykieta] = wynik_url
                     else: 
                         print(f'VIAF, {autor.etykieta}, {wynik}, ')
                         f_log.write(f'VIAF, {autor.etykieta}, {wynik}, \n')
-
-                autor_list.append(autor)
+                
+                # nie tworzymy elementów dla autrów znanych tylko z inicjału imienia
+                if not is_inicial(autor.imie):
+                    autor_list.append(autor)
 
     # zapis Quickstatements w pliku 
     with open(output, "w", encoding='utf-8') as f:
@@ -217,6 +246,8 @@ if __name__ == "__main__":
             f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
             f.write(f'LAST\t{P_IMIE}\t"{autor.imie}"\n')
+            if autor.imie2:
+                f.write(f'LAST\t{P_IMIE}\t"{autor.imie2}"\n')
             f.write(f'LAST\t{P_NAZWISKO}\t"{autor.nazwisko}"\n')
             if autor.alias:
                 for item in autor.alias:
@@ -229,3 +260,20 @@ if __name__ == "__main__":
     if LOAD_DICT:
         with open(autorzy_pickle, 'wb') as handle:
             pickle.dump(VIAF_ID, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # zapis wyszukiwań VIAF w HTML dla łatwiejszej weryfikacji
+    with open(html_path, "w", encoding='utf-8') as h:
+        h.write('<html>\n')
+        h.write('<head>\n')
+        h.write('<meta charset="utf-8">\n')
+        h.write('<title>Weryfikacja VIAF dla autorów biogramów</title>\n')
+        h.write('</head>\n')
+        h.write('<body>\n')
+        h.write('<h2>Weryfikacja VIAF dla autorów biogramów</h2>\n')  
+        h.write('<table>\n')
+        for key in WERYFIKACJA_VIAF:
+            value = WERYFIKACJA_VIAF[key]
+            h.write(f'<tr><td>{key}</td><td><a href="{value}">{value}</td></tr>\n')
+        h.write('</table>\n')
+        h.write('</body>\n')
+        h.write('</html>\n')

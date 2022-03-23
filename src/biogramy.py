@@ -79,6 +79,60 @@ def text_clear(value: str) -> str:
     return value
 
 
+def is_inicial(imie) -> bool:
+    """ sprawdza czy przekazany tekst jest inicjałem imienia """
+    result = False
+    if len(imie) == 2 and imie[0].isupper() and imie.endswith("."):
+        result = True
+
+    return result
+
+
+def ini_only(value: str) -> bool:
+    """ sprawdza czy autor ma tylko inicjał pierwszego imienia """
+    tmp = value.split(" ")
+    
+    return is_inicial(value[0])
+        
+
+def short_names_in_autor(value: str) -> str:
+    """ short names in title """
+    zamiana = {}
+    lista = re.split(';| i ', value)          # podział na autorów, może być wielu
+    for osoba in lista:
+        if "Szturm de Sztrem" in osoba:       # specjalna obsługa najpierw
+            new_osoba = "T. Szturm de Sztrem"
+            zamiana[osoba] = new_osoba
+        elif "Wojewódzka Żydowska" in osoba:  # tu bez żadnych zmian
+            new_osoba = osoba
+            zamiana[osoba] = new_osoba
+        elif "na podstawie" in osoba.lower(): # tu bez żadnych zmian
+            new_osoba = osoba
+            zamiana[osoba] = new_osoba
+        elif "red." in osoba.lower():         # tu bez żadnych zmian
+            new_osoba = osoba
+            zamiana[osoba] = new_osoba
+        else:
+            osoba = osoba.strip()
+            imiona_nazwiska = osoba.split(" ")
+            wynik = []
+            for i in range(0, len(imiona_nazwiska)):
+                if i == len(imiona_nazwiska) - 1:         # jeżeli nazwisko
+                    wynik.append(imiona_nazwiska[i])
+                elif not is_inicial(imiona_nazwiska[i]):  # jeżeli imię
+                    wynik.append(imiona_nazwiska[i][0] + ".") 
+                else:
+                    wynik.append(imiona_nazwiska[i])      # jeżeli inicjał
+            
+            new_osoba = ' '.join(wynik)
+            zamiana[osoba] = new_osoba
+
+    for key in zamiana:
+        value = value.replace(key, zamiana[key])
+
+    return value
+
+
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     output = Path('.').parent / 'out/biogramy.qs'
@@ -111,6 +165,7 @@ if __name__ == "__main__":
                 print(f'ERROR: {l_nawias}')
                 sys.exit(1)
             autor = text_clear(l_nawias[0])
+            autor_in_title = short_names_in_autor(autor)
             tom = text_clear(l_nawias[1])
             tom = tom.replace("t.","").strip()
             rok = text_clear(l_nawias[2])
@@ -135,8 +190,8 @@ if __name__ == "__main__":
             o.write('CREATE\n')
 
             # etykiety
-            o.write(f'LAST\tLpl\t"{autor}, {title}, w: PSB {tom}, {strony}"\n')
-            o.write(f'LAST\tLen\t"{autor}, {title}, in: PSB {tom}, {strony_ang}"\n')
+            o.write(f'LAST\tLpl\t"{autor_in_title}, {title}, w: PSB {tom}, {strony}"\n')
+            o.write(f'LAST\tLen\t"{autor_in_title}, {title}, in: PSB {tom}, {strony_ang}"\n')
 
             # jest to
             o.write(f'LAST\t{P_INSTANCE_OF}\t{Q_CHAPTER}\n')
@@ -145,22 +200,27 @@ if __name__ == "__main__":
             for t_autor in l_autor:
                 if "na podstawie" in t_autor or "Wojewódzka Żydowska" in t_autor:
                     o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"Red."\n')
+                elif "red." in t_autor.lower():
+                    o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"Red."\n')
                 elif "Wojewódzka Żydowska" in t_autor:
                     o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"{t_autor}"\n')
+                elif ini_only(t_autor): # jeżeli autor ma tylko inicjał pierwszego imienia
+                    o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"{t_autor}"\n')
                 else:
-                    if t_autor in AUTORZY:
-                        autor_qid = AUTORZY[t_autor]
-                        ok = True
-                    else:
-                        ok, autor_qid = element_search(f"{t_autor}", 'item', 'en')
-                        if ok:
-                            AUTORZY[t_autor] = autor_qid
+                    # UWAGA: na razie bez szukania w wiki, tam jeszcze nie ma autorów
+                    # if t_autor in AUTORZY:
+                    #     autor_qid = AUTORZY[t_autor]
+                    #     ok = True
+                    # else:
+                    #     ok, autor_qid = element_search(f"{t_autor}", 'item', 'en')
+                    #     if ok:
+                    #         AUTORZY[t_autor] = autor_qid
 
-                    if ok:
-                        o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')
-                    else:
-                        t_autor = "{Q:" + t_autor + "}"
-                        o.write(f'LAST\t{P_WRITTEN_BY}\t{t_autor}\n')
+                    # if ok:
+                    #     o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')
+                    # else:
+                    t_autor = "{Q:" + t_autor + "}"
+                    o.write(f'LAST\t{P_WRITTEN_BY}\t{t_autor}\n')
 
             #tytuł
             o.write(f'LAST\t{P_TITLE}\tpl:"{title}"\n')
@@ -188,4 +248,3 @@ if __name__ == "__main__":
         
         with open(autorzy_pickle, 'wb') as handle:
             pickle.dump(AUTORZY, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        
