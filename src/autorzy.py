@@ -16,11 +16,17 @@ P_IMIE = 'P3'
 P_NAZWISKO = 'P4'
 P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
+P_DATE_OF_BIRTH = 'P7'
+P_DATE_OF_DEATH = 'P8'
 
 # słownik na znalezione identyfikatory
 VIAF_ID = {}
-LOAD_DICT = True
+VIAF_BIRTH = {}
+VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
+
+LOAD_DICT = True
+SAVE_DICT = True
 
 
 class Autor:
@@ -36,6 +42,8 @@ class Autor:
         self.nazwisko = p_nazwisko.strip()
         self.viaf = ''
         self.viaf_url = ''
+        self.birth_date = ''
+        self.death_date = ''
 
     @property
     def alias(self):
@@ -60,13 +68,22 @@ def viaf_search(name: str) -> tuple:
     result = False
     id_url = ""
 
+    birthDate = deathDate = ''
+
     # jeżeli identyfikator jest już znany to nie ma potrzeby szukania 
     # przez api
     if name in VIAF_ID:
         result = True
         info = VIAF_ID[name]
-        id_url = f"http://viaf.org/viaf/{info}/"    
-        return result, info, id_url
+        id_url = f"http://viaf.org/viaf/{info}/"
+
+        if name in VIAF_BIRTH:
+            birthDate = VIAF_BIRTH[name]
+        
+        if name in VIAF_DEATH:
+            deathDate = VIAF_DEATH[name]
+
+        return result, info, id_url, birthDate, deathDate
 
     identyfikatory = []  
     urls = {}
@@ -77,7 +94,7 @@ def viaf_search(name: str) -> tuple:
     
     # mały odstęp między poszukiwaniami
     sleep(0.05)
-    
+
     try:
         response = requests.get(adres)
         result = response.json()
@@ -104,7 +121,18 @@ def viaf_search(name: str) -> tuple:
                         if find_items:
                             identyfikatory.append(id)
                             urls[id] = url
+                            if 'birthDate' in rekord['record']['recordData']:
+                                birthDate = rekord['record']['recordData']['birthDate']
+        
+                            if 'deathDate' in rekord['record']['recordData']:
+                                deathDate = rekord['record']['recordData']['deathDate']
                             VIAF_ID[name] = id  # zapis identyfikatora w słowniku
+                            
+                            if birthDate:
+                                VIAF_BIRTH[name] = birthDate
+                            if deathDate:
+                                VIAF_DEATH[name] = deathDate
+
                             break
 
     except requests.exceptions.RequestException as e: 
@@ -119,7 +147,7 @@ def viaf_search(name: str) -> tuple:
         info = f"NOT FOUND"
         id_url = ""
 
-    return result, info, id_url
+    return result, info, id_url, birthDate, deathDate
 
 
 def is_inicial(imie) -> bool:
@@ -144,11 +172,26 @@ def change_name_forname(name: str) -> str:
     return result_name
 
 
+def format_date(value: str) -> str:
+    """ formatuje datę na sposób oczekiwany przez QuickStatements 
+        +1839-00-00T00:00:00Z/9
+    """
+    result = ''
+    if len(value) == 4:
+        result = f"+{value}-00-00T00:00:00Z/9"
+    elif len(value) == 10:
+        result = f"+{value}T00:00:00Z/11"
+    
+    return result
+
+
 if __name__ == "__main__":
     xlsx_path = Path('.').parent / 'data/autorzy.xlsx'
     output = Path('.').parent / 'out/autorzy.qs'
-    log_path = Path('.').parent / 'out/autorzy.log'
+    log_path = Path('.').parent / 'out/autorzy_brak.log'
     autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
+    birth_pickle = Path('.').parent / 'out/birth.pickle'
+    death_pickle = Path('.').parent / 'out/death.pickle' 
     html_path = Path('.').parent / 'out/autorzy_viaf.html'
     
     # odmrażanie słownika identyfikatorów VIAF
@@ -156,6 +199,12 @@ if __name__ == "__main__":
         if os.path.isfile(autorzy_pickle):
             with open(autorzy_pickle, 'rb') as handle:
                 VIAF_ID = pickle.load(handle)
+        if os.path.isfile(birth_pickle):
+            with open(birth_pickle, 'rb') as handle:
+                VIAF_BIRTH = pickle.load(handle)
+        if os.path.isfile(death_pickle):
+            with open(death_pickle, 'rb') as handle:
+                VIAF_DEATH = pickle.load(handle)
 
     try:
         wb = load_workbook(xlsx_path)
@@ -170,6 +219,7 @@ if __name__ == "__main__":
     autor_list = []
     with open(log_path, "w", encoding='utf-8') as f_log:
         max_row = ws.max_row
+        #max_row = 50
         for row in ws.iter_rows(2, max_row):
             osoba = row[col_names['NAZWA WŁAŚCIWA']].value
             osoba_alias = row[col_names['NAZWA WARIANTYWNA (znany też jako)']].value
@@ -224,26 +274,56 @@ if __name__ == "__main__":
 
                 if autor.etykieta:
                     # szukanie VIAF
-                    ok, wynik, wynik_url = viaf_search(autor.etykieta)
+                    ok, wynik, wynik_url, birth_d, death_d = viaf_search(autor.etykieta)
                     if ok:
                         autor.viaf = wynik
                         autor.viaf_url = wynik_url
-                        print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url} ')
+                        autor.birth_date = birth_d
+                        autor.death_date = death_d
+                        print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url}, {birth_d}, {death_d} ')
                         WERYFIKACJA_VIAF[autor.etykieta] = wynik_url
                     else: 
-                        print(f'VIAF, {autor.etykieta}, {wynik}, ')
-                        f_log.write(f'VIAF, {autor.etykieta}, {wynik}, \n')
+                        print(f'VIAF, {autor.etykieta}, {wynik}')
+                        f_log.write(f'VIAF, {autor.etykieta}, {wynik}\n')
                 
-                # nie tworzymy elementów dla autrów znanych tylko z inicjału imienia
+                # nie tworzymy elementów dla autorów znanych tylko z inicjału imienia
                 if not is_inicial(autor.imie):
                     autor_list.append(autor)
 
     # zapis Quickstatements w pliku 
     with open(output, "w", encoding='utf-8') as f:
         for autor in autor_list:
+            tmp_data_b = tmp_data_d = ''
+            if autor.birth_date:
+                if len(autor.birth_date) == 4:
+                    tmp_data_b = autor.birth_date
+                elif len(autor.birth_date) == 10:
+                    tmp_data_b = autor.birth_date[:4]
+            
+            if autor.death_date:
+                if len(autor.death_date) == 4:
+                    tmp_data_d = autor.death_date
+                elif len(autor.death_date) == 10:
+                    tmp_data_d = autor.death_date[:4]
+            
+            if tmp_data_b and tmp_data_d:
+                do_etykiety = f"({tmp_data_b}-{tmp_data_d})"
+            elif tmp_data_b:
+                do_etykiety = f"({tmp_data_b}- )"
+            elif tmp_data_d:
+                do_etykiety = f"( -{tmp_data_d})"
+            else:
+                do_etykiety = ''
+            
             f.write('CREATE\n')
-            f.write(f'LAST\tLpl\t"{autor.etykieta}"\n')
-            f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
+
+            if do_etykiety:
+                f.write(f'LAST\tLpl\t"{autor.etykieta} {do_etykiety}"\n')
+                f.write(f'LAST\tLen\t"{autor.etykieta} {do_etykiety}"\n')
+            else:
+                f.write(f'LAST\tLpl\t"{autor.etykieta}"\n')
+                f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
+
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
             f.write(f'LAST\t{P_IMIE}\t"{autor.imie}"\n')
             if autor.imie2:
@@ -253,13 +333,25 @@ if __name__ == "__main__":
                 for item in autor.alias:
                     f.write(f'LAST\tApl\t"{item}"\n')
                     f.write(f'LAST\tAen\t"{item}"\n')
+            if autor.birth_date:
+                birth_date = format_date(autor.birth_date)
+                if birth_date:
+                    f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{birth_date}\n')
+            if autor.death_date:
+                death_date = format_date(autor.death_date)
+                if death_date:
+                    f.write(f'LAST\t{P_DATE_OF_DEATH}\t{death_date}\n')
             if autor.viaf and autor.viaf_url:
                 f.write(f'LAST\t{P_VIAF}\t"{autor.viaf}"\t{P_REFERENCE_URL}\t"{autor.viaf_url}"\n')
 
     # zamrażanie słownika identyfikatów VIAF_ID 
-    if LOAD_DICT:
+    if SAVE_DICT:
         with open(autorzy_pickle, 'wb') as handle:
             pickle.dump(VIAF_ID, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(birth_pickle, 'wb') as handle:
+            pickle.dump(VIAF_BIRTH, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(death_pickle, 'wb') as handle:
+            pickle.dump(VIAF_DEATH, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # zapis wyszukiwań VIAF w HTML dla łatwiejszej weryfikacji
     with open(html_path, "w", encoding='utf-8') as h:

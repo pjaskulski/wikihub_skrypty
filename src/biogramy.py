@@ -26,7 +26,9 @@ P_TITLE = 'P106'
 
 PSB = {}
 AUTORZY = {}
+
 LOAD_DICT = True
+SAVE_DICT = True
 
 
 def element_search(search_string: str, element_type: str, lang: str) -> tuple:
@@ -242,7 +244,7 @@ if __name__ == "__main__":
             o.write(f'LAST\t{P_PAGE}\t"{nr_strony}"\n')
 
     # zamrażanie słowników 
-    if LOAD_DICT:
+    if SAVE_DICT:
         with open(psb_pickle, 'wb') as handle:
             pickle.dump(PSB, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
