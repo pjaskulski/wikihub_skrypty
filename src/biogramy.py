@@ -26,6 +26,7 @@ P_TITLE = 'P106'
 
 PSB = {}
 AUTORZY = {}
+LOAD_DICT = True
 
 
 def element_search(search_string: str, element_type: str, lang: str) -> tuple:
@@ -84,14 +85,15 @@ if __name__ == "__main__":
     psb_pickle = Path('.').parent / 'out/psb.pickle'
     autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
 
-    # odmrażanie słowników 
-    if os.path.isfile(psb_pickle):
-        with open(psb_pickle, 'rb') as handle:
-            PSB = pickle.load(handle)
-    
-    if os.path.isfile(autorzy_pickle):
-        with open(autorzy_pickle, 'rb') as handle:
-            AUTORZY = pickle.load(handle)    
+    # odmrażanie słowników
+    if LOAD_DICT: 
+        if os.path.isfile(psb_pickle):
+            with open(psb_pickle, 'rb') as handle:
+                PSB = pickle.load(handle)
+        
+        if os.path.isfile(autorzy_pickle):
+            with open(autorzy_pickle, 'rb') as handle:
+                AUTORZY = pickle.load(handle)
     
     with open(file_path, "r", encoding='utf-8') as f:
         indeks = f.readlines()
@@ -180,9 +182,10 @@ if __name__ == "__main__":
             o.write(f'LAST\t{P_PAGE}\t"{nr_strony}"\n')
 
     # zamrażanie słowników 
-    with open(psb_pickle, 'wb') as handle:
-        pickle.dump(PSB, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    with open(autorzy_pickle, 'wb') as handle:
-        pickle.dump(AUTORZY, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
+    if LOAD_DICT:
+        with open(psb_pickle, 'wb') as handle:
+            pickle.dump(PSB, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        with open(autorzy_pickle, 'wb') as handle:
+            pickle.dump(AUTORZY, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        

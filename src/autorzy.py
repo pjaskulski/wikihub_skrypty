@@ -1,11 +1,15 @@
 """ autorzy.xlsx -> QuickStatements """
 
 import sys
+import os
+import pickle
 from pathlib import Path
 from openpyxl import load_workbook
 import requests
 from urllib.parse import quote
 from time import sleep
+
+from biogramy import LOAD_DICT
 
 
 P_INSTANCE_OF = 'P47'
@@ -14,6 +18,11 @@ P_IMIE = 'P3'
 P_NAZWISKO = 'P4'
 P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
+
+# słownik na znalezione identyfikatory
+VIAF_ID = {}
+LOAD_DICT = True
+
 
 class Autor:
     """" klasa Autor """
@@ -49,9 +58,18 @@ def viaf_search(name: str) -> tuple:
     """ szukanie identyfikatora VIAF """
     info = ""
     result = False
+    id_url = ""
+
+    # jeżeli identyfikator jest już znany to nie ma potrzeby szukania 
+    # przez api
+    if name in VIAF_ID:
+        result = True
+        info = VIAF_ID[name]
+        id_url = f"http://viaf.org/viaf/{info}/"    
+        return result, info, id_url
+
     identyfikatory = []  
     urls = {}
-    id_url = ""
     base = 'https://viaf.org/viaf/search'
     format = 'application/json'
     search_person = quote(f'"{name}"')
@@ -86,6 +104,7 @@ def viaf_search(name: str) -> tuple:
                         if find_items:
                             identyfikatory.append(id)
                             urls[id] = url
+                            VIAF_ID[name] = id  # zapis identyfikatora w słowniku
                             break
 
     except requests.exceptions.RequestException as e: 
@@ -96,7 +115,9 @@ def viaf_search(name: str) -> tuple:
         info = identyfikatory[0]
         id_url = urls[info]
     else:
+        result = False
         info = f"NOT FOUND"
+        id_url = ""
 
     return result, info, id_url
 
@@ -117,6 +138,14 @@ def change_name_forname(name: str) -> str:
 if __name__ == "__main__":
     xlsx_path = Path('.').parent / 'data/autorzy.xlsx'
     output = Path('.').parent / 'out/autorzy.qs'
+    log_path = Path('.').parent / 'out/autorzy.log'
+    autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
+
+    # odmrażanie słownika identyfikatorów VIAF
+    if LOAD_DICT:
+        if os.path.isfile(autorzy_pickle):
+            with open(autorzy_pickle, 'rb') as handle:
+                VIAF_ID = pickle.load(handle)
 
     try:
         wb = load_workbook(xlsx_path)
@@ -129,53 +158,58 @@ if __name__ == "__main__":
     col_names = {'NAZWA WŁAŚCIWA':0, 'NAZWA WARIANTYWNA (znany też jako)':1}
 
     autor_list = []
-    for row in ws.iter_rows(2, ws.max_row):
-        osoba = row[col_names['NAZWA WŁAŚCIWA']].value
-        osoba_alias = row[col_names['NAZWA WARIANTYWNA (znany też jako)']].value
+    with open(log_path, "w", encoding='utf-8') as f_log:
+        max_row = 50
+        for row in ws.iter_rows(2, max_row):
+            osoba = row[col_names['NAZWA WŁAŚCIWA']].value
+            osoba_alias = row[col_names['NAZWA WARIANTYWNA (znany też jako)']].value
 
-        if osoba:
-            autor = Autor()
-            osoba = ' '.join(osoba.strip().split()) # podwójne, wiodące i kończące spacje
-            tmp = osoba.split(" ")
+            if osoba:
+                autor = Autor()
+                osoba = ' '.join(osoba.strip().split()) # podwójne, wiodące i kończące spacje
+                tmp = osoba.split(" ")
 
-            if len(tmp) == 2 and tmp[0][0].isupper() and tmp[1][0].isupper():
-                autor.etykieta = tmp[1] + " " + tmp[0]
-                autor.imie = tmp[1]
-                # jeżeli znamy tylko inicjał imienia to nie zakładamy Q
-                if len(autor.imie) == 2 and autor.imie.endswith("."):
-                    continue
-                autor.nazwisko = tmp[0]
-            elif (len(tmp) == 3 and tmp[0][0].isupper() and tmp[1][0].isupper()
-                    and tmp[2][0].isupper()):
-                autor.etykieta = tmp[1] + " " + tmp[2] + " " + tmp[0]
-                autor.imie = tmp[1]
-                autor.nazwisko = tmp[0]
-            elif tmp[0].startswith('d’'):
-                autor.etykieta = tmp[1] + " " + tmp[0]
-                autor.imie = tmp[1]
-                autor.nazwisko = tmp[0]
-            elif "Szturm de Sztrem" in osoba:
-                autor.etykieta = "Tadeusz Szturm de Sztrem"
-                autor.imie = "Tadeusz"
-                autor.nazwisko = "Szturm de Sztrem"
-            else:
-                print(f'ERROR: {osoba}')
+                if len(tmp) == 2 and tmp[0][0].isupper() and tmp[1][0].isupper():
+                    autor.etykieta = tmp[1] + " " + tmp[0]
+                    autor.imie = tmp[1]
+                    # jeżeli znamy tylko inicjał imienia to nie zakładamy Q
+                    if len(autor.imie) == 2 and autor.imie.endswith("."):
+                        continue
+                    autor.nazwisko = tmp[0]
+                elif (len(tmp) == 3 and tmp[0][0].isupper() and tmp[1][0].isupper()
+                        and tmp[2][0].isupper()):
+                    autor.etykieta = tmp[1] + " " + tmp[2] + " " + tmp[0]
+                    autor.imie = tmp[1]
+                    autor.nazwisko = tmp[0]
+                elif tmp[0].startswith('d’'):
+                    autor.etykieta = tmp[1] + " " + tmp[0]
+                    autor.imie = tmp[1]
+                    autor.nazwisko = tmp[0]
+                elif "Szturm de Sztrem" in osoba:
+                    autor.etykieta = "Tadeusz Szturm de Sztrem"
+                    autor.imie = "Tadeusz"
+                    autor.nazwisko = "Szturm de Sztrem"
+                else:
+                    print(f'ERROR: {osoba}')
+                    f_log.write(f'ERROR: {osoba}\n')
 
-            if osoba_alias:
-                autor.alias = osoba_alias
+                if osoba_alias:
+                    autor.alias = osoba_alias
 
-            if autor.etykieta:
-                # szukanie VIAF
-                ok, wynik, wynik_url = viaf_search(autor.etykieta)
-                if ok:
-                    autor.viaf = wynik
-                    autor.viaf_url = wynik_url
-                    print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url} ')
-                else: 
-                    print(f'VIAF, {autor.etykieta}, {wynik}, ')
+                if autor.etykieta:
+                    # szukanie VIAF
+                    ok, wynik, wynik_url = viaf_search(autor.etykieta)
+                    if ok:
+                        autor.viaf = wynik
+                        autor.viaf_url = wynik_url
+                        print(f'VIAF, {autor.etykieta}, {wynik}, {wynik_url} ')
+                    else: 
+                        print(f'VIAF, {autor.etykieta}, {wynik}, ')
+                        f_log.write(f'VIAF, {autor.etykieta}, {wynik}, \n')
 
-            autor_list.append(autor)
+                autor_list.append(autor)
 
+    # zapis Quickstatements w pliku 
     with open(output, "w", encoding='utf-8') as f:
         for autor in autor_list:
             f.write('CREATE\n')
@@ -189,4 +223,9 @@ if __name__ == "__main__":
                     f.write(f'LAST\tApl\t"{item}"\n')
                     f.write(f'LAST\tAen\t"{item}"\n')
             if autor.viaf and autor.viaf_url:
-                f.write(f'LAST\t{P_VIAF}\t"{autor.viaf}"\t{P_REFERENCE_URL}\t{autor.viaf_url}\n')
+                f.write(f'LAST\t{P_VIAF}\t"{autor.viaf}"\t{P_REFERENCE_URL}\t"{autor.viaf_url}"\n')
+
+    # zamrażanie słownika identyfikatów VIAF_ID 
+    if LOAD_DICT:
+        with open(autorzy_pickle, 'wb') as handle:
+            pickle.dump(VIAF_ID, handle, protocol=pickle.HIGHEST_PROTOCOL)
