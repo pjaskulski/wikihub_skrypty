@@ -24,6 +24,7 @@ VIAF_ID = {}
 VIAF_BIRTH = {}
 VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
+WYJATKI = {}
 
 LOAD_DICT = True
 SAVE_DICT = True
@@ -62,7 +63,7 @@ class Autor:
             self._alias = []
 
 
-def viaf_search(name: str) -> tuple:
+def viaf_search(name: str, preferowane: str = '') -> tuple:
     """ szukanie identyfikatora VIAF """
     info = ""
     result = False
@@ -72,7 +73,7 @@ def viaf_search(name: str) -> tuple:
 
     # jeżeli identyfikator jest już znany to nie ma potrzeby szukania 
     # przez api
-    if name in VIAF_ID:
+    if name in VIAF_ID and not preferowane:
         result = True
         info = VIAF_ID[name]
         id_url = f"http://viaf.org/viaf/{info}/"
@@ -103,7 +104,7 @@ def viaf_search(name: str) -> tuple:
         
             for rekord in rekordy:
                 id = rekord['record']['recordData']['viafID']
-                if id:
+                if id and (preferowane == '' or id == preferowane):
                     url = rekord['record']['recordData']['Document']['@about']
                     if type(rekord['record']['recordData']['mainHeadings']['data']) == list:
                         label = rekord['record']['recordData']['mainHeadings']['data'][0]['text']
@@ -184,9 +185,23 @@ def format_date(value: str) -> str:
     
     return result
 
+def load_wyjatki(path: str) -> dict:
+    """ load wyjatki"""
+    result = {}
+    with open(path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            tmp = line.split(",")
+            if len(tmp) == 2:
+                result[tmp[0].strip()] = tmp[1].strip()
+
+    return result
+            
 
 if __name__ == "__main__":
     xlsx_path = Path('.').parent / 'data/autorzy.xlsx'
+    wyj_path = Path('.').parent / 'data/wyjatki.txt'
     output = Path('.').parent / 'out/autorzy.qs'
     log_path = Path('.').parent / 'out/autorzy_brak.log'
     autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
@@ -205,6 +220,9 @@ if __name__ == "__main__":
         if os.path.isfile(death_pickle):
             with open(death_pickle, 'rb') as handle:
                 VIAF_DEATH = pickle.load(handle)
+
+    # wyjatki
+    WYJATKI = load_wyjatki(wyj_path)
 
     try:
         wb = load_workbook(xlsx_path)
@@ -274,7 +292,10 @@ if __name__ == "__main__":
 
                 if autor.etykieta:
                     # szukanie VIAF
-                    ok, wynik, wynik_url, birth_d, death_d = viaf_search(autor.etykieta)
+                    preferowane = ''
+                    if autor.etykieta in WYJATKI:
+                        preferowane = WYJATKI[autor.etykieta]
+                    ok, wynik, wynik_url, birth_d, death_d = viaf_search(autor.etykieta, preferowane)
                     if ok:
                         autor.viaf = wynik
                         autor.viaf_url = wynik_url
