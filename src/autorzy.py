@@ -320,8 +320,9 @@ if __name__ == "__main__":
             f.write(f'LAST\tLpl\t"{autor.etykieta}"\n')
             f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
             
-            f.write(f'LAST\tDpl\t"{do_opisu}"\n')
-            f.write(f'LAST\tDen\t"{do_opisu}"\n')
+            if do_opisu:
+                f.write(f'LAST\tDpl\t"{do_opisu}"\n')
+                f.write(f'LAST\tDen\t"{do_opisu}"\n')
 
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
             f.write(f'LAST\t{P_IMIE}\t"{autor.imie}"\n')
@@ -332,8 +333,12 @@ if __name__ == "__main__":
                 for item in autor.alias:
                     f.write(f'LAST\tApl\t"{item}"\n')
                     f.write(f'LAST\tAen\t"{item}"\n')
+            
             if autor.birth_date:
-                birth_date = format_date(autor.birth_date)
+                if autor.birth_date == '1900' and (not autor.death_date or autor.death_date == '0'):
+                    birth_date = f"+1901-00-00T00:00:00Z/7"
+                else:    
+                    birth_date = format_date(autor.birth_date)
                 if birth_date:
                     f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{birth_date}\n')
             if autor.death_date:
@@ -341,6 +346,14 @@ if __name__ == "__main__":
                 if death_date:
                     f.write(f'LAST\t{P_DATE_OF_DEATH}\t{death_date}\n')
             if autor.viaf and autor.viaf_url:
+                # wyjątki
+                if 'Domink Szulc' in autor.etykieta:    
+                    autor.viaf = '308289599'
+                    autor.viaf_url = 'http://viaf.org/viaf/308289599/'
+                elif 'Tomasz Latos' in autor.etykieta:
+                    autor.viaf = '303368591'
+                    autor.viaf_url = 'https://viaf.org/viaf/303368591/'
+
                 f.write(f'LAST\t{P_VIAF}\t"{autor.viaf}"\t{P_REFERENCE_URL}\t"{autor.viaf_url}"\n')
 
     # zamrażanie słownika identyfikatów VIAF_ID 
