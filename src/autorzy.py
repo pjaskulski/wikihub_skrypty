@@ -307,22 +307,21 @@ if __name__ == "__main__":
                     tmp_data_d = autor.death_date[:4]
             
             if tmp_data_b and tmp_data_d:
-                do_etykiety = f"({tmp_data_b}-{tmp_data_d})"
+                do_opisu = f"({tmp_data_b}-{tmp_data_d})"
             elif tmp_data_b:
-                do_etykiety = f"({tmp_data_b}- )"
+                do_opisu = f"({tmp_data_b}- )"
             elif tmp_data_d:
-                do_etykiety = f"( -{tmp_data_d})"
+                do_opisu = f"( -{tmp_data_d})"
             else:
-                do_etykiety = ''
+                do_opisu = ''
             
             f.write('CREATE\n')
 
-            if do_etykiety:
-                f.write(f'LAST\tLpl\t"{autor.etykieta} {do_etykiety}"\n')
-                f.write(f'LAST\tLen\t"{autor.etykieta} {do_etykiety}"\n')
-            else:
-                f.write(f'LAST\tLpl\t"{autor.etykieta}"\n')
-                f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
+            f.write(f'LAST\tLpl\t"{autor.etykieta}"\n')
+            f.write(f'LAST\tLen\t"{autor.etykieta}"\n')
+            
+            f.write(f'LAST\tDpl\t"{do_opisu}"\n')
+            f.write(f'LAST\tDen\t"{do_opisu}"\n')
 
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
             f.write(f'LAST\t{P_IMIE}\t"{autor.imie}"\n')
