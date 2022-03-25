@@ -39,12 +39,13 @@ VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
 
 # czy wczytywanie i zapisywanie słowników z/do pickle
-LOAD_DICT = True
+LOAD_DICT = False
 SAVE_DICT = True
 
 
-def viaf_search(person_name: str) -> tuple:
+def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple:
     """ szukanie identyfikatora VIAF """
+
     info = id_url = birthDate = deathDate = ''
     result = False
 
@@ -92,18 +93,31 @@ def viaf_search(person_name: str) -> tuple:
                         label = label.replace(",", "")
                         l_name = person_name.split(" ")
                         find_items = True
+
                         for item_name in l_name:
                             if len(item_name) > 2 and not item_name in label:
                                 find_items = False
                                 break
+
                         if find_items:
-                            identyfikatory.append(v_id)
-                            urls[v_id] = url
                             if 'birthDate' in rekord['record']['recordData']:
                                 birthDate = rekord['record']['recordData']['birthDate']
 
                             if 'deathDate' in rekord['record']['recordData']:
                                 deathDate = rekord['record']['recordData']['deathDate']
+
+                            if s_birth and len(birthDate) >= 4:
+                                y_diff = abs(int(s_birth) - int(birthDate[:4]))
+                                if not birthDate.startswith(s_birth) and y_diff >= 3:
+                                    continue
+
+                            if s_death and len(deathDate) >= 4:
+                                y_diff = abs(int(s_death) - int(deathDate[:4]))
+                                if not deathDate.startswith(s_death) and y_diff >= 3:
+                                    continue
+
+                            identyfikatory.append(v_id)
+                            urls[v_id] = url
 
                             VIAF_ID[person_name] = v_id  # zapis identyfikatora w słowniku
 
@@ -288,7 +302,9 @@ if __name__ == "__main__":
             viaf_ok = False
             viaf_id = viaf_url = viaf_date_b = viaf_date_d = ''
             if ' ' in name:
-                viaf_ok, viaf_id, viaf_url, viaf_date_b, viaf_date_d = viaf_search(name)
+                viaf_ok, viaf_id, viaf_url, viaf_date_b, viaf_date_d = viaf_search(name,
+                                                                                   s_birth=dateB,
+                                                                                   s_death=dateD)
 
             if viaf_ok and viaf_date_b and viaf_date_b != dateB:
                 dateB = viaf_date_b
