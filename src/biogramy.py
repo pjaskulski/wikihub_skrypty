@@ -5,9 +5,8 @@ import re
 import pickle
 import os
 from pathlib import Path
-from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikidariahtools import text_clear, element_search, ini_only, is_inicial, \
+from wikidariahtools import text_clear, element_search, ini_only, \
                             get_last_nawias, short_names_in_autor
 
 
@@ -116,6 +115,9 @@ if __name__ == "__main__":
                     #     ok, autor_qid = element_search(f"{t_autor}", 'item', 'en')
                     #     if ok:
                     #         AUTORZY[t_autor] = autor_qid
+                    #     else:
+                    #         # szukanie w wikibase po aliasie? 
+
 
                     # if ok:
                     #     o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')

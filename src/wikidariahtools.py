@@ -85,9 +85,22 @@ def is_inicial(imie) -> bool:
 def ini_only(value: str) -> bool:
     """ sprawdza czy autor ma tylko inicjał pierwszego imienia """
     tmp = value.split(" ")
-    
-    return is_inicial(value[0])
-        
+
+    return is_inicial(tmp[0])
+
+
+def format_date(value: str) -> str:
+    """ formatuje datę na sposób oczekiwany przez QuickStatements
+        +1839-00-00T00:00:00Z/9
+    """
+    result = ''
+    if len(value) == 4:
+        result = f"+{value}-00-00T00:00:00Z/9"
+    elif len(value) == 10:
+        result = f"+{value}T00:00:00Z/11"
+
+    return result
+
 
 def short_names_in_autor(value: str) -> str:
     """ short names in title """
@@ -110,18 +123,18 @@ def short_names_in_autor(value: str) -> str:
             osoba = osoba.strip()
             imiona_nazwiska = osoba.split(" ")
             wynik = []
-            for i in range(0, len(imiona_nazwiska)):
+            for i, name_part in enumerate(imiona_nazwiska):
                 if i == len(imiona_nazwiska) - 1:         # jeżeli nazwisko
-                    wynik.append(imiona_nazwiska[i])
-                elif not is_inicial(imiona_nazwiska[i]):  # jeżeli imię
-                    wynik.append(imiona_nazwiska[i][0] + ".") 
+                    wynik.append(name_part)
+                elif not is_inicial(name_part):           # jeżeli imię
+                    wynik.append(name_part[0] + ".")
                 else:
-                    wynik.append(imiona_nazwiska[i])      # jeżeli inicjał
-            
+                    wynik.append(name_part)               # jeżeli inicjał
+
             new_osoba = ' '.join(wynik)
             zamiana[osoba] = new_osoba
 
-    for key in zamiana:
-        value = value.replace(key, zamiana[key])
+    for key, val in zamiana.items():
+        value = value.replace(key, val)
 
     return value
