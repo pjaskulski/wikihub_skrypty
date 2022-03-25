@@ -171,6 +171,8 @@ def get_name(value: str) -> tuple:
     """ get_name """
     p_imie = p_imie2 = p_nazwisko = ''
 
+    not_forname = ['Judaeus', 'Bohemus', 'Hohenzollern']
+
     if 'młodszy' in value:
         value = value.replace("młodszy", "").strip()
 
@@ -180,13 +182,23 @@ def get_name(value: str) -> tuple:
         p_imie = tmp[0].strip()
     elif len(tmp) == 2:
         if tmp[0][0].isupper() and tmp[1][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            p_imie = tmp[1].strip()
+            if tmp[1].strip() in not_forname:
+                p_nazwisko = tmp[1].strip()
+                p_imie = tmp[0].strip()
+            else:
+                p_nazwisko = tmp[0].strip()
+                p_imie = tmp[1].strip()
     elif len(tmp) == 3:
         if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            p_imie = tmp[1].strip()
-            p_imie2 = tmp[2].strip()
+            if tmp[2].strip() in not_forname:
+                p_nazwisko = tmp[2].strip()
+                p_imie = tmp[0].strip()
+                if tmp[1].strip() not in not_forname:
+                    p_imie2 = tmp[1].strip()
+            else:
+                p_nazwisko = tmp[0].strip()
+                p_imie = tmp[1].strip()
+                p_imie2 = tmp[2].strip()
         else:
             if ' z ' in value:
                 p_imie = tmp[0].strip()
