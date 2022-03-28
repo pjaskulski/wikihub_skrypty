@@ -37,8 +37,8 @@ if __name__ == "__main__":
         claims = data_p['claims']
         if 'P162' in claims:
             print('jest')
-            
-    exit()
+
+    #exit()
 
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))
@@ -47,14 +47,18 @@ if __name__ == "__main__":
 
     print('subclass of: ', element_search('subclass of', 'property', 'en'))
     print('date of birth: ', element_search('date of birth', 'property', 'en'))
-    print('very unique property: ', element_search('very unique property', 'property', 'en'))
+    print('very unique property: ', element_search('very unique property', 'property',
+                                                   'en'))
     print('place of: ', element_search('place of', 'property', 'en'))
 
-    print('Świeżawski Tadeusz Michał: ', element_search('Świeżawski Tadeusz Michał', 'item', 'en'))
+    print('Świeżawski Tadeusz Michał: ', element_search('Świeżawski Tadeusz Michał', 'item',
+                                                        'en'))
     print('Świeżowiecki Edwin Gerhard: ', 
           element_search('Świeżowiecki Edwin Gerhard', 'item', 'en'))
 
-    # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47 
+    print('family name', element_search('family name', 'property', 'en'))
+
+    # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47
     # (instance_of) o wartości Q32 (human), z limitem do 5 resultatów
     query = """
         SELECT ?item

@@ -31,21 +31,32 @@ def element_search(search_string: str, element_type: str, lang: str) -> tuple:
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
     results = search_entities(search_string, language=lang, search_type=element_type, max_results=5)
-    if len(results) == 1:
-        return True, results[0]
-    else:
-        exact_id = ''
-        for qid in results:
-            wikidata_item = wbi_core.ItemEngine(item_id=qid)
-            data = wikidata_item.get_json_representation()
-            value = data["labels"]["en"]["value"]
-            if value == search_string:
-                exact_id = qid
-                break
-        if exact_id:
-            return True, exact_id
 
+    if len(results) == 0:
         return False, "NOT FOUND"
+
+    if len(results) == 1:
+        wikidata_item = wbi_core.ItemEngine(item_id=results[0])
+        data = wikidata_item.get_json_representation()
+        value = data["labels"]["en"]["value"]
+        if value == search_string:
+            return True, results[0]
+
+        return False, f"AMBIGIOUS ID FOUND {results}"
+
+    exact_id = ''
+    for qid in results:
+        wikidata_item = wbi_core.ItemEngine(item_id=qid)
+        data = wikidata_item.get_json_representation()
+        value = data["labels"]["en"]["value"]
+        if value == search_string:
+            exact_id = qid
+            break
+    if exact_id:
+        return True, exact_id
+
+    return False, f"MULTIPLE AMBIGIOUS ID FOUND {results}"
+
 
 def text_clear(value: str) -> str:
     """ text_clear """
