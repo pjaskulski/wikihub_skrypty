@@ -1,5 +1,6 @@
 """ Skrypt wyszukuje informacje w Wikibase """
 
+import pprint
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator.wbi_functions import execute_sparql_query, mediawiki_api_call_helper
@@ -30,9 +31,12 @@ if __name__ == "__main__":
     except (MWApiError, KeyError):
         data = data_p = data_p2 = None
 
-    # if data:
-    #     print(len(data))
-    #     print(data["labels"]["pl"]["value"])
+    if data:
+        #print(len(data))
+        #print(data["labels"]["pl"]["value"])
+        #pprint.pprint([data])
+        print(data["descriptions"]["pl"]["value"])
+
     if data_p:
         claims = data_p['claims']
         if 'P162' in claims:

@@ -23,13 +23,18 @@ def element_exists(element_id: str) -> bool:
     return bool(data)
 
 
-def element_search(search_string: str, element_type: str, lang: str) -> tuple:
+def element_search(search_string: str, element_type: str, lang: str, **kwargs) -> tuple:
     """
     Funkcja poszukuje kodu item lub property na podstawie podanego tekstu.
     Wywołanie:
         element_search('subclass of', 'property', 'en')
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
+    description = ''
+    if kwargs:
+        if 'description' in kwargs:
+            description = kwargs['description']
+        
     results = search_entities(search_string, language=lang, search_type=element_type, max_results=5)
 
     if len(results) == 0:
@@ -38,9 +43,17 @@ def element_search(search_string: str, element_type: str, lang: str) -> tuple:
     if len(results) == 1:
         wikidata_item = wbi_core.ItemEngine(item_id=results[0])
         data = wikidata_item.get_json_representation()
-        value = data["labels"]["en"]["value"]
-        if value == search_string:
-            return True, results[0]
+        if lang in data['labels']:
+            value = data["labels"][lang]["value"]
+            if value == search_string:
+                if description:
+                    value_desc = data["descriptions"][lang]["value"]
+                    if value_desc == description:
+                        return True, results[0]    
+                else:    
+                    return True, results[0]
+        else:
+            print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
 
         return False, f"AMBIGIOUS ID FOUND {results}"
 
@@ -48,10 +61,20 @@ def element_search(search_string: str, element_type: str, lang: str) -> tuple:
     for qid in results:
         wikidata_item = wbi_core.ItemEngine(item_id=qid)
         data = wikidata_item.get_json_representation()
-        value = data["labels"]["en"]["value"]
-        if value == search_string:
-            exact_id = qid
-            break
+        if lang in data['labels']:
+            value = data["labels"][lang]["value"]
+            if value == search_string:
+                if description:
+                    value_desc = data["descriptions"][lang]["value"]
+                    if value_desc == description:
+                        exact_id = qid
+                        break
+                else:
+                    exact_id = qid
+                    break
+        else:
+            print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
+            
     if exact_id:
         return True, exact_id
 

@@ -1,5 +1,5 @@
 """ skrypt generujący quickstatements dla postaci z PSB na podstawie
-    indeksu Bożeny Bigaj 
+    indeksu Bożeny Bigaj
 """
 
 import sys
@@ -106,14 +106,16 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple
                             if 'deathDate' in rekord['record']['recordData']:
                                 deathDate = rekord['record']['recordData']['deathDate']
 
+                            # jeżeli mamy podane daty w viaf i w indeksie to mogą się różnić
+                            # o maksymalnie 3 lata
                             if s_birth and len(birthDate) >= 4:
                                 y_diff = abs(int(s_birth) - int(birthDate[:4]))
-                                if not birthDate.startswith(s_birth) and y_diff >= 3:
+                                if not birthDate.startswith(s_birth) and y_diff > 3:
                                     continue
 
                             if s_death and len(deathDate) >= 4:
                                 y_diff = abs(int(s_death) - int(deathDate[:4]))
-                                if not deathDate.startswith(s_death) and y_diff >= 3:
+                                if not deathDate.startswith(s_death) and y_diff > 3:
                                     continue
 
                             identyfikatory.append(v_id)
@@ -290,7 +292,8 @@ if __name__ == "__main__":
                 years = title[start + 1: stop].strip()
                 years = years.replace('–', '-')
 
-            ok, q_biogram = element_search(etykieta, 'item', 'pl')
+            #ok, q_biogram = element_search(etykieta, 'item', 'pl')
+            ok = False
             if not ok:
                 q_biogram = r'{Q:biogram}'
             else:
