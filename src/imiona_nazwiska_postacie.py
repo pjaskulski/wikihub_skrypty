@@ -1,4 +1,4 @@
-""" autorzy.xlsx -> imiona i nazwiska do QuickStatements """
+""" indeks BB -> imiona i nazwiska do QuickStatements """
 
 import sys
 import os
