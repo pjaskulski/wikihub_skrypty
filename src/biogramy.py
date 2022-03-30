@@ -28,7 +28,7 @@ PSB = {}
 AUTORZY = {}
 
 LOAD_DICT = True
-SAVE_DICT = True
+SAVE_DICT = False
 
 
 if __name__ == "__main__":

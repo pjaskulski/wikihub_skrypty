@@ -12,8 +12,10 @@ from urllib.parse import quote
 import requests
 from wikibaseintegrator.wbi_config import config as wbi_config
 from autorzy import VIAF_DEATH, WERYFIKACJA_VIAF
-from wikidariahtools import format_date, text_clear, element_search, \
+from wikidariahtools import format_date, text_clear, \
                             get_last_nawias, short_names_in_autor
+from postacietools import get_name
+#from wikidariahtools import element_search
 
 
 # adresy
@@ -24,8 +26,8 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 # stałe
 P_INSTANCE_OF = 'P47'
 Q_HUMAN = 'Q32'
-P_IMIE = 'P3'
-P_NAZWISKO = 'P4'
+P_IMIE = 'P184'
+P_NAZWISKO = 'P183'
 P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
 P_DATE_OF_BIRTH = 'P7'
@@ -39,11 +41,12 @@ VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
 
 # czy wczytywanie i zapisywanie słowników z/do pickle
-LOAD_DICT = False
-SAVE_DICT = True
+LOAD_DICT = True
+SAVE_DICT = False
 
 
-def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple:
+def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
+                offline: bool = False) -> tuple:
     """ szukanie identyfikatora VIAF """
 
     info = id_url = birthDate = deathDate = ''
@@ -53,6 +56,9 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple
     # przez api
     if person_name in VIAF_ID:
         info = VIAF_ID[person_name]
+        match = re.search('\d{3,25}', info)
+        if match:
+            info = match.group()        
         id_url = f"http://viaf.org/viaf/{info}/"
 
         if person_name in VIAF_BIRTH:
@@ -62,6 +68,10 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple
             deathDate = VIAF_DEATH[person_name]
 
         return True, info, id_url, birthDate, deathDate
+
+    # jeżeli nie chcemy wyszukiwać online w viaf.org
+    if offline:
+        return False, "NOT FOUND", '', '', ''
 
     identyfikatory = []
     urls = {}
@@ -108,13 +118,35 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '') -> tuple
 
                             # jeżeli mamy podane daty w viaf i w indeksie to mogą się różnić
                             # o maksymalnie 3 lata
-                            if s_birth and len(birthDate) >= 4:
-                                y_diff = abs(int(s_birth) - int(birthDate[:4]))
+                            if len(birthDate) == 10:
+                                int_birth_date = int(birthDate[:4])
+                            elif len(birthDate) == 9:
+                                int_birth_date = int(birthDate[:3])
+                            elif len(birthDate) == 4 and birthDate.isnumeric():
+                                int_birth_date = int(birthDate)
+                            elif len(birthDate) == 3 and birthDate.isnumeric():
+                                int_birth_date = int(birthDate)
+                            else:
+                                int_birth_date = -1
+
+                            if len(deathDate) == 10:
+                                int_death_date = int(deathDate[:4])
+                            elif len(deathDate) == 9:
+                                int_death_date = int(deathDate[:3])
+                            elif len(deathDate) == 4 and deathDate.isnumeric():
+                                int_death_date = int(deathDate)
+                            elif len(deathDate) == 3 and deathDate.isnumeric():
+                                int_death_date = int(deathDate)
+                            else:
+                                int_death_date = -1
+
+                            if s_birth and int_birth_date > 0:
+                                y_diff = abs(int(s_birth) - int_birth_date)
                                 if not birthDate.startswith(s_birth) and y_diff > 3:
                                     continue
 
-                            if s_death and len(deathDate) >= 4:
-                                y_diff = abs(int(s_death) - int(deathDate[:4]))
+                            if s_death and int_death_date > 0:
+                                y_diff = abs(int(s_death) - int_death_date)
                                 if not deathDate.startswith(s_death) and y_diff > 3:
                                     continue
 
@@ -183,47 +215,75 @@ def date_birth_death(value: str) -> tuple:
     return date_of_birth, date_of_death
 
 
-def get_name(value: str) -> tuple:
-    """ get_name """
-    p_imie = p_imie2 = p_nazwisko = ''
+# def get_name(value: str) -> tuple:
+#     """ get_name """
+#     roman = ['I', 'II', 'III', 'IV', 'V', 'VI',
+#              'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV']
+    
+#     p_imie = p_imie2 = p_nazwisko = ''
 
-    not_forname = ['Judaeus', 'Bohemus', 'Hohenzollern']
+#     not_forname = ['Judaeus', 'Bohemus', 'Hohenzollern', 'Wszewołodowicz',
+#                    'Caucina', 'Courtenay', 'Vasseur', 'Gallo', 'Chrobry',
+#                    'Mieszkowic', 'Szczodry', 'Krzywousty', 'Kędzierzawy', 'Wstydliwy',
+#                    'Wysoki', 'Łysy', 'Pobożny', 'Hojny', 'Sforza', 'Radziwiłłówna', 
+#                    'Rachtamowicz', 'Michajłowicz', 'Abrahamowic', 'Pesach-Libman', 
+#                    'Sprawiedliwy', 'Odnowiciel', 'Oleksowicz', 'Przecławski', 
+#                    'Namysłowski', 'Mniszchówna', 'Bohuszewicz', 'Aleksandrowicz', 
+#                    'Aleksiejewna', 'Andegaweńska', 'Andrejewicz', 'Andrysowic']
 
-    if 'młodszy' in value:
-        value = value.replace("młodszy", "").strip()
+#     if 'młodszy' in value:
+#         value = value.replace("młodszy", "").strip()
 
-    tmp = value.strip().split(" ")
-    if len(tmp) == 1:
-        # czy to imię czy nazwisko? Słownik typowych imion a jeżeli spoza to nazwisko?
-        p_imie = tmp[0].strip()
-    elif len(tmp) == 2:
-        if tmp[0][0].isupper() and tmp[1][0].isupper():
-            if tmp[1].strip() in not_forname:
-                p_nazwisko = tmp[1].strip()
-                p_imie = tmp[0].strip()
-            else:
-                p_nazwisko = tmp[0].strip()
-                p_imie = tmp[1].strip()
-    elif len(tmp) == 3:
-        if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
-            if tmp[2].strip() in not_forname:
-                p_nazwisko = tmp[2].strip()
-                p_imie = tmp[0].strip()
-                if tmp[1].strip() not in not_forname:
-                    p_imie2 = tmp[1].strip()
-            else:
-                p_nazwisko = tmp[0].strip()
-                p_imie = tmp[1].strip()
-                p_imie2 = tmp[2].strip()
-        else:
-            if ' z ' in value:
-                p_imie = tmp[0].strip()
-    else:
-        if ' de ' in value:
-            p_imie = tmp[-1].strip()
-            p_nazwisko = ' '.join(tmp[:-1])
+#     if 'starszy' in value:
+#         value = value.replace("starszy", "").strip()
 
-    return p_nazwisko, p_imie, p_imie2
+#     if 'Młodszy' in value:
+#         value = value.replace("Młodszy", "").strip()
+
+#     if 'Starszy' in value:
+#         value = value.replace("Starszy", "").strip()
+
+#     tmp = value.strip().split(" ")
+#     for i in range(0, len(tmp)):
+#         tmp[i] = tmp[i].strip()
+#         if tmp[i] in roman:
+#             tmp[i] = ''
+
+#     for item in tmp:
+#         if item.strip() == '':
+#             tmp.remove(item)
+
+#     if len(tmp) == 1:
+#         # czy to imię czy nazwisko? Słownik typowych imion a jeżeli spoza to nazwisko?
+#         p_imie = tmp[0].strip()
+#     elif len(tmp) == 2:
+#         if tmp[0][0].isupper() and tmp[1][0].isupper():
+#             if tmp[1].strip() in not_forname:
+#                 p_nazwisko = tmp[1].strip()
+#                 p_imie = tmp[0].strip()
+#             else:
+#                 p_nazwisko = tmp[0].strip()
+#                 p_imie = tmp[1].strip()
+#     elif len(tmp) == 3:
+#         if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
+#             if tmp[2].strip() in not_forname:
+#                 p_nazwisko = tmp[2].strip()
+#                 p_imie = tmp[0].strip()
+#                 if tmp[1].strip() not in not_forname:
+#                     p_imie2 = tmp[1].strip()
+#             else:
+#                 p_nazwisko = tmp[0].strip()
+#                 p_imie = tmp[1].strip()
+#                 p_imie2 = tmp[2].strip()
+#         else:
+#             if ' z ' in value:
+#                 p_imie = tmp[0].strip()
+#     else:
+#         if ' de ' in value:
+#             p_imie = tmp[-1].strip()
+#             p_nazwisko = ' '.join(tmp[:-1])
+
+#     return p_nazwisko, p_imie, p_imie2
 
 
 if __name__ == "__main__":
@@ -273,7 +333,7 @@ if __name__ == "__main__":
             isAlias = title.count('(') == 2 and title.count(')') == 2
 
             name = years = author = psb = dateOfBirth = dateOfDeath = ''
-            imie = imie2 = nazwisko = ''
+            imie = imie2 = imie3 = imie4 = nazwisko = nazwisko2 = ''
             stop = 0
 
             # lata życia
@@ -281,7 +341,7 @@ if __name__ == "__main__":
             start = title.find('(')
             name = title[:start].strip()
             print(name)
-            nazwisko, imie, imie2 = get_name(name)
+            nazwisko, imie, imie2, nazwisko2, imie3, imie4 = get_name(name)
 
             if isAlias:
                 print("ALIAS: ", title)
@@ -293,21 +353,22 @@ if __name__ == "__main__":
                 years = years.replace('–', '-')
 
             #ok, q_biogram = element_search(etykieta, 'item', 'pl')
-            ok = False
+            ok = False # na razie nie szukamy
             if not ok:
-                q_biogram = r'{Q:biogram}'
+                q_biogram = '{Q:biogram}'
             else:
                 BIOGRAMY[name] = q_biogram
 
             dateB, dateD = date_birth_death(years)
 
-            # jeżeli znamy tylko imię postaci odpytywanie VIAF nie ma sensu
+            # jeżeli znamy tylko imię postaci odpytywanie VIAF nie ma sensu (?)
             viaf_ok = False
             viaf_id = viaf_url = viaf_date_b = viaf_date_d = ''
             if ' ' in name:
                 viaf_ok, viaf_id, viaf_url, viaf_date_b, viaf_date_d = viaf_search(name,
                                                                                    s_birth=dateB,
-                                                                                   s_death=dateD)
+                                                                                   s_death=dateD,
+                                                                                   offline=True)
 
             if viaf_ok and viaf_date_b and viaf_date_b != dateB:
                 dateB = viaf_date_b
@@ -325,11 +386,42 @@ if __name__ == "__main__":
                 f.write(f'LAST\tDpl\t"({years})"\n')
                 f.write(f'LAST\tDen\t"({years})"\n')
             if imie:
-                f.write(f'LAST\t{P_IMIE}\t"{imie}"\n')
+                # ok, q_imie = element_search(imie, 'item', 'en', description='given name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_imie = '{Q:' + f'{imie}' + '}'
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie2:
-                f.write(f'LAST\t{P_IMIE}\t"{imie2}"\n')
+                # ok, q_imie = element_search(imie2, 'item', 'en', description='given name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_imie = '{Q:' + f'{imie2}' + '}'
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+            if imie3:
+                # ok, q_imie = element_search(imie3, 'item', 'en', description='given name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_imie = '{Q:' + f'{imie3}' + '}'
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+            if imie4:
+                # ok, q_imie = element_search(imie4, 'item', 'en', description='given name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_imie = '{Q:' + f'{imie4}' + '}'
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if nazwisko:
-                f.write(f'LAST\t{P_NAZWISKO}\t"{nazwisko}"\n')
+                # ok, q_nazwisko = element_search(nazwisko, 'item', 'en', description='family name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_nazwisko = '{Q:' + f'{nazwisko}' + '}'
+                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+            if nazwisko2:
+                # ok, q_nazwisko = element_search(nazwisko2, 'item', 'en', description='family name')
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_nazwisko = '{Q:' + f'{nazwisko2}' + '}'
+                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
             if dateB:
                 f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB}\n')
@@ -340,8 +432,8 @@ if __name__ == "__main__":
                 f.write(f'LAST\t{P_VIAF}\t"{viaf_id}"\t{P_REFERENCE_URL}\t"{viaf_url}"\n')
                 WERYFIKACJA_VIAF[name] = viaf_url
 
-            if licznik >= 100:
-                break
+            #if licznik >= 100:
+            #    break
 
     # zamrażanie słownika identyfikatów VIAF_ID
     if SAVE_DICT:

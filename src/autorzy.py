@@ -9,12 +9,13 @@ from urllib.parse import quote
 import requests
 from openpyxl import load_workbook
 from wikidariahtools import format_date
+# from wikidariahtools import element_search
 
 
 P_INSTANCE_OF = 'P47'
 Q_HUMAN = 'Q32'
-P_IMIE = 'P3'
-P_NAZWISKO = 'P4'
+P_IMIE = 'P184'
+P_NAZWISKO = 'P183'
 P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
 P_DATE_OF_BIRTH = 'P7'
@@ -26,6 +27,20 @@ VIAF_BIRTH = {}
 VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
 WYJATKI = {}
+
+WYJATKI_IMIONA = {'Dwornik Gutowska Ewa':
+                    {'imie':'Ewa', 'nazwisko':'Dwornik', 'nazwisko2':'Gutowska'},
+                  'Adamczyk Prengel Irena':
+                    {'imie':'Irena', 'nazwisko':'Adamczyk', 'nazwisko2':'Prengel'},
+                  'Gozdawa Gołębiowski Jan':
+                    {'imie':'Jan','nazwisko':'Gozdawa','nazwisko2':'Gołębiowski'},
+                  'Odrowąż Pieniążek Janusz':
+                    {'imie':'Janusz', 'nazwisko':'Odrowąż', 'nazwisko2':'Pieniążek'},
+                  'Marciniak Jadwiga Puchała':
+                    {'imie':'Jadwiga','nazwisko':'Marciniak','nazwisko2':'Puchała'},
+                  'Krause Ignacy J.T.':
+                    {'imie':'Ignacy', 'nazwisko':'Krause'}
+                }
 
 LOAD_DICT = True
 SAVE_DICT = True
@@ -42,6 +57,7 @@ class Autor:
         self.imie = p_imie.strip()
         self.imie2 = ''
         self.nazwisko = p_nazwisko.strip()
+        self.nazwisko2 = ''
         self.viaf = ''
         self.viaf_url = ''
         self.birth_date = ''
@@ -265,15 +281,22 @@ if __name__ == "__main__":
             osoba_drugie = row[col_names['Drugie']].value
 
             if osoba:
+                osoba = osoba.strip()
                 autor = Autor()
                 osoba = ' '.join(osoba.strip().split()) # podwójne, wiodące i kończące spacje
                 tmp = osoba.split(" ")
 
-                if len(tmp) == 2 and tmp[0][0].isupper() and tmp[1][0].isupper():
+                if osoba in WYJATKI_IMIONA:
+                    autor.imie = WYJATKI_IMIONA[osoba]['imie']
+                    autor.nazwisko = WYJATKI_IMIONA[osoba]['nazwisko']
+                    if 'nazwisko2' in WYJATKI_IMIONA[osoba]:
+                        autor.nazwisko2 = WYJATKI_IMIONA[osoba]['nazwisko2']
+                    autor.etykieta = autor.imie + ' ' + autor.nazwisko + ' ' + autor.nazwisko2
+                elif len(tmp) == 2 and tmp[0][0].isupper() and tmp[1][0].isupper():
                     autor.etykieta = tmp[1] + " " + tmp[0]
                     autor.imie = tmp[1]
                     # jeżeli znamy tylko inicjał imienia to nie zakładamy Q
-                    if len(autor.imie) == 2 and autor.imie.endswith("."):
+                    if (len(autor.imie) == 2 or len(autor.imie) == 3) and autor.imie.endswith("."):
                         continue
                     autor.nazwisko = tmp[0]
                 elif "Szturm de Sztrem" in osoba:
@@ -286,11 +309,11 @@ if __name__ == "__main__":
                     autor.nazwisko = "Kurde-Banowska Lutzowa"
                 elif (len(tmp) == 3 and tmp[0][0].isupper() and tmp[1][0].isupper()
                         and tmp[2][0].isupper()):
+                    autor.etykieta = tmp[1] + " " + tmp[2] + " " + tmp[0]
+                    autor.imie = tmp[1]
                     # zastąpienie inicjału drugim imieniem
                     if len(tmp[2]) == 2 and tmp[2].endswith('.') and osoba_drugie:
                         tmp[2] = osoba_drugie
-                    autor.etykieta = tmp[1] + " " + tmp[2] + " " + tmp[0]
-                    autor.imie = tmp[1]
                     # drugie imię
                     if len(tmp[2]) > 2:
                         autor.imie2 = tmp[2]
@@ -371,10 +394,37 @@ if __name__ == "__main__":
                 f.write(f'LAST\tDen\t"{do_opisu_en}"\n')
 
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
-            f.write(f'LAST\t{P_IMIE}\t"{autor.imie}"\n')
+
+            # imię
+            # ok, q_imie = element_search(autor.imie, 'item', 'en', description='given name')
+            ok = False # na razie nie szukamy
+            if not ok:
+                q_imie = '{Q:' + f'{autor.imie}' + '}'
+            f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+
+            # imię 2
             if autor.imie2:
-                f.write(f'LAST\t{P_IMIE}\t"{autor.imie2}"\n')
-            f.write(f'LAST\t{P_NAZWISKO}\t"{autor.nazwisko}"\n')
+                # ok, q_imie = element_search(autor.imie2, 'item', 'en', description='given name')
+                # na razie nie szukamy
+                if not ok:
+                    q_imie = '{Q:' + f'{autor.imie2}' + '}'
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+
+            # nazwisko
+            #ok, q_nazwisko = element_search(autor.nazwisko, 'item', 'en', description='family name')
+            ok = False # na razie nie szukamy
+            if not ok:
+                q_nazwisko = '{Q:' + f'{autor.nazwisko}' + '}'
+            f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+
+            # nazwisko 2
+            #ok, q_nazwisko = element_search(autor.nazwisko, 'item', 'en', description='family name')
+            if autor.nazwisko2:
+                ok = False # na razie nie szukamy
+                if not ok:
+                    q_nazwisko = '{Q:' + f'{autor.nazwisko2}' + '}'
+                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+
             if autor.alias:
                 for item in autor.alias:
                     f.write(f'LAST\tApl\t"{item}"\n')

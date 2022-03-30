@@ -22,6 +22,20 @@ NAZWISKA = []
 IMIONA_QID = {}
 NAZWISKA_QID = {}
 
+WYJATKI_IMIONA = {'Dwornik Gutowska Ewa':
+                    {'imie':'Ewa', 'nazwisko':'Dwornik', 'nazwisko2':'Gutowska'},
+                  'Adamczyk Prengel Irena':
+                    {'imie':'Irena', 'nazwisko':'Adamczyk', 'nazwisko2':'Prengel'},
+                  'Gozdawa Gołębiowski Jan':
+                    {'imie':'Jan','nazwisko':'Gozdawa','nazwisko2':'Gołębiowski'},
+                  'Odrowąż Pieniążek Janusz':
+                    {'imie':'Janusz', 'nazwisko':'Odrowąż', 'nazwisko2':'Pieniążek'},
+                  'Marciniak Jadwiga Puchała':
+                    {'imie':'Jadwiga','nazwisko':'Marciniak','nazwisko2':'Puchała'},
+                  'Krause Ignacy J.T.':
+                    {'imie':'Ignacy', 'nazwisko':'Krause'}
+                }
+
 LOAD_DICT = True
 SAVE_DICT = True
 
@@ -36,6 +50,7 @@ class Autor:
         self.imie = p_imie.strip()
         self.imie2 = ''
         self.nazwisko = p_nazwisko.strip()
+        self.nazwisko2 = ''
         self.viaf = ''
         self.viaf_url = ''
         self.birth_date = ''
@@ -58,10 +73,10 @@ class Autor:
             self._alias = []
 
 
-def is_inicial(imie) -> bool:
+def is_inicial(value: str) -> bool:
     """ sprawdza czy przekazany tekst jest inicjałem imienia """
     result = False
-    if len(imie) == 2 and imie[0].isupper() and imie.endswith("."):
+    if len(value) == 2 and value[0].isupper() and value.endswith("."):
         result = True
 
     return result
@@ -114,10 +129,17 @@ if __name__ == "__main__":
         osoba_drugie = row[col_names['Drugie']].value
 
         if osoba:
+            osoba = osoba.strip()
             autor = Autor()
             osoba = ' '.join(osoba.strip().split()) # podwójne, wiodące i kończące spacje
             tmp = osoba.split(" ")
 
+            if osoba in WYJATKI_IMIONA:
+                autor.imie = WYJATKI_IMIONA[osoba]['imie']
+                autor.nazwisko = WYJATKI_IMIONA[osoba]['nazwisko']
+                if 'nazwisko2' in WYJATKI_IMIONA[osoba]:
+                    autor.nazwisko2 = WYJATKI_IMIONA[osoba]['nazwisko2']
+                autor.etykieta = autor.imie + ' ' + autor.nazwisko + ' ' + autor.nazwisko2
             if len(tmp) == 2 and tmp[0][0].isupper() and tmp[1][0].isupper():
                 autor.etykieta = tmp[1] + " " + tmp[0]
                 autor.imie = tmp[1]
@@ -161,7 +183,9 @@ if __name__ == "__main__":
                 IMIONA.append(autor.imie2)
             if autor.nazwisko and autor.nazwisko not in NAZWISKA:
                 NAZWISKA.append(autor.nazwisko)
-            
+            if autor.nazwisko2 and autor.nazwisko2 not in NAZWISKA:
+                NAZWISKA.append(autor.nazwisko2)
+
             print(f'Przetworzono: {autor.etykieta}')
 
     # weryfikacja imion w wikibase
@@ -175,13 +199,13 @@ if __name__ == "__main__":
             ok, qid = element_search(imie, 'item', 'pl', description='imię')
             if ok:
                 IMIONA_QID[imie] = qid
-        
+
         if ok:
             print(f'Znaleziono: {imie} w Wikibase: {qid}.')
             IMIONA.remove(imie)
-    
+
     # IMIONA = set(IMIONA) # zbiór zawiera tylko unikalne (kontrola jest też wyżej)
-    
+
     # zapis imiona Quickstatements w pliku 
     print('Zapis quickstatements dla imion...')
     with open(output_imiona, "w", encoding='utf-8') as f:
@@ -190,8 +214,8 @@ if __name__ == "__main__":
             f.write('CREATE\n')
             f.write(f'LAST\tLpl\t"{imie}"\n')
             f.write(f'LAST\tLen\t"{imie}"\n')
-            f.write(f'LAST\tDpl\t"imię"\n')
-            f.write(f'LAST\tDen\t"given name"\n')
+            f.write('LAST\tDpl\t"imię"\n')
+            f.write('LAST\tDen\t"given name"\n')
 
     # weryfikacja nazwisk w wikibase
     for nazwisko in NAZWISKA:
@@ -218,8 +242,8 @@ if __name__ == "__main__":
             f.write('CREATE\n')
             f.write(f'LAST\tLpl\t"{nazwisko}"\n')
             f.write(f'LAST\tLen\t"{nazwisko}"\n')
-            f.write(f'LAST\tDpl\t"nazwisko"\n')
-            f.write(f'LAST\tDen\t"family name"\n')
+            f.write('LAST\tDpl\t"nazwisko"\n')
+            f.write('LAST\tDen\t"family name"\n')
 
     # zamrażanie słowników imion i nazwisk znalezionych w wikibase 
     if SAVE_DICT:
