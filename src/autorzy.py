@@ -9,7 +9,7 @@ from urllib.parse import quote
 import requests
 from openpyxl import load_workbook
 from wikidariahtools import format_date
-# from wikidariahtools import element_search
+#from wikidariahtools import element_search, gender_detector
 
 
 P_INSTANCE_OF = 'P47'
@@ -41,6 +41,8 @@ WYJATKI_IMIONA = {'Dwornik Gutowska Ewa':
                   'Krause Ignacy J.T.':
                     {'imie':'Ignacy', 'nazwisko':'Krause'}
                 }
+
+MALE_FEMALE_NAME = ['Maria', 'Anna']
 
 LOAD_DICT = True
 SAVE_DICT = True
@@ -396,7 +398,8 @@ if __name__ == "__main__":
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
 
             # imię
-            # ok, q_imie = element_search(autor.imie, 'item', 'en', description='given name')
+            # gender1 = gender_detector(imie)
+            # ok, q_imie = element_search(autor.imie, 'item', 'pl', description=gender1)
             ok = False # na razie nie szukamy
             if not ok:
                 q_imie = '{Q:' + f'{autor.imie}' + '}'
@@ -404,7 +407,11 @@ if __name__ == "__main__":
 
             # imię 2
             if autor.imie2:
-                # ok, q_imie = element_search(autor.imie2, 'item', 'en', description='given name')
+                # gender = gender_detector(imie2)
+                #  # czy to przypadek 'Maria', 'Anna'?
+                #  if imie2 in MALE_FEMALE_NAME and gender != gender1 and gender1 = 'imię męskie':
+                #      gender = gender1
+                # ok, q_imie = element_search(autor.imie2, 'item', 'pl', description=gender)
                 # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{autor.imie2}' + '}'

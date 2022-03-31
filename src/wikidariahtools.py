@@ -34,7 +34,7 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
     if kwargs:
         if 'description' in kwargs:
             description = kwargs['description']
-        
+
     results = search_entities(search_string, language=lang, search_type=element_type, max_results=5)
 
     if len(results) == 0:
@@ -161,7 +161,12 @@ def short_names_in_autor(value: str) -> str:
                 if i == len(imiona_nazwiska) - 1:         # jeżeli nazwisko
                     wynik.append(name_part)
                 elif not is_inicial(name_part):           # jeżeli imię
-                    wynik.append(name_part[0] + ".")
+                    if name_part.startswith('Cz'):
+                        wynik.append(name_part[0:2] + ".")
+                    elif name_part.startswith('Sz'):
+                        wynik.append(name_part[0:2] + ".")
+                    else:    
+                        wynik.append(name_part[0] + ".")
                 else:
                     wynik.append(name_part)               # jeżeli inicjał
 
@@ -172,3 +177,27 @@ def short_names_in_autor(value: str) -> str:
         value = value.replace(key, val)
 
     return value
+
+
+def gender_detector(value: str) -> str:
+    """ zwraca m - mężczyzna, k - kobieta, n - nie określono """
+    result = 'n'
+    m_wyjatki = ['Zawisza', 'Jarema', 'Kosma', 'Symcha', 'Mustafa', 'Murza',
+			    'Baptysta', 'Bonawentura', 'Barnaba', 'Bodzęta',
+                'Benzelstierna', 'Kostka', 'Jura', 'Nata', 'Jona', 'Ilia',
+                'Prandota', 'Mrokota', 'Saba', 'Żegota', 'Battista', 'Wierzbięta',
+			    'Zaklika', 'Akiba']
+    k_wyjatki = ['Mercedes', 'Denise', 'Huguette', 'Isabel', 'Nijolė']
+
+    if value in m_wyjatki:
+        result = 'imię męskie'
+    elif value in k_wyjatki:
+        result = 'imię żeńskie'
+
+    if result == 'n':
+        if value[len(value)-1].lower() == 'a':
+            result = 'imię żeńskie'
+        else:
+            result = 'imię męskie'
+
+    return result

@@ -15,7 +15,7 @@ from autorzy import VIAF_DEATH, WERYFIKACJA_VIAF
 from wikidariahtools import format_date, text_clear, \
                             get_last_nawias, short_names_in_autor
 from postacietools import get_name
-#from wikidariahtools import element_search
+#from wikidariahtools import element_search, gender_detector
 
 
 # adresy
@@ -56,9 +56,10 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
     # przez api
     if person_name in VIAF_ID:
         info = VIAF_ID[person_name]
-        match = re.search('\d{3,25}', info)
-        if match:
-            info = match.group()        
+        if 'http' in info:
+            match = re.search(r'\d{3,25}', info)
+            if match:
+                info = match.group()
         id_url = f"http://viaf.org/viaf/{info}/"
 
         if person_name in VIAF_BIRTH:
@@ -215,77 +216,6 @@ def date_birth_death(value: str) -> tuple:
     return date_of_birth, date_of_death
 
 
-# def get_name(value: str) -> tuple:
-#     """ get_name """
-#     roman = ['I', 'II', 'III', 'IV', 'V', 'VI',
-#              'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV']
-    
-#     p_imie = p_imie2 = p_nazwisko = ''
-
-#     not_forname = ['Judaeus', 'Bohemus', 'Hohenzollern', 'Wszewołodowicz',
-#                    'Caucina', 'Courtenay', 'Vasseur', 'Gallo', 'Chrobry',
-#                    'Mieszkowic', 'Szczodry', 'Krzywousty', 'Kędzierzawy', 'Wstydliwy',
-#                    'Wysoki', 'Łysy', 'Pobożny', 'Hojny', 'Sforza', 'Radziwiłłówna', 
-#                    'Rachtamowicz', 'Michajłowicz', 'Abrahamowic', 'Pesach-Libman', 
-#                    'Sprawiedliwy', 'Odnowiciel', 'Oleksowicz', 'Przecławski', 
-#                    'Namysłowski', 'Mniszchówna', 'Bohuszewicz', 'Aleksandrowicz', 
-#                    'Aleksiejewna', 'Andegaweńska', 'Andrejewicz', 'Andrysowic']
-
-#     if 'młodszy' in value:
-#         value = value.replace("młodszy", "").strip()
-
-#     if 'starszy' in value:
-#         value = value.replace("starszy", "").strip()
-
-#     if 'Młodszy' in value:
-#         value = value.replace("Młodszy", "").strip()
-
-#     if 'Starszy' in value:
-#         value = value.replace("Starszy", "").strip()
-
-#     tmp = value.strip().split(" ")
-#     for i in range(0, len(tmp)):
-#         tmp[i] = tmp[i].strip()
-#         if tmp[i] in roman:
-#             tmp[i] = ''
-
-#     for item in tmp:
-#         if item.strip() == '':
-#             tmp.remove(item)
-
-#     if len(tmp) == 1:
-#         # czy to imię czy nazwisko? Słownik typowych imion a jeżeli spoza to nazwisko?
-#         p_imie = tmp[0].strip()
-#     elif len(tmp) == 2:
-#         if tmp[0][0].isupper() and tmp[1][0].isupper():
-#             if tmp[1].strip() in not_forname:
-#                 p_nazwisko = tmp[1].strip()
-#                 p_imie = tmp[0].strip()
-#             else:
-#                 p_nazwisko = tmp[0].strip()
-#                 p_imie = tmp[1].strip()
-#     elif len(tmp) == 3:
-#         if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
-#             if tmp[2].strip() in not_forname:
-#                 p_nazwisko = tmp[2].strip()
-#                 p_imie = tmp[0].strip()
-#                 if tmp[1].strip() not in not_forname:
-#                     p_imie2 = tmp[1].strip()
-#             else:
-#                 p_nazwisko = tmp[0].strip()
-#                 p_imie = tmp[1].strip()
-#                 p_imie2 = tmp[2].strip()
-#         else:
-#             if ' z ' in value:
-#                 p_imie = tmp[0].strip()
-#     else:
-#         if ' de ' in value:
-#             p_imie = tmp[-1].strip()
-#             p_nazwisko = ' '.join(tmp[:-1])
-
-#     return p_nazwisko, p_imie, p_imie2
-
-
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     output = Path('.').parent / 'out/postacie.qs'
@@ -386,25 +316,38 @@ if __name__ == "__main__":
                 f.write(f'LAST\tDpl\t"({years})"\n')
                 f.write(f'LAST\tDen\t"({years})"\n')
             if imie:
-                # ok, q_imie = element_search(imie, 'item', 'en', description='given name')
+                # gender1 = gender_detector(imie)
+                # ok, q_imie = element_search(imie, 'item', 'pl', description=gender1)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie2:
-                # ok, q_imie = element_search(imie2, 'item', 'en', description='given name')
+                # gender = gender_detector(imie2)
+                # # czy to przypadek 'Maria', 'Anna'?
+                # if imie2 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                #      gender = gender1
+                # ok, q_imie = element_search(imie2, 'item', 'pl', description=gender)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie2}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie3:
-                # ok, q_imie = element_search(imie3, 'item', 'en', description='given name')
+                # gender = gender_detector(imie3)
+                # # czy to przypadek 'Maria', 'Anna'?
+                # if imie3 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                #      gender = gender1
+                # ok, q_imie = element_search(imie3, 'item', 'pl', description=gender)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie3}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie4:
-                # ok, q_imie = element_search(imie4, 'item', 'en', description='given name')
+                # gender = gender_detector(imie4)
+                # # czy to przypadek 'Maria', 'Anna'?
+                # if imie4 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                #      gender = gender1
+                # ok, q_imie = element_search(imie4, 'item', 'pl', description=gender)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie4}' + '}'

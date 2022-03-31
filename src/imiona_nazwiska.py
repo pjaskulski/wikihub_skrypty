@@ -7,16 +7,24 @@ from time import sleep
 from pathlib import Path
 from openpyxl import load_workbook
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikidariahtools import element_search
+from wikidariahtools import element_search, gender_detector
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
+P_INSTANCE_OF = 'P47'
+Q_MALE_NAME = 'Q987'
+Q_FEMALE_NAME = 'Q988'
+Q_FAMILY_NAME = 'Q34'
+
 # listy na znalezione imiona i nazwiska
 IMIONA = []
 NAZWISKA = []
+
+# słownik na określenie płci imienia 
+NAME_GENDER = {}
 
 # słowniki na QID imion i nazwisk
 IMIONA_QID = {}
@@ -35,6 +43,8 @@ WYJATKI_IMIONA = {'Dwornik Gutowska Ewa':
                   'Krause Ignacy J.T.':
                     {'imie':'Ignacy', 'nazwisko':'Krause'}
                 }
+
+MALE_FEMALE_NAME = ['Maria', 'Anna']
 
 LOAD_DICT = True
 SAVE_DICT = True
@@ -101,7 +111,7 @@ if __name__ == "__main__":
     output_nazwiska = Path('.').parent / 'out/autorzy_nazwiska.qs'
     imiona_qid_pickle = Path('.').parent / 'out/imiona_qid.pickle'
     nazwiska_qid_pickle = Path('.').parent / 'out/nazwiska_qid.pickle'
-    
+
     # odmrażanie słowników QID dla imion i nazwisk
     if LOAD_DICT:
         if os.path.isfile(imiona_qid_pickle):
@@ -195,8 +205,9 @@ if __name__ == "__main__":
             ok = True
             qid = IMIONA_QID[imie]
         else:   
-            sleep(0.05) # mały odstęp między poszukiwaniami
-            ok, qid = element_search(imie, 'item', 'pl', description='imię')
+            sleep(0.03) # mały odstęp między poszukiwaniami
+            gender = gender_detector(imie)
+            ok, qid = element_search(imie, 'item', 'pl', description=gender)
             if ok:
                 IMIONA_QID[imie] = qid
 
@@ -206,7 +217,7 @@ if __name__ == "__main__":
 
     # IMIONA = set(IMIONA) # zbiór zawiera tylko unikalne (kontrola jest też wyżej)
 
-    # zapis imiona Quickstatements w pliku 
+    # zapis imiona Quickstatements w pliku
     print('Zapis quickstatements dla imion...')
     with open(output_imiona, "w", encoding='utf-8') as f:
         for imie in sorted(IMIONA):
@@ -214,8 +225,26 @@ if __name__ == "__main__":
             f.write('CREATE\n')
             f.write(f'LAST\tLpl\t"{imie}"\n')
             f.write(f'LAST\tLen\t"{imie}"\n')
-            f.write('LAST\tDpl\t"imię"\n')
-            f.write('LAST\tDen\t"given name"\n')
+            gender = gender_detector(imie)
+            if gender == 'imię męskie':
+                f.write('LAST\tDpl\t"imię męskie"\n')
+                f.write('LAST\tDen\t"male given name"\n')
+                f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_MALE_NAME}\n')
+            elif gender == 'imię żeńskie':
+                f.write('LAST\tDpl\t"imię żeńskie"\n')
+                f.write('LAST\tDen\t"female given name"\n')
+                f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_FEMALE_NAME}\n')
+
+            # wybrane imiona są także w wariantach 'męskich'
+            if imie in MALE_FEMALE_NAME:
+                ok, qid = element_search(imie, 'item', 'pl', description='imię męskie')
+                if not ok:
+                    f.write('CREATE\n')
+                    f.write(f'LAST\tLpl\t"{imie}"\n')
+                    f.write(f'LAST\tLen\t"{imie}"\n')
+                    f.write('LAST\tDpl\t"imię męskie"\n')
+                    f.write('LAST\tDen\t"male given name"\n')
+                    f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_MALE_NAME}\n')
 
     # weryfikacja nazwisk w wikibase
     for nazwisko in NAZWISKA:
@@ -223,12 +252,12 @@ if __name__ == "__main__":
         if nazwisko in NAZWISKA_QID:
             ok = True
             qid = NAZWISKA_QID[imie]
-        else: 
+        else:
             sleep(0.05) # mały odstęp między poszukiwaniami
             ok, qid = element_search(nazwisko, 'item', 'pl', description='nazwisko')
             if ok:
                 NAZWISKA_QID[nazwisko] = qid
-        
+
         if ok:
             print(f'Znaleziono: {nazwisko} w Wikibase: {qid}.')
             NAZWISKA.remove(nazwisko)
@@ -244,6 +273,7 @@ if __name__ == "__main__":
             f.write(f'LAST\tLen\t"{nazwisko}"\n')
             f.write('LAST\tDpl\t"nazwisko"\n')
             f.write('LAST\tDen\t"family name"\n')
+            f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_FAMILY_NAME}\n')
 
     # zamrażanie słowników imion i nazwisk znalezionych w wikibase 
     if SAVE_DICT:
