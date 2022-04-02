@@ -28,25 +28,25 @@ PSB = {}
 AUTORZY = {}
 
 LOAD_DICT = True
-SAVE_DICT = False
+SAVE_DICT = True
 
 
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     output = Path('.').parent / 'out/biogramy.qs'
     psb_pickle = Path('.').parent / 'out/psb.pickle'
-    autorzy_pickle = Path('.').parent / 'out/autorzy.pickle'
+    autorzy_pickle = Path('.').parent / 'out/autorzy_biogramow.pickle'
 
     # odmrażanie słowników
-    if LOAD_DICT: 
+    if LOAD_DICT:
         if os.path.isfile(psb_pickle):
             with open(psb_pickle, 'rb') as handle:
                 PSB = pickle.load(handle)
-        
+
         if os.path.isfile(autorzy_pickle):
             with open(autorzy_pickle, 'rb') as handle:
                 AUTORZY = pickle.load(handle)
-    
+
     with open(file_path, "r", encoding='utf-8') as f:
         indeks = f.readlines()
 
@@ -107,23 +107,21 @@ if __name__ == "__main__":
                 elif ini_only(t_autor): # jeżeli autor ma tylko inicjał pierwszego imienia
                     o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"{t_autor}"\n')
                 else:
-                    # UWAGA: na razie bez szukania w wiki, tam jeszcze nie ma autorów
-                    # if t_autor in AUTORZY:
-                    #     autor_qid = AUTORZY[t_autor]
-                    #     ok = True
-                    # else:
-                    #     ok, autor_qid = element_search(f"{t_autor}", 'item', 'en')
-                    #     if ok:
-                    #         AUTORZY[t_autor] = autor_qid
-                    #     else:
-                    #         # szukanie w wikibase po aliasie? 
+                    if t_autor in AUTORZY:
+                        autor_qid = AUTORZY[t_autor]
+                        ok = True
+                    else:
+                        ok, autor_qid = element_search(f"{t_autor}", 'item', 'en', aliases=True)
+                        if ok:
+                            AUTORZY[t_autor] = autor_qid 
 
+                    if ok:
+                        o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')
+                    else:
+                        o.write(f'LAST\t{P_AUTHOR_SHORT_NAME}\t"{t_autor}"\n')
+                        t_autor = "{Q:" + t_autor + "}"
+                        o.write(f'LAST\t{P_WRITTEN_BY}\t{t_autor}\n')
 
-                    # if ok:
-                    #     o.write(f'LAST\t{P_WRITTEN_BY}\t{autor_qid}\n')
-                    # else:
-                    t_autor = "{Q:" + t_autor + "}"
-                    o.write(f'LAST\t{P_WRITTEN_BY}\t{t_autor}\n')
 
             #tytuł
             o.write(f'LAST\t{P_TITLE}\tpl:"{title}"\n')
@@ -144,10 +142,10 @@ if __name__ == "__main__":
             # nr stron
             o.write(f'LAST\t{P_PAGE}\t"{nr_strony}"\n')
 
-    # zamrażanie słowników 
+    # zamrażanie słowników
     if SAVE_DICT:
         with open(psb_pickle, 'wb') as handle:
             pickle.dump(PSB, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        
+
         with open(autorzy_pickle, 'wb') as handle:
             pickle.dump(AUTORZY, handle, protocol=pickle.HIGHEST_PROTOCOL)

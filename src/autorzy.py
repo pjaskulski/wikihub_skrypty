@@ -8,9 +8,15 @@ from time import sleep
 from urllib.parse import quote
 import requests
 from openpyxl import load_workbook
+from wikibaseintegrator.wbi_config import config as wbi_config
 from wikidariahtools import format_date
-#from wikidariahtools import element_search, gender_detector
+from wikidariahtools import element_search, gender_detector
 
+
+# adresy
+wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
+wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 P_INSTANCE_OF = 'P47'
 Q_HUMAN = 'Q32'
@@ -358,7 +364,7 @@ if __name__ == "__main__":
                 if not is_inicial(autor.imie):
                     autor_list.append(autor)
 
-    # zapis Quickstatements w pliku 
+    # zapis Quickstatements w pliku
     with open(output, "w", encoding='utf-8') as f:
         for autor in autor_list:
             tmp_data_b = tmp_data_d = ''
@@ -397,39 +403,47 @@ if __name__ == "__main__":
 
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
 
+            print(f'Przetwarzanie: {autor.etykieta}')
+            # if 'Krystyna Abramczuk' in autor.etykieta:
+            #     print()
+
             # imię
-            # gender1 = gender_detector(imie)
-            # ok, q_imie = element_search(autor.imie, 'item', 'pl', description=gender1)
-            ok = False # na razie nie szukamy
-            if not ok:
-                q_imie = '{Q:' + f'{autor.imie}' + '}'
-            f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+            if autor.imie:
+                gender1 = gender_detector(autor.imie)
+                ok, q_imie = element_search(autor.imie, 'item', 'pl', description=gender1)
+                if not ok:
+                    q_imie = '{Q:' + f'{autor.imie}' + '}'
+                    print(f'NIE ZNALEZIONO: {autor.imie}')
+                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
 
             # imię 2
             if autor.imie2:
-                # gender = gender_detector(imie2)
-                #  # czy to przypadek 'Maria', 'Anna'?
-                #  if imie2 in MALE_FEMALE_NAME and gender != gender1 and gender1 = 'imię męskie':
-                #      gender = gender1
-                # ok, q_imie = element_search(autor.imie2, 'item', 'pl', description=gender)
-                # na razie nie szukamy
+                gender = gender_detector(autor.imie2)
+                # czy to przypadek 'Maria', 'Anna'?
+                if (autor.imie2 in MALE_FEMALE_NAME and gender != gender1
+                    and gender1 == 'imię męskie'):
+                    gender = gender1
+                ok, q_imie = element_search(autor.imie2, 'item', 'pl', description=gender)
                 if not ok:
                     q_imie = '{Q:' + f'{autor.imie2}' + '}'
+                    print(f'NIE ZNALEZIONO: {autor.imie2}')
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
 
             # nazwisko
-            #ok, q_nazwisko = element_search(autor.nazwisko, 'item', 'en', description='family name')
-            ok = False # na razie nie szukamy
-            if not ok:
-                q_nazwisko = '{Q:' + f'{autor.nazwisko}' + '}'
-            f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+            if autor.nazwisko:
+                ok, q_nazwisko = element_search(autor.nazwisko, 'item', 'en', description='family name')
+                if not ok:
+                    q_nazwisko = '{Q:' + f'{autor.nazwisko}' + '}'
+                    print(f'NIE ZNALEZIONO: {autor.nazwisko}')
+                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             # nazwisko 2
-            #ok, q_nazwisko = element_search(autor.nazwisko, 'item', 'en', description='family name')
             if autor.nazwisko2:
-                ok = False # na razie nie szukamy
+                ok, q_nazwisko = element_search(autor.nazwisko2, 'item', 'en',
+                                                description='family name')
                 if not ok:
                     q_nazwisko = '{Q:' + f'{autor.nazwisko2}' + '}'
+                    print(f'NIE ZNALEZIONO: {autor.nazwisko2}')
                 f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             if autor.alias:

@@ -16,8 +16,15 @@ def get_name_simple(value: str) -> tuple:
     elif len(tmp) == 3:
         if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
             p_nazwisko = tmp[0].strip()
-            p_imie = tmp[1].strip()
-            p_imie2 = tmp[2].strip()
+            if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
+                or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
+                or tmp[1].endswith('zic')):
+                p_imie = tmp[2]
+            elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
+                p_imie = tmp[1]
+            else:
+                p_imie = tmp[1].strip()
+                p_imie2 = tmp[2].strip()
 
     return p_nazwisko, p_imie, p_imie2
 
@@ -48,28 +55,34 @@ def get_name(value: str) -> tuple:
             p_nazwisko = WYJATKI[value]['nazwisko'].strip()
         if 'nazwisko2' in WYJATKI[value]:
             p_nazwisko2 = WYJATKI[value]['nazwisko2'].strip()
-              
+
         return p_nazwisko, p_imie, p_imie2, p_nazwisko2, p_imie3, p_imie4
 
     tmp = value.strip().split(" ")
 
     # liczby rzymskie w przypadku władców - nie są imionami i nazwiskami
+    # zazwyczaj za taką liczbą jest przydomek, więc pomijam
     roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
              'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
 
+    is_roman = False
     for i in range(0, len(tmp)):
         tmp[i] = tmp[i].strip()
         if tmp[i] in roman:
+            is_roman = True
+        if is_roman:
             tmp[i] = ''
-    
-    for item in tmp:
-        if item.strip() == '':
-            tmp.remove(item)
+
+    tmp = [item for item in tmp if item.strip() != '']
 
     if len(tmp) == 1:
-        # czy to imię czy nazwisko? Dodać słownik typowych imion? na razie wszystkie 
-        # pojedyncze traktowane są jak imiona
-        p_imie = tmp[0].strip()
+        # czy to imię czy nazwisko? Dodać słownik typowych imion? na razie wszystkie
+        # pojedyncze traktowane są jak imiona, chyba że kończy się na 'ski'
+        p_word = tmp[0].strip()
+        if p_word.endswith('ski') or p_word.endswith('ska') or p_word.endswith('cki'):
+            p_nazwisko = p_word
+        else:
+            p_imie = p_word
 
     elif len(tmp) == 2:
         if tmp[0][0].isupper() and tmp[1][0].isupper():
@@ -79,9 +92,12 @@ def get_name(value: str) -> tuple:
     elif len(tmp) == 3:
         if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
             p_nazwisko = tmp[0].strip()
-            if tmp[1].endswith('ski') or tmp[1].endswith('icz') or tmp[1].endswith('ska') or tmp[1].endswith('iczowa'):
-                p_nazwisko2 = tmp[1]
+            if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
+                or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
+                or tmp[1].endswith('zic')):
                 p_imie = tmp[2]
+            elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
+                p_imie = tmp[1]
             else:
                 p_imie = tmp[1]
                 p_imie2 = tmp[2]
@@ -145,7 +161,7 @@ def get_name(value: str) -> tuple:
             pos1 = value.find(' syn ')
             if pos1 > 0 and (pos == -1 or pos1 < pos):
                 pos = pos1    
-            
+     
             if pos != -1:
                 value = value[:pos].strip()
                 tmp = value.split(" ")
@@ -182,12 +198,18 @@ def get_name(value: str) -> tuple:
         p_imie2 = ''
     if p_imie3.endswith('icz') or p_imie3.endswith('cki'):
         p_imie3 = ''
-    if p_imie2 == 'ben':
+
+    # jeżeli imię zaczyna się z małej litery, to błędnie rozpoznano i to nie jest imię
+    if p_imie and p_imie[0].islower():
+        p_imie = ''
+    if p_imie2 and p_imie2[0].islower():
         p_imie2 = ''
-    if p_imie3 == 'ben':
+    if p_imie3 and p_imie3[0].islower():
         p_imie3 = ''
+    if p_imie4 and p_imie4[0].islower():
+        p_imie4 = ''
 
     if not p_imie and not p_nazwisko: 
         print(f'PROBLEM: {original_value}')
-    
+
     return p_nazwisko, p_imie, p_imie2, p_nazwisko2, p_imie3, p_imie4

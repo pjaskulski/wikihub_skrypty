@@ -42,7 +42,9 @@ if __name__ == "__main__":
         if 'P162' in claims:
             print('jest')
 
-    #exit()
+    ok, q_imie = element_search('Michał Brensztejn', 'item', 'en', aliases=True)
+    print(ok, q_imie)
+    exit()
 
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))

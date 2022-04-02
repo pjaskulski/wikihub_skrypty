@@ -31,11 +31,14 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
     description = ''
+    aliases = False
     if kwargs:
         if 'description' in kwargs:
             description = kwargs['description']
+        elif 'aliases' in kwargs:
+            aliases = kwargs['aliases']
 
-    results = search_entities(search_string, language=lang, search_type=element_type, max_results=5)
+    results = search_entities(search_string, language=lang, search_type=element_type, max_results=50)
 
     if len(results) == 0:
         return False, "NOT FOUND"
@@ -50,9 +53,20 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                     value_desc = data["descriptions"][lang]["value"]
                     if value_desc == description:
                         return True, results[0]    
-                else:    
+                else:
                     return True, results[0]
-        else:
+            elif aliases:
+                value_alias = data["aliases"][lang]
+                for alias in value_alias:
+                    if search_string == alias['value']:
+                        if description:
+                            value_desc = data["descriptions"][lang]["value"]
+                            if value_desc == description:
+                                return True, results[0]
+                        else:
+                            return True, results[0]
+
+        else:   
             print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
 
         return False, f"AMBIGIOUS ID FOUND {results}"
@@ -72,9 +86,21 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                 else:
                     exact_id = qid
                     break
+            elif aliases:
+                value_alias = data["aliases"][lang]
+                for alias in value_alias:
+                    if search_string == alias['value']:
+                        if description:
+                            value_desc = data["descriptions"][lang]["value"]
+                            if value_desc == description:
+                                exact_id = qid
+                                break
+                        else:
+                            exact_id = qid
+                            break
         else:
             print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
-            
+
     if exact_id:
         return True, exact_id
 
@@ -180,21 +206,25 @@ def short_names_in_autor(value: str) -> str:
 
 
 def gender_detector(value: str) -> str:
-    """ zwraca m - mężczyzna, k - kobieta, n - nie określono """
-    result = 'n'
+    """ zwraca 'imię męskie' lub 'imię żeńskie' """
+    result = ''
     m_wyjatki = ['Zawisza', 'Jarema', 'Kosma', 'Symcha', 'Mustafa', 'Murza',
-			    'Baptysta', 'Bonawentura', 'Barnaba', 'Bodzęta',
+			    'Baptysta', 'Bonawentura', 'Barnaba', 'Bodzęta', 'Sawa',
                 'Benzelstierna', 'Kostka', 'Jura', 'Nata', 'Jona', 'Ilia',
                 'Prandota', 'Mrokota', 'Saba', 'Żegota', 'Battista', 'Wierzbięta',
-			    'Zaklika', 'Akiba']
-    k_wyjatki = ['Mercedes', 'Denise', 'Huguette', 'Isabel', 'Nijolė']
+			    'Zaklika', 'Akiba', 'Szaja', 'Sima','Sławęta', 'Szachna', 'Seraja',
+                'Prędota', 'Pełka', 'Panięta', 'Ninota', 'Niemira', 'Niemierza', 
+                'Mykoła', 'Mykola', 'Mikora', 'Luca', 'Kuźma', 'Jursza', 'Janota',
+                'Jaksa', 'Hinczka', 'Hincza', 'Bogusza', 'Andrea']
+    k_wyjatki = ['Mercedes', 'Denise', 'Huguette', 'Isabel', 'Nijolė', 'Antoinette',
+                 'Ruth', 'Rachel', 'Mary', 'Marie', 'Margit', 'Margaret', 'Annie']
 
     if value in m_wyjatki:
         result = 'imię męskie'
     elif value in k_wyjatki:
         result = 'imię żeńskie'
 
-    if result == 'n':
+    if result == '':
         if value[len(value)-1].lower() == 'a':
             result = 'imię żeńskie'
         else:
