@@ -328,7 +328,7 @@ WYJATKI = {
             'Bykowski Jaksa Juliusz':
                 {'imie':'Juliusz', 'nazwisko':'Bykowski', 'nazwisko2':'Jaksa'},
             'Bykowski Jaksa Piotr':
-                {'imie':'Piotr', 'nazwisko':'Chołoniewski', 'nazwisko2':'Myszka'},
+                {'imie':'Piotr', 'nazwisko':'Bykowski', 'nazwisko2':'Jaksa'},
             'Bykowski Jaksa Stanisław':
                 {'imie':'Stanisław', 'nazwisko':'Bykowski', 'nazwisko2':'Jaksa'},
             'Bykowski Jaksa Witold':
@@ -358,7 +358,7 @@ WYJATKI = {
             'Del Pace Rafał':
                 {'imie':'Rafał', 'nazwisko':'Del Pace'},
             'Deybel de Hammerau Krystian Godfryd':
-                {'imie':'Krystian', 'imie2':'Krystian', 'nazwisko':'Deybel de Hammerau'},
+                {'imie':'Krystian', 'imie2':'Godfryd', 'nazwisko':'Deybel de Hammerau'},
             'Długoszewski Wieniawa Ignacy':
                 {'imie':'Ignacy', 'nazwisko':'Długoszewski', 'nazwisko2':'Wieniawa'},
             'Dobrawa':
@@ -482,7 +482,7 @@ WYJATKI = {
             'Le Doux François Gabriel':
                 {'imie':'François', 'imie2':'Gabriel', 'nazwisko':'Le Doux'},
             'Sylwestrowicz Dowoyna Witold':
-                {'imie':'Witold', 'nazwisko':'Sylwestrowicz'},
+                {'imie':'Witold', 'nazwisko':'Sylwestrowicz', 'nazwisko2':'Dowoyna'},
             'Isajkowski Dołmat Franciszek':
                 {'imie':'Franciszek', 'nazwisko':'Isajkowski'},
             'Chodakowski Dołęga Józef':
@@ -592,9 +592,9 @@ WYJATKI = {
             'Jan Łodzia':
                 {'imie':'Jan', 'nazwisko':'Łodzia'},
             'Święca':
-                {'przydomek':'Święca'},
+                {'imie':'Święca'},
             'Świętek':
-                {'przydomek':'Świętek'},
+                {'imie':'Świętek'},
             'Gajniak Ignacy Wdówka':
                 {'imie':'Ignacy','nazwisko':'Gajniak', 'przydomek':'Wdówka'},
             'Lach Szyrma':
@@ -610,7 +610,7 @@ WYJATKI = {
             'Jungschultz von Röbern Jan':
                 {'imie':'Jan', 'nazwisko':'Jungschultz von Röbern'},
             'Mikołaj Rziga':
-                {'imię':'Mikołaj', 'nazwisko':'Rziga'},
+                {'imie':'Mikołaj', 'nazwisko':'Rziga'},
             'Rogala z Pilchowa i Węgrzynowa':
                 {'przydomek':'Rogala'},
             'Rogala z Węgrzynowa':
@@ -642,7 +642,7 @@ WYJATKI = {
             'Gorzeński Ostroróg Zbigniew':
                 {'imie':'Zbigniew', 'nazwisko':'Gorzeński', 'przydomek':'Ostroróg'},
             'Katarzyna Opalińska':
-                {'imię':'Katarzyna', 'nazwisko':'Opalińska'},
+                {'imie':'Katarzyna', 'nazwisko':'Opalińska'},
             'Paweł Ogon':
                 {'imie':'Paweł'},
             'Hoszowski Konstanty Moroz':
@@ -690,6 +690,251 @@ WYJATKI = {
             'Berek Joselewicz':
                 {'imie':'Berek', 'nazwisko':'Joselewicz'},
             'Beauplan Wilhelm Le Vasseur':
-                {'imie':'Wilhelm', 'nazwisko':'Beauplan', 'nazwisko2':'Le Vasseur'}
+                {'imie':'Wilhelm', 'nazwisko':'Beauplan', 'nazwisko2':'Le Vasseur'},
+            'Temruk Szymkowic Petyhorski':
+                {'imie':'Temruk', 'imie2':'Szymkowic', 'nazwisko':'Petyhorski'},
+            'Talmont de Maria Anna':
+                {'imie':'Anna', 'imie2':'Maria', 'nazwisko':'de Talmont'},
+            'Świrski Jan Bolesławowicz':
+                {'imie':'Jan', 'nazwisko':'Świrski', 'nazwisko2':'Bolesławowicz'},
+            'Świrski Jakub Aleksandrowicz':
+                {'imie':'Jakub', 'nazwisko':'Świrski', 'nazwisko2':'Aleksandrowicz'},
+            'Tchorznicki Mniszek Aleksander':
+                {'imie':'Aleksander', 'nazwisko':'Tchorznicki', 'nazwisko2':'Mniszek'},
+            'Tchorznicki Mniszek Władysław':
+                {'imie':'Władysław', 'nazwisko':'Tchorznicki', 'nazwisko2':'Mniszek'},
+            'Śwircz Piotr Adamkowicz ze Świrczkowiec i Wachniowiec':
+                {'imie':'Piotr','nazwisko':'Śwircz', 'nazwisko2':'Adamkowicz'},
+            'Świniuski Michajło Wasilewicz':
+                {'imie':'Michajło','nazwisko':'Wasilewicz','nazwisko2':'Świniuski'},
+            'Świętosław Szczenię z Zawady':
+                {'imie':'Świętosław', 'imie2':'Szczenię'},
+            'Świętosław Konstantyn?':
+                {'imie':'Świętosław', 'imie2':'Konstantyn?'},
+            'Szkliński Szymkowicz Tomasz':
+                {'imie':'Tomasz', 'nazwisko':'Szkliński', 'nazwisko2':'Szymkowicz'},
+            'Szczytt Zabielski Daniel':
+                {'imie':'Daniel', 'nazwisko':'Szczytt', 'nazwisko2':'Zabielski'},
+            'Szczytt Niemirowicz Marcin':
+                {'imie':'Marcin', 'nazwisko':'Szczytt', 'nazwisko2':'Niemirowicz'},
+            'Szczytt Niemirowicz Krzysztof':
+                {'imie':'Krzysztof', 'nazwisko':'Szczytt', 'nazwisko2':'Niemirowicz'},
+            'Szczytt Niemirowicz Krzysztof Benedykt':
+                {'imie':'Krzysztof', 'imie2':'Benedykt','nazwisko':'Szczytt', 'nazwisko2':'Niemirowicz'},
+            'Szczytt Niemirowicz Justynian':
+                {'imie':'Justynian', 'nazwisko':'Szczytt', 'nazwisko2':'Niemirowicz'},
+            'Szczytt Niemirowicz Józef':
+                {'imie':'Józef', 'nazwisko':'Szczytt', 'nazwisko2':'Niemirowicz'},
+            'Szarfenberger Ostrogórski Marek':
+                {'imie':'Marek', 'nazwisko':'Szarfenberger', 'nazwisko2':'Ostrogórski'},
+            'Szymkowicz Poszuszwieński Mikołaj':
+                {'imie':'Mikołaj', 'nazwisko':'Szymkowicz', 'nazwisko2':'Poszuszwieński'},
+            'Szapszał Seraja Markowicz':
+                {'imie':'Seraja', 'nazwisko':'Szapszał', 'nazwisko2':'Markowicz'},
+            'Syri Zgórski Salomon':
+                {'imie':'Salomon', 'nazwisko':'Syri', 'nazwisko2':'Zgórski'},
+            'Sawa Caliński Józef':
+                {'imie':'Jozef', 'nazwisko':'Sawa', 'nazwisko2':'Caliński'}
+            
 
           }
+
+ETYKIETY_WYJATKI = {
+    'Śmiarowski zapewne Jakub':'Jakub (?) Śmiarowski',
+    'Szymański właśc. Szymczuk Paweł':'Paweł Szymański właśc. Szymczuk',
+    'Szaniawska ze Scipionów Anna':'Anna Szaniawska ze Scipionów',
+    'Symeon Połocki':'Symeon Połocki',
+    'Sulisław Gryfita':'Sulisław Gryfita',
+    'Sulisław Bernatowic':'Sulisław Bernatowic',
+    'Staroźrebski vel Sobiejuski Wojciech':'Wojciech Staroźrebski vel Sobiejuski',
+    'Stefan zw. Pękawka':'Stefan zw. Pękawka',
+    'Stefan zw. Zajączek':'Stefan zw. Zajączek',
+    'Stanisław Cielątko z Liszyna':'Stanisław Cielątko z Liszyna',
+    'Staniewski zak. Józef Maksymilian Ignacy':'Staniewski zak. Józef Maksymilian Ignacy',
+    'Sprengel von Röbern Jan':'Jan Sprengel von Röbern',
+    'Sołtan Iwan Aleksandrowicz':'Iwan Aleksandrowicz Sołtan',
+    'Sołtan Aleksandrowicz':'Aleksandrowicz Sołtan',
+    'Sołomerecki Wasyl Iwanowicz':'Wasyl Iwanowicz Sołomerecki',
+    'Sołomerecki Iwan Wasylewicz':'Iwan Wasylewicz Sołomerecki',
+    'Sołomerecki Bohdan Iwanowicz':'Bohdan Iwanowicz Sołomerecki',
+    'Solfa Jan Benedyktynowicz':'Jan Benedyktynowicz Solfa',
+    'Słap Dąbrowski Marcin':'Marcin Słap Dąbrowski',
+    'Słupica Bogdan Bohuszewicz':'Bogdan Bohuszewicz Słupica',
+    'Słupica Hrehory Bohuszewicz':'Hrehory Bohuszewicz Słupica',
+    'Smotrycki Daniłowicz Herasym':'Herasym Daniłowicz Smotrycki',
+    'Scheibler Karol Wilhelm jr':'Karol Wilhelm Scheibler jr',
+    'Schack von Wittenau Karol Albrecht':'Karol Albrecht Schack von Wittenau',
+    'Sanguszko Andrzej Aleksandrowicz':'Andrzej Aleksandrowicz Sanguszko',
+    'Sanguszko Andrzej Michałowicz':'Andrzej Michałowicz Sanguszko',
+    'Sasin Sasinowic':'Sasin Sasinowic',
+    'Saag Antoni  zak. Hilary':'Antoni Saag zak. Hilary',
+    'Rohde Piotr II':'Piotr II Rohde',
+    'Rohde Piotr III':'Piotr III Rohde',
+    'Sadłocha Niżeński Kasper':'Kasper Niżeński Sadłocha',
+    'Sakowicz Bogdan Andrzejewicz':'Bogdan Andrzejewicz Sakowicz',
+    'Rotundus Mieleski Augustyn':'Augustyn Mieleski Rotundus',
+    'Rozdrażewski Nowomiejski Jan':'Jan Nowomiejski Rozdrażewski',
+    'Rożyński Michał Iwanowicz':'Michał Iwanowicz Rożyński',
+    'Rożyński Mikołaj Ostafijewicz':'Mikołaj Ostafijewicz Rożyński',
+    'Rożyński Ostafi Iwanowicz':'Ostafi Iwanowicz Rożyński',
+    'Pukszta Klawsgiełowicz Samuel':'Samuel Klawsgiełowicz Pukszta',
+    'Puszkarz Rzeszkowicz Andrzej':'Andrzej Rzeszkowicz Puszkarz',
+    'Płachta Seceminius Franciszek':'Franciszek Seceminius Płachta',
+    'Połubiński Aleksander Iwanowicz':'Aleksander Iwanowicz Połubiński',
+    'Połubiński Iwan Andrejewicz':'Iwan Andrejewicz Połubiński',
+    'Połubiński Wasyl Andrejewicz':'Wasyl Andrejewicz Połubiński',
+    'Poniecki Marcin Ściborzyc':'Marcin Ściborzyc Poniecki',
+    'Potocki Karol lub Jan Karol':'Karol lub Jan Karol Potocki',
+    'Bedros Zacharyaszowicz Piotr':'Piotr Zacharyaszowicz Bedros',
+    'Bohun Iwan Teodorowicz':'Iwan Teodorowicz Bohun',
+    'Bohuszewicz Minkowski Stanisław':'Stanisław Minkowski Bohuszewicz',
+    'Bolesław Mieszkowic':'Bolesław Mieszkowic',
+    'Bolesław Kędzierzawy':'Bolesław Kędzierzawy',
+    'Bolesław Wstydliwy':'Bolesław Wstydliwy',
+    'Bolesław Wysoki':'Bolesław Wysoki',
+    'Bolesław Łysy':'Bolesław Łysy',
+    'Bolesław Pobożny':'Bolesław Pobożny',
+    'Borodawka Nerodowicz Jakób':'Jakób Nerodowicz Borodawka',
+    'Abazyn':'Abazyn',
+    'Abraham Judaeus Bohemus':'Abraham Judaeus Bohemus',
+    'Andrzej Bobola':'Andrzej Bobola',
+    'Anna Cyllejska':'Anna Cyllejska',
+    'Anna ks. Teck':'Anna ks. Teck',
+    'Anna Austriaczka':'Anna Austriaczka',
+    'Anna Wazówna':'Anna Wazówna',
+    'Brzuchowiecki Iwan Martynowicz':'Iwan Martynowicz Brzuchowiecki',
+    'Chodkiewicz Jan Hieronimowicz':'Jan Hieronimowicz Chodkiewicz',
+    'Chołodecki Białynia Józef Dominik':'Józef Dominik Białynia Chołodecki',
+    'Ciechanowiecki Nikodem Janowicz':'Nikodem Janowicz Ciechanowiecki',
+    'Colomb von Ludwik Krzysztof':'Ludwik Krzysztof von Colomb',
+    'Czaplic Szpanowski Aleksander':'Aleksander Szpanowski Czaplic',
+    'Czaplic Szpanowski Jan':'Jan Szpanowski Czaplic',
+    'Czaplic Szpanowski Jerzy':'Jerzy Szpanowski Czaplic',
+    'Czaplic Szpanowski Józef':'Józef Szpanowski Czaplic',
+    'Czaplic Szpanowski Kadian':'Kadian Szpanowski Czaplic',
+    'Czaplic Szpanowski Marcin':'Marcin Szpanowski Czaplic',
+    'Czaplic Szpanowski Teodor':'Teodor Szpanowski Czaplic',
+    'Czartoryski Aleksander Wasylewicz':'Aleksander Wasylewicz Czartoryski',
+    'Czartoryski Aleksander Fedorowicz':'Aleksander Fedorowicz Czartoryski',
+    'Czartoryski Iwan Wasylewicz':'Iwan Wasylewicz Czartoryski',
+    'Czartoryski Michał Wasylewicz':'Michał Wasylewicz Czartoryski',
+    'Czartoryski Semen Aleksandrowicz':'Semen Aleksandrowicz Czartoryski',
+    'Isajkowski Dołmat Franciszek':'Franciszek Dołmat Isajkowski',
+    'Iwo Goły':'Iwo Goły',
+    'Jałbrzyk Wyszyński Aleksander':'Aleksander Wyszyński Jałbrzyk',
+    'Jan Herbicz':'Jan Herbicz',
+    'Jan Kro':'Jan Kro',
+    'Janusz Suchywilk':'Janusz Suchywilk',
+    'Januszowski Jan Łazarzowic':'Jan Łazarzowic Januszowski',
+    'Jasnorzewska Pawlikowska Maria':'Maria Pawlikowska Jasnorzewska ',
+    'Jeske Choińska Ludmiła':'Ludmiła Choińska Jeske',
+    'Joanna księżna łowicka':'Joanna księżna łowicka',
+    'Kahane Filip Sambra':'Filip Sambra Kahane',
+    'Przybysław Borkowic':'Przybysław Borkowic',
+    'Rehbinder von Jerzy Andrzej':'Jerzy Andrzej von Rehbinder',
+    'Patruus Jan ojciec':'Jan Patruus ojciec',
+    'Patruus Jan syn':'Jan Patruus syn',
+    'Paweł Ogon':'Paweł Ogon',
+    'Paweł Rzymianin':'Paweł Rzymianin',
+    'Paweł Włodkowic z Brudzewa':'Paweł Włodkowic z Brudzewa',
+    'Pelikan Klimuntowicz Michał':'Michał Klimuntowicz Pelikan',
+    'Piotr Włostowic':'Piotr Włostowic',
+    'Piotr Stary Wszeborowic':'Piotr Stary Wszeborowic',
+    'Piotr Bogumiłowic':'Piotr Bogumiłowic',
+    'Piotr Stoszowic':'Piotr Stoszowic',
+    'Piotr Nosal':'Piotr Nosal',
+    'Piotr Łukaszowy':'Piotr Łukaszowy',
+    'Piotr Rpiszka':'Piotr Rpiszka',
+    'Piotr Nagórka':'Piotr Nagórka',
+    'Piotr Prędocic':'Piotr Prędocic',
+    'Dłużyk Kamieński Adam':'Adam Kamieński Dłużyk',
+    'Dobrska Tomaszewicz Anna':'Anna Tomaszewicz Dobrska',
+    'Donimirski Brochwicz Antoni':'Antoni Brochwicz Donimirski',
+    'Donimirski Brochwicz Edward':'Edward Brochwicz Donimirski',
+    'Donimirski Brochwicz Teodor':'Teodor Brochwicz Donimirski',
+    'Dorohobużski Andrzej Dymitrowicz':'Andrzej Dymitrowicz Dorohobużski',
+    'Doroszenko Piotr Dorofiewicz':'Piotr Dorofiewicz Doroszenko',
+    'Dowojna Sylwestrowicz Aleksander':'Aleksander Sylwestrowicz Dowojna',
+    'Dowojna Sylwestrowicz Mieczysław':'Mieczysław Sylwestrowicz Dowojna',
+    'Drucki Iwan Baba':'Iwan Baba Drucki',
+    'Drucki Iwan Putiata':'Iwan Putiata Drucki',
+    'Drucki Iwan Krasny':'Iwan Krasny Drucki',
+    'Drucki Semen Dymitrowicz':'Semen Dymitrowicz Drucki',
+    'Drucki Wasyl Semenowicz Krasny':'Wasyl Semenowicz Krasny Drucki',
+    'Dunin Sulgostowski Marcin':'Marcin Sulgostowski Dunin',
+    'Durski Trzaska Karol':'Karol Trzaska Durski',
+    'Dymitr Michałowicz Bobrok':'Dymitr Michałowicz Bobrok',
+    'Elżbieta Rakuszanka':'Elżbieta Rakuszanka',
+    'Erceville d’ Stefan':'Stefan d’Erceville',
+    'Ezofowicz Rabinkowicz Michel':'Michel Rabinkowicz Ezofowicz',
+    'Fedor kn. Neswizki':'Fedor kn. Neswizki',
+    'Figietty Narcyz Stojanowicz':'Narcyz Stojanowicz Figietty',
+    'Frąckiewicz Radzimiński Jerzy':'Jerzy Radzimiński Frąckiewicz',
+    'Frąckiewicz Radzimiński Kazimierz':'Kazimierz Radzimiński Frąckiewicz',
+    'Frąckiewicz Radzimiński Stefan':'Stefan Radzimiński Frąckiewicz',
+    'Gajniak Ignacy Wdówka':'Ignacy Wdówka Gajniak',
+    'Gall Anonim':'Gall Anonim',
+    'Giedemin Dawidowicz Ludwik':'Ludwik Dawidowicz Giedemin',
+    'Gorzeński Ostroróg Zbigniew':'Zbigniew Ostroróg Gorzeński',
+    'Goświn lub Jozwin':'Goświn lub Jozwin',
+    'Grzegorz Cieniawa':'Grzegorz Cieniawa',
+    'Gutteter Dobrodziejski Jędrzej':'Jędrzej Dobrodziejski Gutteter',
+    'Gürtler von Kleborn Władysław':'Kleborn Władysław von Gürtler',
+    'Henryk Cropelin':'Henryk Cropelin',
+    'Henryk Czech':'Henryk Czech',
+    'Herburt Odnowski Mikołaj':'Mikołaj Odnowski Herburt',
+    'Holszański Aleksander Jurjewicz':'Aleksander Jurjewicz Holszański',
+    'Holszański Iwan Olgimuntowicz':'Iwan Olgimuntowicz Holszański',
+    'Holszański Iwan Jurjewicz':'Iwan Jurjewicz Holszański',
+    'Holszański Jerzy Aleksandrowicz':'Jerzy Aleksandrowicz Holszański',
+    'Holszański Semen Jurjewicz':'Semen Jurjewicz Holszański',
+    'Hornostaj Gabriel Iwanowicz':'Gabriel Iwanowicz Hornostaj',
+    'Hornostaj Iwan Ostafjewicz':'Iwan Ostafjewicz Hornostaj',
+    'Hoszowski Konstanty Moroz':'Konstanty Moroz Hoszowski',
+    'Hoszowski Mikołaj Moroz':'Mikołaj Moroz Hoszowski',
+    'Hulka Laskowski Paweł':'Paweł Laskowski Hulka',
+    'Jacobson Jakub a Gehema':'Jakub Jacobson a Gehema',
+    'Jacobson Jedlina Wojciech':'Wojciech Jedlina Jacobson',
+    'Kahanowicz Turzański Aleksander':'Aleksander Turzański Kahanowicz',
+    'Kalkstein Stoliński Albrecht':'Albrecht Stoliński Kalkstein',
+    'Kalkstein Stoliński Krystian':'Krystian Stoliński Kalkstein',
+    'Karaimowicz Wadowski Iliasz':'Iliasz Wadowski Karaimowicz',
+    'Karwat Wojcikiewicz Seweryn':'Seweryn Wojcikiewicz Karwat',
+    'Kierdej Jan – Said bej':'Jan Kierdej - Said bej',
+    'Kieżgajło Stanisław Janowicz':'Stanisław Janowicz Kieżgajło',
+    'Kłoczko Wojciech Janowicz':'Wojciech Janowicz Kłoczko',
+    'Kmita Filon Czarnobylski':'Filon Czarnobylski Kmita',
+    'Kopeć Sidor Wasilewicz':'Sidor Wasilewicz Kopeć',
+    'Korsak Borkołab Głębocki':'Borkołab Głębocki Korsak',
+    'Korsak Hleb Iwanowicz Hołubicki':'Hleb Iwanowicz Hołubicki Korsak',
+    'Korsak Jan Hołubicki':'Jan Hołubicki Korsak',
+    'Korsak Jan Bobynicki':'Jan Bobynicki Korsak',
+    'Korsak Józef Głębocki':'Józef Głębocki Korsak',
+    'Korzbok Witkowski Jan':'Jan Witkowski Korzbok',
+    'Krupecki Aleksander Oleksowicz':'Aleksander Oleksowicz Krupecki',
+    'Kuczyński Hipolit Iskinder Bey':'Hipolit Iskinder Bey Kuczyński',
+    'Kurzeniecki Iwan Michałowicz':'Iwan Michałowicz Kurzeniecki',
+    'Lach Szyrma':'Szyrma Lach',
+    'Linde Jan Ernest von der':'Jan Ernest von der Linde',
+    'Linde Łukasz von der':'Łukasz von der Linde',
+    'Ludwik ks. Wirtemberski':'Ludwik ks. Wirtemberski',
+    'Massalski Hrehory Afanasewicz':'Hrehory Afanasewicz Massalski',
+    'Michalon Litwin':'Litwin Michalon',
+    'Michał Tomasz Korybut Wiśniowiecki':'Tomasz Korybut Michał Wiśniowiecki',
+    'Michał Bolesław Zygmuntowicz':'Michał Bolesław Zygmuntowicz',
+    'Mikołaj Repczol':'Mikołaj Repczol',
+    'Mikołaj vel Mikuł':'Mikołaj vel Mikuł',
+    'Mikołaj Michnowicz Raczkowicz':'Mikołaj Michnowicz Raczkowicz',
+    'Mikołaj ze Ściborza zw. Purcz':'Mikołaj ze Ściborza zw. Purcz',
+    'Montygerdowicz Piotr Janowicz':'Piotr Janowicz Montygerdowicz',
+    'Mścisławiec Piotr Tymofiejewicz':'Piotr Tymofiejewicz Mścisławiec',
+    'Obrochta Jan Bartków':'Jan Bartków Obrochta',
+    'Ohm Januszowski Ferdynand':'Ferdynand Januszowski Ohm',
+    'Ostroróg Lwowski Marcin':'Marcin Lwowski Ostroróg',
+    'Ostroróg Lwowski Stanisław':'Stanisław Lwowski Ostroróg',  
+    'Pastorius ab Hirtenberg Joachim':'Joachim Pastorius ab Hirtenberg',
+    'Piotr Boleścic z Pieskowic':'Piotr Boleścic z Pieskowic',
+    'Piotr Ogon z Radzików i Woli':'Piotr Ogon z Radzików i Woli',
+    'Piotr Tłuk ze Strykowa':'Piotr Tłuk ze Strykowa',
+    'Piotr Zajączek z Wrzącej':'Piotr Zajączek z Wrzącej',
+}

@@ -151,7 +151,7 @@ def ini_only(value: str) -> bool:
 
 def format_date(value: str) -> str:
     """ formatuje datę na sposób oczekiwany przez QuickStatements
-        +1839-00-00T00:00:00Z/9
+        np. +1839-00-00T00:00:00Z/9
     """
     result = ''
     if len(value) == 4:

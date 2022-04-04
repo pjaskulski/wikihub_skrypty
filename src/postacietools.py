@@ -1,4 +1,4 @@
-""" """
+""" moduł """
 from wyjatki_postacie import WYJATKI
 
 

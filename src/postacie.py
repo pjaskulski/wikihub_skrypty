@@ -10,12 +10,13 @@ from pathlib import Path
 from time import sleep
 from urllib.parse import quote
 import requests
+from openpyxl import load_workbook
 from wikibaseintegrator.wbi_config import config as wbi_config
-from autorzy import VIAF_DEATH, WERYFIKACJA_VIAF
 from wikidariahtools import format_date, text_clear, \
                             get_last_nawias, short_names_in_autor
 from postacietools import get_name
-#from wikidariahtools import element_search, gender_detector
+from wikidariahtools import element_search, gender_detector
+from wyjatki_postacie import ETYKIETY_WYJATKI
 
 
 # adresy
@@ -39,10 +40,68 @@ VIAF_ID = {}
 VIAF_BIRTH = {}
 VIAF_DEATH = {}
 WERYFIKACJA_VIAF = {}
+WYJATKI = {}
+
+MALE_FEMALE_NAME = ['Maria', 'Anna']
 
 # czy wczytywanie i zapisywanie słowników z/do pickle
 LOAD_DICT = True
 SAVE_DICT = False
+
+
+def double_space(value:str) -> str:
+    """ usuwa podwójne spacje """
+    return ' '.join(value.strip().split())
+
+
+def postac_etykieta(imie_1:str, imie_2:str, imie_3:str, imie_4:str, 
+                    nazwisko_1:str, nazwisko_2:str):
+    """ ustala etykietę dla postaci (imiona nazwiska) """
+    result = f'{imie_1} {imie_2} {imie_3} {imie_4} {nazwisko_2} {nazwisko_1}'
+    result = result.strip()
+    return double_space(result)
+
+
+def load_wyjatki(path: str) -> dict:
+    """ load wyjatki"""
+    result = {}
+
+    try:
+        work_book = load_workbook(path)
+    except IOError:
+        print(f"ERROR. Can't open and process file: {path}")
+        sys.exit(1)
+
+    sheet = work_book['Arkusz1']
+    columns = {'POSTAĆ':0, 'VIAF':1}
+    for current_row in sheet.iter_rows(2, sheet.max_row):
+        u_osoba = current_row[columns['POSTAĆ']].value
+        u_viaf = current_row[columns['VIAF']].value
+        if u_osoba:
+            u_osoba = u_osoba.strip()
+        if u_viaf:
+            u_viaf = u_viaf.strip()
+        if u_osoba and u_viaf:
+            result[u_osoba.strip()] = u_viaf.strip()
+        else:
+            break
+
+    return result
+
+
+def get_viaf_data(v_url: str) -> tuple:
+    """ get_viaf_data """
+    v_id = v_birth = v_death = ''
+    response = requests.get(v_url + 'viaf.json')
+    result = response.json()
+    if 'viafID' in result:
+        v_id = result['viafID']
+    if 'birthDate' in result:
+        v_birth = result['birthDate']
+    if 'deathDate' in result:
+        v_death = result['deathDate']
+
+    return v_id, v_birth, v_death
 
 
 def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
@@ -51,6 +110,22 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
 
     info = id_url = birthDate = deathDate = ''
     result = False
+
+    # jeżeli osoba jest w wyjątkach to pobieramy dane ze znanego adresu
+    # lub od razu NOT FOUND
+    if name in WYJATKI:
+        if WYJATKI[name].strip() == 'BRAK':
+            return False, "NOT_FOUND", '', '', ''
+
+        info, birthDate, deathDate = get_viaf_data(WYJATKI[name])
+        id_url = WYJATKI[name]
+        VIAF_ID[name] = info
+        if birthDate:
+            VIAF_BIRTH[name] = birthDate
+        if deathDate:
+            VIAF_DEATH[name] = deathDate
+
+        return True, info, id_url, birthDate, deathDate
 
     # jeżeli identyfikator jest już znany to nie ma potrzeby szukania
     # przez api
@@ -83,7 +158,7 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
     adres+= f'&local.sources+=+"plwabn"&sortKeys=holdingscount&httpAccept={format_type}'
 
     # mały odstęp między poszukiwaniami
-    sleep(0.05)
+    sleep(0.03)
 
     try:
         response = requests.get(adres)
@@ -218,6 +293,7 @@ def date_birth_death(value: str) -> tuple:
 
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
+    uzup_path = Path('.').parent / 'data/postacie_viaf_uzup.xlsx'
     output = Path('.').parent / 'out/postacie.qs'
     postacie_pickle = Path('.').parent / 'out/postacie.pickle'
     postacie_birth_pickle = Path('.').parent / 'out/postacie_birth.pickle'
@@ -250,6 +326,8 @@ if __name__ == "__main__":
         print('ERROR: empty index')
         sys.exit(1)
 
+    load_wyjatki(uzup_path)
+
     with open(output, "w", encoding='utf-8') as f:
         licznik = 0
         for line in indeks:
@@ -270,11 +348,10 @@ if __name__ == "__main__":
             # jeżeli we wpisie jest alias, przydomek itp. to daty są w drugim nawiasie
             start = title.find('(')
             name = title[:start].strip()
-            print(name)
             nazwisko, imie, imie2, nazwisko2, imie3, imie4 = get_name(name)
 
             if isAlias:
-                print("ALIAS: ", title)
+                #print("ALIAS: ", title)
                 start = title.find('(', start + 1)
 
             if isYears:
@@ -283,7 +360,7 @@ if __name__ == "__main__":
                 years = years.replace('–', '-')
 
             #ok, q_biogram = element_search(etykieta, 'item', 'pl')
-            ok = False # na razie nie szukamy
+            ok = False
             if not ok:
                 q_biogram = '{Q:biogram}'
             else:
@@ -308,75 +385,167 @@ if __name__ == "__main__":
             dateB = format_date(dateB)
             dateD = format_date(dateD)
 
+            name_etykieta = postac_etykieta(imie, imie2, imie3, imie4, nazwisko, nazwisko2)
+            if ' zwany ' in name:
+                t_mark = ' zwany '
+            elif ' zw. ' in name:
+                t_mark = ' zw. '
+            elif ' z ' in name:
+                t_mark = ' z '
+            elif ' ze ' in name:
+                t_mark = ' ze '
+            elif ' h.' in name:
+                t_mark = ' h.'
+            else:
+                t_mark = ''
+
+            if t_mark:
+                pos = name.find(t_mark)
+                toponimik = name[pos:]
+                name_etykieta = name_etykieta + toponimik
+
+            if 'starszy' in name and 'starszy' not in name_etykieta:
+                name_etykieta += ' ' + 'starszy'
+            if 'Starszy' in name and 'Starszy' not in name_etykieta:
+                name_etykieta += ' ' + 'Starszy'
+            if 'młodszy' in name and 'młodszy' not in name_etykieta:
+                name_etykieta += ' ' + 'młodszy'
+            if 'Młodszy' in name and 'Młodszy' not in name_etykieta:
+                name_etykieta += ' ' + 'Młodszy'
+            if 'junior' in name and 'junior' not in name_etykieta:
+                name_etykieta += ' ' + 'junior'
+            if 'senior' in name and 'senior' not in name_etykieta:
+                name_etykieta += ' ' + 'senior'
+
+            # imona zakonne
+            if ' w zak. ' in name:
+                z_mark = ' w zak.'
+            elif ' w zakonie ' in name:
+                z_mark = ' w zakonie '
+            elif ' w zak ' in name:
+                z_mark = ' w zak '
+            elif ' zak. ' in name:
+                z_mark = ' zak. '
+            else:
+                z_mark = ''
+
+            if z_mark:
+                pos = name.find(z_mark)
+                zakonimik = name[pos:]
+                if "," in name:
+                    name_etykieta = name_etykieta + ', ' + zakonimik
+                else:
+                    name_etykieta = name_etykieta + zakonimik
+
+            name_etykieta = double_space(name_etykieta)
+
+            # dla postaci typu 'Szneur Zalman ben Baruch' na razie tak jak w oryginale
+            if ' ben ' in name:
+                name_etykieta = name
+            if ' Ben ' in name:
+                name_etykieta = name
+
+            # dla postaci typu 'Salomon syn Joela' na razie tak jak w oryginale
+            if ' syn ' in name:
+                name_etykieta = name
+
+            # dla władców tak jak w oryginale
+            is_king = False
+            roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
+             'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
+            for item in roman:
+                if f' {item} ' in name or name.endswith(f' {item}'):
+                    is_king = True
+                    break
+            if is_king:
+                name_etykieta = name
+
+            # konstrukcja typu Mikołaj z Jaroszowa zw. Kornicz lub Siestrzeniec
+            # zostaje bez zmian w etykiecie
+            if ' z ' in name and ' zw. ' in name:
+                name_etykieta = name
+            if ' z ' in name and ' zwany ' in name:
+                name_etykieta = name
+
+            # jeżeli nie było rozpoznanego imienia tylko przydomek/przezwisko
+            if name_etykieta.startswith('z '):
+                name_etykieta = name
+
+            # super wyjątki nie podpadające gdzie indziej
+            if name in ETYKIETY_WYJATKI:
+                name_etykieta = ETYKIETY_WYJATKI[name]
+
+            if len(name) != len(name_etykieta):
+                print(name, '=', name_etykieta, '(!)')
+            #else:
+                #print(name, '=', name_etykieta)
+            continue # tymczasowo
+
             # zapis quickstatements
             f.write('CREATE\n')
-            f.write(f'LAST\tLpl\t"{name}"\n')
-            f.write(f'LAST\tLen\t"{name}"\n')
+            f.write(f'LAST\tLpl\t"{name_etykieta}"\n')
+            f.write(f'LAST\tLen\t"{name_etykieta}"\n')
             if years:
                 f.write(f'LAST\tDpl\t"({years})"\n')
                 f.write(f'LAST\tDen\t"({years})"\n')
             if imie:
-                # gender1 = gender_detector(imie)
-                # ok, q_imie = element_search(imie, 'item', 'pl', description=gender1)
-                ok = False # na razie nie szukamy
+                gender1 = gender_detector(imie)
+                ok, q_imie = element_search(imie, 'item', 'pl', description=gender1)
                 if not ok:
                     q_imie = '{Q:' + f'{imie}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie2:
-                # gender = gender_detector(imie2)
-                # # czy to przypadek 'Maria', 'Anna'?
-                # if imie2 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
-                #      gender = gender1
-                # ok, q_imie = element_search(imie2, 'item', 'pl', description=gender)
-                ok = False # na razie nie szukamy
+                gender = gender_detector(imie2)
+                # czy to przypadek 'Maria', 'Anna'?
+                if imie2 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                    gender = gender1
+                ok, q_imie = element_search(imie2, 'item', 'pl', description=gender)
                 if not ok:
                     q_imie = '{Q:' + f'{imie2}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie3:
-                # gender = gender_detector(imie3)
-                # # czy to przypadek 'Maria', 'Anna'?
-                # if imie3 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
-                #      gender = gender1
-                # ok, q_imie = element_search(imie3, 'item', 'pl', description=gender)
+                gender = gender_detector(imie3)
+                # czy to przypadek 'Maria', 'Anna'?
+                if imie3 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                    gender = gender1
+                ok, q_imie = element_search(imie3, 'item', 'pl', description=gender)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie3}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if imie4:
-                # gender = gender_detector(imie4)
-                # # czy to przypadek 'Maria', 'Anna'?
-                # if imie4 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
-                #      gender = gender1
-                # ok, q_imie = element_search(imie4, 'item', 'pl', description=gender)
+                gender = gender_detector(imie4)
+                # czy to przypadek 'Maria', 'Anna'?
+                if imie4 in MALE_FEMALE_NAME and gender1 == 'imię męskie' and gender != gender1:
+                    gender = gender1
+                ok, q_imie = element_search(imie4, 'item', 'pl', description=gender)
                 ok = False # na razie nie szukamy
                 if not ok:
                     q_imie = '{Q:' + f'{imie4}' + '}'
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if nazwisko:
-                # ok, q_nazwisko = element_search(nazwisko, 'item', 'en', description='family name')
-                ok = False # na razie nie szukamy
+                ok, q_nazwisko = element_search(nazwisko, 'item', 'en', description='family name')
                 if not ok:
                     q_nazwisko = '{Q:' + f'{nazwisko}' + '}'
                 f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
             if nazwisko2:
-                # ok, q_nazwisko = element_search(nazwisko2, 'item', 'en', description='family name')
-                ok = False # na razie nie szukamy
+                ok, q_nazwisko = element_search(nazwisko2, 'item', 'en', description='family name')
                 if not ok:
                     q_nazwisko = '{Q:' + f'{nazwisko2}' + '}'
                 f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
+
+            # daty życia - obsługa kwalifikatorów?
             if dateB:
                 f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB}\n')
             if dateD:
                 f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD}\n')
             f.write(f'LAST\t{P_DESCRIBED_BY_SOURCE}\t{q_biogram}\n')
             if viaf_ok and viaf_id and viaf_url:
-                f.write(f'LAST\t{P_VIAF}\t"{viaf_id}"\t{P_REFERENCE_URL}\t"{viaf_url}"\n')
+                # wystarczy samo id, reference url jest już zbędny
+                f.write(f'LAST\t{P_VIAF}\t"{viaf_id}"\n')
                 WERYFIKACJA_VIAF[name] = viaf_url
-
-            #if licznik >= 100:
-            #    break
 
     # zamrażanie słownika identyfikatów VIAF_ID
     if SAVE_DICT:
