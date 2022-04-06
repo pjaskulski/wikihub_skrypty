@@ -373,7 +373,7 @@ def date_kwal(value: str, typ:str = '') -> tuple:
     elif roman_numeric(value):
         result = 'roman'
 
-    match = re.search(r'\d{3,4}/\d', value)
+    match = re.search(r'\d{3,4}/\d{1,2}', value)
     if match:
         result = 'turn' # przełom lat
 
@@ -405,11 +405,11 @@ def get_date(value: str, typ = '') -> tuple:
             matches = [str(romenum.fromRoman(x)) for x in matches]
             date_of = '|'.join(matches)
     elif dod_info == 'turn':
-        match = re.search(r'\d{3,4}/\d', value)
+        match = re.search(r'\d{3,4}/\d{1,2}', value)
         if match:
             v_list = match.group().split('/')
             v_list1 = v_list[0].strip()
-            v_list2 = v_list1[:len(v_list1)-1] + v_list[1].strip()
+            v_list2 = v_list1[:len(v_list1)-len(v_list[1].strip())] + v_list[1].strip()
             date_of = f'{v_list1}|{v_list2}'
 
     return date_of, typ, dod_info
@@ -561,7 +561,7 @@ if __name__ == "__main__":
                     dateB_1 = format_date(t_date_b[0])
                     dateB_2 = format_date(t_date_b[1])
                 elif dateB_dod in ('before', 'after'):
-                    dateB_1 = dateB
+                    dateB_1 = format_date(dateB)
                     dateB = 'somevalue'
                 elif dateB_dod == 'turn':
                     t_date_b = dateB.split('|')
@@ -586,7 +586,7 @@ if __name__ == "__main__":
                     dateD_1 = format_date(t_date_d[0])
                     dateD_2 = format_date(t_date_d[1])
                 elif dateD_dod in ('before', 'after'):
-                    dateD_1 = dateD
+                    dateD_1 = format_date(dateD)
                     dateD = 'somevalue'
                 elif dateD_dod == 'turn':
                     t_date_d = dateD.split('|')
