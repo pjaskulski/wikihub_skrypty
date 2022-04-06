@@ -154,10 +154,14 @@ def format_date(value: str) -> str:
         np. +1839-00-00T00:00:00Z/9
     """
     result = ''
-    if len(value) == 4:
+    if len(value) == 4:                          # tylko rok
         result = f"+{value}-00-00T00:00:00Z/9"
-    elif len(value) == 10:
+    elif len(value) == 10:                       # dokłada data
         result = f"+{value}T00:00:00Z/11"
+    elif len(value) == 2 and value.isnumeric():  # wiek
+        result = f"+{value}01-00-00T00:00:00Z/7"
+    elif len(value) == 1 and value.isnumeric():  # wiek np. X
+        result = f"+{value.zfill(2)}01-00-00T00:00:00Z/7"
 
     return result
 

@@ -115,6 +115,8 @@ WYJATKI = {
                 {'imie':'Aleksy', 'nazwisko':'de Lekenstein'},
             'Bona Sforza':
                 {'imie':'Bona', 'nazwisko':'Sforza'},
+            'Anna Iwanówna':
+                {'imie':'Anna'},
             'Albrecht Hohenzollern':
                 {'imie':'Albrecht', 'nazwisko':'Hohenzollern'},
             'Albrecht Fryderyk Hohenzollern':
@@ -500,7 +502,7 @@ WYJATKI = {
             'Stanisław Świradzki ze Świradzic':
                 {'imie':'Stanisław', 'nazwisko':'Świradzki'},
             'Śmiarowski zapewne Jakub':
-                {'imie':'Jakub', 'nazwisko':'Śmiarowski'},
+                {'nazwisko':'Śmiarowski'},
             'Poniecki Marcin Ściborzyc':
                 {'imie':'Marcin', 'nazwisko':'Poniecki'},
             'Klobassa Zręcki Karol senior':
@@ -576,7 +578,7 @@ WYJATKI = {
             'Stanisław Starowieyski':
                 {'imie':'Stanisław', 'nazwisko':'Starowieyski'},
             'Staniewski zak. Józef Maksymilian Ignacy':
-                {'imie':'Józef', 'imie2':'Maksymilian', 'imie3':'Ignacy', 'nazwisko':'Staniewski'},
+                {'nazwisko':'Staniewski'},
             'Spira Natan ben Samson':
                 {'imie':'Natan'},
             'Staroźrebski vel Sobiejuski Wojciech':
@@ -802,6 +804,7 @@ ETYKIETY_WYJATKI = {
     'Anna ks. Teck':'Anna ks. Teck',
     'Anna Austriaczka':'Anna Austriaczka',
     'Anna Wazówna':'Anna Wazówna',
+    'Anna Iwanówna':'Anna Iwanówna',
     'Brzuchowiecki Iwan Martynowicz':'Iwan Martynowicz Brzuchowiecki',
     'Chodkiewicz Jan Hieronimowicz':'Jan Hieronimowicz Chodkiewicz',
     'Chołodecki Białynia Józef Dominik':'Józef Dominik Białynia Chołodecki',
