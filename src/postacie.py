@@ -13,9 +13,8 @@ import requests
 import roman as romenum
 from openpyxl import load_workbook
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikidariahtools import format_date, text_clear, \
-                            get_last_nawias, short_names_in_autor
-from postacietools import get_name
+from wikidariahtools import text_clear, get_last_nawias, short_names_in_autor
+from postacietools import get_name, DateBDF
 from wikidariahtools import element_search, gender_detector
 from wyjatki_postacie import ETYKIETY_WYJATKI
 
@@ -32,21 +31,22 @@ P_IMIE = 'P184'
 P_NAZWISKO = 'P183'
 P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
-P_DATE_OF_BIRTH = 'P7'
-P_DATE_OF_DEATH = 'P8'
-P_DESCRIBED_BY_SOURCE = 'P17'
 P_BIRTH_NAME = 'P63'
-P_EARLIEST_DATE = 'P38'
-P_LATEST_DATE = 'P39'
-P_FLORUIT = 'P54'
-Q_CIRCA = 'Q37979'
-P_SOURCING_CIRCUMSTANCES = 'P189'
-P_REFINE_DATE = 'P190'
-P_FIRST_HALF = 'Q40688'
-P_SECOND_HALF = 'Q41336'
-P_BEGINNING_OF = 'Q41337'
-P_MIDDLE_OF = 'Q41338'
-P_END_OF = 'Q41339'
+P_DESCRIBED_BY_SOURCE = 'P17'
+# P_DATE_OF_BIRTH = 'P7'
+# P_DATE_OF_DEATH = 'P8'
+# P_EARLIEST_DATE = 'P38'
+# P_LATEST_DATE = 'P39'
+# P_FLORUIT = 'P54'
+# Q_CIRCA = 'Q37979'
+# P_SOURCING_CIRCUMSTANCES = 'P189'
+# P_REFINE_DATE = 'P190'
+# Q_FIRST_HALF = 'Q40688'
+# Q_SECOND_HALF = 'Q41336'
+# Q_BEGINNING_OF = 'Q41337'
+# Q_MIDDLE_OF = 'Q41338'
+# Q_END_OF = 'Q41339'
+# Q_FIRST_QUARTER = 'Q49427'
 
 BIOGRAMY = {}
 VIAF_ID = {}
@@ -278,194 +278,6 @@ def ustal_etykiete(value: str, title_value: str) -> str:
     return f"{autor_in_title}, {title_value}, w: PSB {tom}, {strony}"
 
 
-def roman_numeric(value:str) -> bool:
-    """ czy liczba rzymska?"""
-    pattern = r'[IVX]{1,5}\s+w\.{0,1}'
-    match = re.search(pattern, value)
-    if not match:
-        pattern = r'[IVX]{1,5}'
-        match = re.search(pattern, value)
-
-    return bool(match)
-
-
-def date_kwal(value: str, typ:str = '') -> tuple:
-    """ data kwalifikator? dla dat niepwenych opisanych tekstem oprócz
-        podania samej daty np. 'zm. ok. 1459'
-        zwraca typ daty: 'B' data urodzenia 'D' data śmierci
-        i rodzaj niepewności: 'before', 'after' , 'about', 'or',
-        'between', 'roman', 'turn'
-    """
-    if value.strip().isnumeric():
-        return '', 'certain'
-
-    result = result_type = ''
-    if 'zm. przed' in value:    # jeszcze nie obsługiwane
-        result = 'before'
-        result_type = 'B'
-    elif 'zm. po' in value:     # jeszcze nie obsługiwane
-        result = 'after'
-        result_type = 'D'
-    elif 'zm. prawdopodobnie' in value: # jeszcze nie obsługiwane
-        result = 'about'
-        result_type = 'D'
-    elif 'zm. ok.' in value:
-        result = 'about'
-        result_type = 'D'
-    elif 'zm. między' in value:
-        result = 'between'
-        result_type = 'D'
-    elif 'zm.' in value and 'lub nieco później' in value:
-        result = 'about'
-        result_type = 'D'
-    elif 'zm. w lub po' in value:
-        result = 'after'
-        result_type = 'D'
-    elif 'zm.' in value and 'lub' in value:
-        result = 'or'
-        result_type = 'D'
-    elif 'zm. w/przed' in value:
-        result = 'before'
-        result_type = 'D'
-    elif 'ur. ok.' in value:
-        result = 'about'
-        result_type = 'B'
-    elif 'ur. między' in value:
-        result = 'between'
-        result_type = 'B'
-
-    elif 'przed lub w' in value: # wpis z rokiem i kwalifikatorem latest date jednocześnie?
-        result = 'before'
-    elif 'w lub po' in value: # wpis z rokiem i kwalifikatorem earliest date jednocześnie?
-        result = 'after'
-    elif 'po lub w' in value: # wpis z rokiem i kwalifikatorem earliest date jednocześnie?
-        result = 'after'
-    elif 'między' in value and '?' in value:
-        result = 'between?'
-    elif 'między' in value:
-        result = 'between'
-    elif 'miedzy' in value:
-        result = 'between'
-    elif 'ok.' in value:
-        result = 'about'
-    elif 'około' in value:
-        result = 'about'
-    elif 'prawdopodobnie' in value:
-        result = 'about'
-    elif 'zapewne' in value:
-        result = 'about'
-    elif 'lub' in value:
-        result = 'or'
-    elif 'przed' in value:
-        result = 'before'
-    elif 'po ' in value:
-        result = 'after'
-    elif '?' in value:
-        result = 'about'
-    elif 'nie później niż' in value:
-        result = 'before'
-    elif 'najpóźniej' in value:
-        result = 'before'
-
-    elif 'zm.' in value: # data pewna tylko z określeniem tekstowym zm.
-        result_type = 'D'
-        result = 'certain'
-    elif 'um.' in value: # data pewna tylko z określeniem tesktowym um.
-        result_type = 'D'
-        result = 'certain'
-    elif 'ur.' in value: # data pewna tylko z określeniem tesktowym ur.
-        result_type = 'B'
-        result = 'certain'
-    elif roman_numeric(value):
-        result = 'roman'
-
-    match = re.search(r'\d{3,4}/\d{1,2}', value)
-    if match:
-        result = 'turn' # przełom lat
-
-    if result_type == '':
-        result_type = typ
-
-    # test czy obsłużono wszystkie przypadki
-    #if result == '':
-    #    print(value)
-
-    return result_type, result
-
-
-def get_date(value: str, typ = '') -> tuple:
-    """ get date """
-    date_of = dod_info = ''
-    pattern = r'\d{3,4}'
-    matches = [x.group() for x in re.finditer(pattern, value)]
-    if len(matches) == 1:
-        date_of = matches[0]
-    elif len(matches) > 1:
-        date_of = '|'.join(matches)
-    typ, dod_info = date_kwal(value, typ)
-    if dod_info == 'roman':
-        matches = [x.group() for x in re.finditer(r'[IVX]{1,5}', value)]
-        if len(matches) == 1:
-            date_of = str(romenum.fromRoman(matches[0]))
-            # przypadki typu '1. poł. XIV w.'
-            if '1 poł.' in value:       
-                date_of += ':first half'
-            elif '2 poł.' in value:
-                date_of += ':second half'
-            elif 'pocz.' in value:
-                date_of += ':beginning'
-            elif 'kon.' in value:
-                date_of += ':end'
-        else:
-            matches = [str(romenum.fromRoman(x)) for x in matches]
-            date_of = '|'.join(matches)
-    elif dod_info == 'turn':
-        match = re.search(r'\d{3,4}/\d{1,2}', value)
-        if match:
-            v_list = match.group().split('/')
-            v_list1 = v_list[0].strip()
-            v_list2 = v_list1[:len(v_list1)-len(v_list[1].strip())] + v_list[1].strip()
-            date_of = f'{v_list1}|{v_list2}'
-
-    return date_of, typ, dod_info
-
-
-def date_birth_death(value: str) -> tuple:
-    """ dateBirthDeath """
-    date_of_birth = date_of_death = dod_b = dod_d = ""
-    # if '1. poł. XIII w.' in value:
-    #     print()
-
-    if value == "":
-        return date_of_birth, date_of_death, dod_b, dod_d
-
-    # jeżeli dwie daty (urodzin i śmierci)
-    if ',' in value:
-        separator = ','
-    else:
-        separator = '-'
-
-    # jeżeli zakres dat
-    if separator in value and not roman_numeric(value):
-        tmp = value.split(separator)
-        date_of_birth, typ, dod_b = get_date(tmp[0].strip(), 'B')
-        date_of_death, typ, dod_d = get_date(tmp[1].strip(), 'D')
-    # jeżeli tylko jedna z dat lub ogólny opis np. XVII wiek
-    else:
-        date_of_one, typ, dod_inf = get_date(value, '')
-        if typ == 'B':
-            date_of_birth = date_of_one
-            dod_b = dod_inf
-        elif typ == 'D':
-            date_of_death = date_of_one
-            dod_d = dod_inf
-        elif typ == '' and dod_inf == 'roman':
-            date_of_birth = date_of_one # dla określeń typu 'XV w.' lub 'XV/XVI w.'
-            dod_b = dod_inf
-
-    return date_of_birth, date_of_death, dod_b, dod_d
-
-
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     uzup_path = Path('.').parent / 'data/postacie_viaf_uzup.xlsx'
@@ -528,7 +340,6 @@ if __name__ == "__main__":
             nazwisko, imie, imie2, nazwisko2, imie3, imie4 = get_name(name)
 
             if isAlias:
-                #print("ALIAS: ", title)
                 start = title.find('(', start + 1)
 
             if isYears:
@@ -543,83 +354,52 @@ if __name__ == "__main__":
             else:
                 BIOGRAMY[name] = q_biogram
 
+            #if '2. poł. XVIII w.' in years:
+            #    print()
+
             # daty urodzenia i śmierci
-            dateB, dateD, dateB_dod, dateD_dod = date_birth_death(years)
-            # dodatkowa obsługa przypadków typu '1. poł. XIV w.'
-            refine_date = ''
-            if dateB_dod == 'roman' and ':' in dateB:
-                t_dod = dateB.split(':')
-                dateB = t_dod[0]
-                refine_date = t_dod[1]
-
-            #print(dateB, dateD, dateB_dod, dateD_dod, name)
-
-            # if "Stefan I" in name:
-            #     print()
+            separator = ',' if ',' in years else '-'
+            date_of_1 = date_of_2 = None
+            # jeżeli zakres dat
+            if separator in years:
+                tmp = years.split(separator)
+                date_of_1 = DateBDF(tmp[0].strip(), 'B')
+                date_of_2 = DateBDF(tmp[1].strip(), 'D')
+            # jeżeli tylko jedna z dat lub ogólny opis np. XVII wiek
+            else:
+                if years:
+                    date_of_1 = DateBDF(years, '')
 
             # jeżeli znamy tylko imię postaci odpytywanie VIAF nie ma sensu (?)
+            p_birth = p_death = ''
+            if date_of_1 and date_of_1.type == 'B':
+                p_birth = date_of_1.date
+            if date_of_1 and date_of_1.type == 'D':
+                p_death = date_of_1.date
+            if date_of_2 and date_of_2.type == 'D':
+                p_death = date_of_2.date
+
             viaf_ok = False
             viaf_id = viaf_url = viaf_date_b = viaf_date_d = ''
             if ' ' in name:
                 viaf_ok, viaf_id, viaf_url, viaf_date_b, viaf_date_d = viaf_search(name,
-                                                                                   s_birth=dateB,
-                                                                                   s_death=dateD,
+                                                                                   s_birth=p_birth,
+                                                                                   s_death=p_death,
                                                                                    offline=True)
             # jeżeli VIAF ma daty to zakładam że są lepsze niż w PSB
             # tylko jeżeli dat nie ma w VIAF lub są identyczne jak w PSB
             # to obsługa dat z PSB, z niepewnościami włącznie typu:
             # 'before', 'after' , 'about', 'or', 'between', 'roman', 'turn'
             dateB_1 = dateB_2 = dateD_1 = dateD_2 = ''
-            if viaf_ok and viaf_date_b and viaf_date_b != dateB:
-                dateB = viaf_date_b
-            else:
-                if dateB_dod == 'between':
-                    t_date_b = dateB.split('|')
-                    dateB_1 = format_date(t_date_b[0])
-                    dateB_2 = format_date(t_date_b[1])
-                    dateB = 'somevalue'
-                elif dateB_dod == 'or':
-                    t_date_b = dateB.split('|')
-                    dateB_1 = format_date(t_date_b[0])
-                    dateB_2 = format_date(t_date_b[1])
-                elif dateB_dod in ('before', 'after'):
-                    dateB_1 = format_date(dateB)
-                    dateB = 'somevalue'
-                elif dateB_dod == 'turn':
-                    t_date_b = dateB.split('|')
-                    dateB_1 = format_date(t_date_b[0])
-                    dateB_2 = format_date(t_date_b[1])
-                elif dateB_dod == 'roman': # fluorit!
-                    t_date_b = dateB.split('|')
-                    dateB_1 = format_date(t_date_b[0])
-                    if len(t_date_b) == 2:
-                        dateB_2 = format_date(t_date_b[1])
-
-            if viaf_ok and viaf_date_d and viaf_date_d != dateD:
-                dateD = viaf_date_d
-            else:
-                if dateD_dod == 'between':
-                    t_date_d = dateD.split('|')
-                    dateD_1 = format_date(t_date_d[0])
-                    dateD_2 = format_date(t_date_d[1])
-                    dateD = 'somevalue'
-                elif dateD_dod == 'or':
-                    t_date_d = dateD.split('|')
-                    dateD_1 = format_date(t_date_d[0])
-                    dateD_2 = format_date(t_date_d[1])
-                elif dateD_dod in ('before', 'after'):
-                    dateD_1 = format_date(dateD)
-                    dateD = 'somevalue'
-                elif dateD_dod == 'turn':
-                    t_date_d = dateD.split('|')
-                    dateD_1 = format_date(t_date_d[0])
-                    dateD_2 = format_date(t_date_d[1])
-
-            if dateB and dateB != 'somevalue':
-                dateB = format_date(dateB)
-
-            if dateD and dateD != 'somevalue':
-                dateD = format_date(dateD)
+            if viaf_ok and viaf_date_b and date_of_1:
+                if date_of_1.type == 'B' and date_of_1.date != viaf_date_b:
+                    date_of_1.date = viaf_date_b
+            if viaf_ok and viaf_date_d and date_of_1:
+                if date_of_1.type == 'D' and date_of_1.date != viaf_date_d:
+                    date_of_1.date = viaf_date_d
+            if viaf_ok and viaf_date_d and date_of_2:
+                if date_of_2.type == 'D' and date_of_2.date != viaf_date_d:
+                    date_of_2.date = viaf_date_d
 
             # konstrukcja etykiety z uwzględnieniem przestawienia kolejności
             # imienia i nazwiska, imion zakonnych itp.
@@ -714,22 +494,11 @@ if __name__ == "__main__":
             if name in ETYKIETY_WYJATKI:
                 name_etykieta = ETYKIETY_WYJATKI[name]
 
-            #if len(name) != len(name_etykieta):
-            # if z_mark:
-            #     print(name_etykieta, '=', birth_name)
+            if years:
+                years = f'({years})'
 
-            years = f'({years})'
-
-            #else:
-                #print(name, '=', name_etykieta)
-            #continue # tymczasowo
-            # test typów dat miepewnych
-            if roman_numeric(years):
-                roman_years.append(years)
-
-            # test czy postać nie jest już w Wikibase, wówczas wyświetla informacje 
+            # test czy postać nie jest już w Wikibase, wówczas wyświetla informacje
             # i pomija daną postać (na razie nie obsługuje uaktualnień):
-            
             #ok, q_postac = element_search(name_etykieta, 'item', 'en', description=years)
             #if ok:
             #    print(name_etykieta, 'jets już w wikibase:', q_postac)
@@ -799,50 +568,15 @@ if __name__ == "__main__":
             f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
 
             # daty życia - z obsługą kwalifikatorów
+            if date_of_1 and date_of_1.somevalue:
+                fd.write(date_of_1.prepare_qs('Q:'+ name_etykieta + '|' + years))
+            elif date_of_1 and not date_of_1.somevalue:
+                f.write(date_of_1.prepare_qs())
 
-            # data urodzin
-            if dateB and dateB != 'somevalue' and dateB_dod == 'certain':
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB}\n')
-            elif dateB == 'somevalue' and dateB_dod == 'between':
-                if dateB_1 and dateB_2:
-                    fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_BIRTH}\t{dateB}\t{P_EARLIEST_DATE}\t{dateB_1}\t{P_LATEST_DATE}\t{dateB_2}\n')
-            elif dateB == 'somevalue' and dateB_dod == 'before':
-                fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_BIRTH}\t{dateB}\t{P_LATEST_DATE}\t{dateB_1}\n')
-            elif dateB == 'somevalue' and dateB_dod == 'after':
-                fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_BIRTH}\t{dateB}\t{P_EARLIEST_DATE}\t{dateB_1}\n')
-            elif dateB and dateB_dod == 'about':
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB}\t{P_SOURCING_CIRCUMSTANCES}\t{Q_CIRCA}\n')
-            elif dateB_1 and dateB_2 and dateB_dod == 'or':
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_1}\n')
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_2}\n')
-            elif dateB_1 and dateB_2 and dateB_dod == 'turn':
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_1}\n')
-                f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_2}\n')
-            elif dateB_1  and dateB_dod == 'roman':
-                f.write(f'LAST\t{P_FLORUIT}\t{dateB_1}\n')
-                if dateB_2:
-                    f.write(f'LAST\t{P_FLORUIT}\t{dateB_2}\n')
-
-            # data śmierci
-            if dateD and dateD != 'somevalue' and dateD_dod == 'certain':
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD}\n')
-            elif dateD == 'somevalue' and dateD_dod == 'between':
-                if dateD_1 and dateD_2:
-                    fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_DEATH}\t{dateD}\t{P_EARLIEST_DATE}\t{dateD_1}\t{P_LATEST_DATE}\t{dateD_2}\n')
-            elif dateD == 'somevalue' and dateD_dod == 'before':
-                fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_DEATH}\t{dateD}\t{P_LATEST_DATE}\t{dateD_1}\n')
-            elif dateD == 'somevalue' and dateD_dod == 'after':
-                fd.write(f'Q:{name_etykieta}|{years}\t{P_DATE_OF_DEATH}\t{dateD}\t{P_EARLIEST_DATE}\t{dateD_1}\n')
-            elif dateD and dateD_dod == 'about':
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD}\t{P_SOURCING_CIRCUMSTANCES}\t{Q_CIRCA}\n')
-            elif dateD_1 and dateD_2 and dateD_dod == 'or':
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_1}\n')
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_2}\n')
-            elif dateD_1 and dateD_2 and dateD_dod == 'turn':
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_1}\n')
-                f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_2}\n')
-            elif dateD and dateD_dod == 'roman':
-                f.write(f'LAST\t{P_FLORUIT}\t{dateD}\n')
+            if date_of_2 and date_of_2.somevalue:
+                fd.write(date_of_2.prepare_qs('Q:'+ name_etykieta + '|' + years))
+            elif date_of_2 and not date_of_2.somevalue:
+                f.write(date_of_2.prepare_qs())
 
             # opisany w źródle
             f.write(f'LAST\t{P_DESCRIBED_BY_SOURCE}\t{q_biogram}\n')

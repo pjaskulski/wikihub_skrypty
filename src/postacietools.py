@@ -1,5 +1,261 @@
 """ moduł """
+import re
+import roman as romenum
 from wyjatki_postacie import WYJATKI
+
+class DateBDF:
+    """ obługa daty urodzenia, śmierci lub flourit """
+
+    P_DATE_OF_BIRTH = 'P7'
+    P_DATE_OF_DEATH = 'P8'
+    P_EARLIEST_DATE = 'P38'
+    P_LATEST_DATE = 'P39'
+    P_FLORUIT = 'P54'
+    Q_CIRCA = 'Q37979'
+    P_SOURCING_CIRCUMSTANCES = 'P189'
+    P_REFINE_DATE = 'P190'
+    Q_FIRST_HALF = 'Q40688'
+    Q_SECOND_HALF = 'Q41336'
+    Q_BEGINNING_OF = 'Q41337'
+    Q_MIDDLE_OF = 'Q41338'
+    Q_END_OF = 'Q41339'
+    Q_FIRST_QUARTER = 'Q49427'
+
+    def __init__(self, text:str, typ:str = '') -> None:
+        """ init """
+        self.text_org = text
+        self.text = text.strip().lower()
+        self.type = typ
+        self.date = ''
+        self.date_2 = ''
+        self.about = False
+        self.between = False
+        self.or_date = False
+        self.turn = False
+        self.before = False
+        self.after = False
+        self.certain = False
+        self.first_half = False
+        self.second_half = False
+        self.beginning_of = False
+        self.middle_of = False
+        self.end_of = False
+        self.first_quarter = False
+        self.somevalue = False
+        self.roman = self.roman_numeric()
+        if not self.type:
+            self.find_type()
+        self.find_uncertainty()
+        self.find_date()
+        if not self.certain and (self.before or self.after or self.between):
+            self.somevalue = True
+
+
+    def find_type(self):
+        """ ustala typ daty """
+        if 'zm.' in self.text or 'zmarł' in self.text:
+            self.type = 'D'
+        elif 'um.' in self.text:
+            self.type = 'D'
+        elif 'ur.' in self.text:
+            self.type = 'B'
+        else:
+            self.type = 'F'
+
+
+    def find_uncertainty(self):
+        """ ustala czy jest i jaka niepewność dla daty """
+
+        tmp = self.text.replace('zm.', '').replace('um.', '').replace('ur.', '').strip()
+        if tmp.isnumeric():
+            self.certain = True
+
+        if 'prawdopodobnie' in self.text:
+            self.about = True
+
+        if 'ok.' in self.text or 'około' in self.text or 'ok ' in self.text:
+            self.about = True
+
+        if 'między' in self.text or 'miedzy' in self.text:
+            self.between = True
+
+        if 'w okresie II wojny światowej' in self.text_org:
+            self.between = True
+
+        if 'lub nieco później' in self.text:
+            self.after = True
+
+        if 'w/przed' in self.text:
+            self.before = True
+
+        if 'przed lub w' in self.text:
+            self.before = True
+
+        if 'w lub po' in self.text or 'po lub w' in self.text:
+            self.after = True
+
+        if ('prawdopodobnie' in self.text or 'zapewne' in self.text 
+            or 'rzekomo' in self.text):
+            self.about = True
+
+        if ('lub' in self.text and not 'po ' in self.text
+               and not ' w ' in self.text and not 'przed ' in self.text
+               and not 'nieco później' in self.text):
+            self.or_date = True
+
+        if 'przed ' in self.text:
+            self.before = True
+
+        if 'po ' in self.text:
+            self.after = True
+
+        if 'nie później niż' in self.text:
+            self.before = True
+
+        if 'najpóźniej' in self.text:
+            self.before = True
+
+        # niepewność
+        if '?' in self.text:
+            self.about = True
+
+        # przełom lat
+        match = re.search(r'\d{3,4}/\d{1,2}', self.text)
+        if match:
+            self.turn = True
+
+        if '1 poł.' in self.text or 'i poł.' in self.text or '1. poł.' in self.text:
+            self.first_half = True
+        elif '2 poł.' in self.text or 'ii poł.' in self.text or '2. poł.' in self.text:
+            self.second_half = True
+        elif '1. ćwierć' in self.text:
+            self.first_quarter = True
+        elif 'pocz.' in self.text:
+            self.beginning_of = True
+        elif 'koniec' in self.text or 'w końcu' in self.text:
+            self.end_of = True
+
+
+    def roman_numeric(self) -> bool:
+        """ czy liczba rzymska?"""
+        pattern = r'[IVX]{1,5}\s+w\.{0,1}'
+        match = re.search(pattern, self.text_org)
+        if not match:
+            pattern = r'[IVX]{1,5}'
+            match = re.search(pattern, self.text_org)
+
+        return bool(match)
+
+    def find_date(self):
+        """ wyszukuje daty """
+        # XVI w.
+        if self.roman: 
+            matches = [x.group() for x in re.finditer(r'[IVX]{1,5}', self.text_org)]
+            if len(matches) == 1:
+                self.date = str(romenum.fromRoman(matches[0]))
+            elif len(matches) == 2:
+                matches = [str(romenum.fromRoman(x)) for x in matches]
+                self.date = matches[0]
+                self.date_2 = matches[1]
+        # 1523/4
+        elif self.turn:
+            match = re.search(r'\d{3,4}/\d{1,2}', self.text)
+            if match:
+                v_list = match.group().split('/')
+                v_list1 = v_list[0].strip()
+                v_list2 = v_list1[:len(v_list1)-len(v_list[1].strip())] + v_list[1].strip()
+                self.date = v_list1
+                self.date_2 = v_list2
+        # zwykłe daty (jeszcze obsługa dat dziennych i miesięcznych do zrobienia)
+        else:
+            if 'w okresie II wojny światowej' in self.text_org:
+                self.date = '1939'
+                self.date_2 = '1945'
+            else:
+                pattern = r'\d{3,4}'
+                matches = [x.group() for x in re.finditer(pattern, self.text)]
+                if len(matches) == 1:
+                    self.date = matches[0]
+                elif len(matches) > 1:
+                    self.date = matches[0]
+                    self.date_2 = matches[1]
+
+
+    def _format_date(self, value: str) -> str:
+        """ formatuje datę na sposób oczekiwany przez QuickStatements
+            np. +1839-00-00T00:00:00Z/9
+        """
+        result = ''
+        if len(value) == 4:                          # tylko rok
+            result = f"+{value}-00-00T00:00:00Z/9"
+        elif len(value) == 10:                       # dokłada data
+            result = f"+{value}T00:00:00Z/11"
+        elif len(value) == 2 and value.isnumeric():  # wiek
+            result = f"+{str(int(value)-1)}01-00-00T00:00:00Z/7"
+        elif len(value) == 1 and value.isnumeric():  # wiek np. X
+            value = str(int(value)-1)
+            result = f"+{value.zfill(2)}01-00-00T00:00:00Z/7"
+
+        return result
+
+    def prepare_qs(self, etykieta: str = '') -> str:
+        """ drukuje zapisy QuickStatements"""
+        # data urodzin
+        print_date = print_date_2 = print_kw_date = print_kw_date_2 = ''
+        if self.somevalue:
+            print_date = 'somevalue'
+            print_kw_date = self._format_date(self.date)
+            print_kw_date_2 = self._format_date(self.date_2)
+        else:
+            print_date = self._format_date(self.date)
+            if self.or_date or self.turn:
+                print_date_2 = self._format_date(self.date_2)
+
+        if self.type == 'B':
+            print_type = self.P_DATE_OF_BIRTH
+        elif self.type == 'D':
+            print_type = self.P_DATE_OF_DEATH
+        elif self.type == 'F':
+            print_type = self.P_FLORUIT
+        else:
+            print('ERROR: nieokreślony typ daty.')
+
+        if print_date == 'somevalue':
+            qid = etykieta
+        else:
+            qid = 'LAST'
+
+        line = f'{qid}\t{print_type}\t{print_date}'
+        if self.about:
+            line += f'\t{self.P_SOURCING_CIRCUMSTANCES}\t{self.Q_CIRCA}'
+        if self.or_date:
+            line += '\n'
+            line += f'{qid}\t{print_type}\t{print_date_2}'
+        if self.turn:
+            line += '\n'
+            line += f'{qid}\t{print_type}\t{print_date_2}'
+        if self.after:
+            line += f'\t{self.P_EARLIEST_DATE}\t{print_kw_date}'
+        if self.before:
+            line += f'\t{self.P_LATEST_DATE}\t{print_kw_date}'
+        if self.between:
+            line += f'\t{self.P_EARLIEST_DATE}\t{print_kw_date}'
+            line += f'\t{self.P_LATEST_DATE}\t{print_kw_date_2}'
+        if self.beginning_of:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_BEGINNING_OF}'
+        if self.middle_of:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_MIDDLE_OF}'
+        if self.end_of:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_END_OF}'
+        if self.first_half:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_FIRST_HALF}'
+        if self.second_half:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_SECOND_HALF}'
+        if self.first_quarter:
+            line += f'\t{self.P_REFINE_DATE}\t{self.Q_FIRST_QUARTER}'
+
+        line += '\n'
+        return line
 
 
 def get_name_simple(value: str) -> tuple:
@@ -66,9 +322,9 @@ def get_name(value: str) -> tuple:
              'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
 
     is_roman = False
-    for i in range(0, len(tmp)):
-        tmp[i] = tmp[i].strip()
-        if tmp[i] in roman:
+    for i, tmp_value in enumerate(tmp):
+        tmp_value = tmp_value.strip()
+        if tmp_value in roman:
             is_roman = True
         if is_roman:
             tmp[i] = ''
