@@ -38,9 +38,15 @@ P_DESCRIBED_BY_SOURCE = 'P17'
 P_BIRTH_NAME = 'P63'
 P_EARLIEST_DATE = 'P38'
 P_LATEST_DATE = 'P39'
-P_FLUORIT = 'P54'
+P_FLORUIT = 'P54'
 Q_CIRCA = 'Q37979'
 P_SOURCING_CIRCUMSTANCES = 'P189'
+P_REFINE_DATE = 'P190'
+P_FIRST_HALF = 'Q40688'
+P_SECOND_HALF = 'Q41336'
+P_BEGINNING_OF = 'Q41337'
+P_MIDDLE_OF = 'Q41338'
+P_END_OF = 'Q41339'
 
 BIOGRAMY = {}
 VIAF_ID = {}
@@ -401,6 +407,15 @@ def get_date(value: str, typ = '') -> tuple:
         matches = [x.group() for x in re.finditer(r'[IVX]{1,5}', value)]
         if len(matches) == 1:
             date_of = str(romenum.fromRoman(matches[0]))
+            # przypadki typu '1. poł. XIV w.'
+            if '1 poł.' in value:       
+                date_of += ':first half'
+            elif '2 poł.' in value:
+                date_of += ':second half'
+            elif 'pocz.' in value:
+                date_of += ':beginning'
+            elif 'kon.' in value:
+                date_of += ':end'
         else:
             matches = [str(romenum.fromRoman(x)) for x in matches]
             date_of = '|'.join(matches)
@@ -491,6 +506,7 @@ if __name__ == "__main__":
 
     with open(output, "w", encoding='utf-8') as f, open(output_daty, "w", encoding='utf-8') as fd:
         licznik = 0
+        roman_years = []
         for line in indeks:
             licznik += 1
             nawias, title_stop = get_last_nawias(line)
@@ -529,6 +545,12 @@ if __name__ == "__main__":
 
             # daty urodzenia i śmierci
             dateB, dateD, dateB_dod, dateD_dod = date_birth_death(years)
+            # dodatkowa obsługa przypadków typu '1. poł. XIV w.'
+            refine_date = ''
+            if dateB_dod == 'roman' and ':' in dateB:
+                t_dod = dateB.split(':')
+                dateB = t_dod[0]
+                refine_date = t_dod[1]
 
             #print(dateB, dateD, dateB_dod, dateD_dod, name)
 
@@ -701,6 +723,17 @@ if __name__ == "__main__":
             #else:
                 #print(name, '=', name_etykieta)
             #continue # tymczasowo
+            # test typów dat miepewnych
+            if roman_numeric(years):
+                roman_years.append(years)
+
+            # test czy postać nie jest już w Wikibase, wówczas wyświetla informacje 
+            # i pomija daną postać (na razie nie obsługuje uaktualnień):
+            
+            #ok, q_postac = element_search(name_etykieta, 'item', 'en', description=years)
+            #if ok:
+            #    print(name_etykieta, 'jets już w wikibase:', q_postac)
+            #    continue
 
             # zapis quickstatements
             f.write('CREATE\n')
@@ -786,9 +819,9 @@ if __name__ == "__main__":
                 f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_1}\n')
                 f.write(f'LAST\t{P_DATE_OF_BIRTH}\t{dateB_2}\n')
             elif dateB_1  and dateB_dod == 'roman':
-                f.write(f'LAST\t{P_FLUORIT}\t{dateB_1}\n')
+                f.write(f'LAST\t{P_FLORUIT}\t{dateB_1}\n')
                 if dateB_2:
-                    f.write(f'LAST\t{P_FLUORIT}\t{dateB_2}\n')
+                    f.write(f'LAST\t{P_FLORUIT}\t{dateB_2}\n')
 
             # data śmierci
             if dateD and dateD != 'somevalue' and dateD_dod == 'certain':
@@ -809,7 +842,7 @@ if __name__ == "__main__":
                 f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_1}\n')
                 f.write(f'LAST\t{P_DATE_OF_DEATH}\t{dateD_2}\n')
             elif dateD and dateD_dod == 'roman':
-                f.write(f'LAST\t{P_FLUORIT}\t{dateD}\n')
+                f.write(f'LAST\t{P_FLORUIT}\t{dateD}\n')
 
             # opisany w źródle
             f.write(f'LAST\t{P_DESCRIBED_BY_SOURCE}\t{q_biogram}\n')
@@ -844,3 +877,6 @@ if __name__ == "__main__":
         h.write('</table>\n')
         h.write('</body>\n')
         h.write('</html>\n')
+
+    for item in sorted(roman_years):
+        print(item)
