@@ -137,7 +137,14 @@ class DateBDF:
 
 
     def roman_numeric(self) -> bool:
-        """ czy liczba rzymska?"""
+        """ czy liczba rzymska oznaczająca wiek? 
+            (ale nie część daty np. 3 V 1458)
+        """
+        pattern_test = r'\d{1,2}\s+[IVX]{1,4}\s+\d{4}'
+        match = re.search(pattern_test, self.text_org)
+        if match:
+            return False
+
         pattern = r'[IVX]{1,5}\s+w\.{0,1}'
         match = re.search(pattern, self.text_org)
         if not match:
@@ -157,6 +164,9 @@ class DateBDF:
                 matches = [str(romenum.fromRoman(x)) for x in matches]
                 self.date = matches[0]
                 self.date_2 = matches[1]
+                if '/' in self.text:
+                    self.between = True
+                    self.somevalue = True
         # 1523/4
         elif self.turn:
             match = re.search(r'\d{3,4}/\d{1,2}', self.text)
@@ -172,13 +182,23 @@ class DateBDF:
                 self.date = '1939'
                 self.date_2 = '1945'
             else:
-                pattern = r'\d{3,4}'
-                matches = [x.group() for x in re.finditer(pattern, self.text)]
-                if len(matches) == 1:
-                    self.date = matches[0]
-                elif len(matches) > 1:
-                    self.date = matches[0]
-                    self.date_2 = matches[1]
+                # test czy to nie data dzienna
+                pattern_test = r'\d{1,2}\s+[IVX]{1,4}\s+\d{4}'
+                match = re.search(pattern_test, self.text_org)
+                if match:
+                    t_match = match.group().split(' ')
+                    y = t_match[2]
+                    m = str(romenum.fromRoman(t_match[1]))
+                    d = t_match[0]
+                    self.date = f'{y}-{m.zfill(2)}-{d.zfill(2)}'
+                else:
+                    pattern = r'\d{3,4}'
+                    matches = [x.group() for x in re.finditer(pattern, self.text)]
+                    if len(matches) == 1:
+                        self.date = matches[0]
+                    elif len(matches) > 1:
+                        self.date = matches[0]
+                        self.date_2 = matches[1]
 
 
     def _format_date(self, value: str) -> str:
@@ -231,9 +251,13 @@ class DateBDF:
         if self.or_date:
             line += '\n'
             line += f'{qid}\t{print_type}\t{print_date_2}'
+            if self.about:
+                line += f'\t{self.P_SOURCING_CIRCUMSTANCES}\t{self.Q_CIRCA}'
         if self.turn:
             line += '\n'
             line += f'{qid}\t{print_type}\t{print_date_2}'
+            if self.about:
+                line += f'\t{self.P_SOURCING_CIRCUMSTANCES}\t{self.Q_CIRCA}'
         if self.after:
             line += f'\t{self.P_EARLIEST_DATE}\t{print_kw_date}'
         if self.before:

@@ -569,12 +569,14 @@ if __name__ == "__main__":
 
             # daty życia - z obsługą kwalifikatorów
             if date_of_1 and date_of_1.somevalue:
-                fd.write(date_of_1.prepare_qs('Q:'+ name_etykieta + '|' + years))
+                #fd.write(date_of_1.prepare_qs('Q:'+ name_etykieta + '|' + years))
+                f.write(date_of_1.prepare_qs('LAST'))
             elif date_of_1 and not date_of_1.somevalue:
                 f.write(date_of_1.prepare_qs())
 
             if date_of_2 and date_of_2.somevalue:
-                fd.write(date_of_2.prepare_qs('Q:'+ name_etykieta + '|' + years))
+                #fd.write(date_of_2.prepare_qs('Q:'+ name_etykieta + '|' + years))
+                f.write(date_of_2.prepare_qs('LAST'))
             elif date_of_2 and not date_of_2.somevalue:
                 f.write(date_of_2.prepare_qs())
 

@@ -738,7 +738,9 @@ WYJATKI = {
             'Sawa Caliński Józef':
                 {'imie':'Jozef', 'nazwisko':'Sawa', 'nazwisko2':'Caliński'},
             'Abraham Hirszowic':
-                {'imie':'Abraham'}
+                {'imie':'Abraham'},
+            'Wszewołodowicz Andrzej':
+                {'imie':'Andrzej'}
 
           }
 
@@ -941,5 +943,6 @@ ETYKIETY_WYJATKI = {
     'Piotr Ogon z Radzików i Woli':'Piotr Ogon z Radzików i Woli',
     'Piotr Tłuk ze Strykowa':'Piotr Tłuk ze Strykowa',
     'Piotr Zajączek z Wrzącej':'Piotr Zajączek z Wrzącej',
-    'Abraham Hirszowic':'Abraham Hirszowic'
+    'Abraham Hirszowic':'Abraham Hirszowic',
+    'Andrzej Wszewołodowicz':'Andrzej Wszewołodowicz'
 }
