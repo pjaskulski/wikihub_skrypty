@@ -1,7 +1,354 @@
 """ moduł """
 import re
+import sys
 import roman as romenum
+from openpyxl import load_workbook
 from wyjatki_postacie import WYJATKI
+from wyjatki_postacie import ETYKIETY_WYJATKI
+from wikidariahtools import text_clear, short_names_in_autor
+
+
+class FigureName:
+    """ obsługa imion i nazwisk postaci historycznych """
+
+    def __init__(self, f_name: str) -> None:
+        self.name = f_name.strip()
+        self.org_name = self.name
+        self.imie = ''
+        self.imie2 = ''
+        self.imie3 = ''
+        self.imie4 = ''
+        self.nazwisko = ''
+        self.nazwisko2 = ''
+        self.birth_name = ''
+        self.name_etykieta = ''
+        self.get_name()
+        self.postac_etykieta()
+        self.postac_etykieta_korekty()
+
+
+    def _get_name_simple(self, value: str) -> tuple:
+        """ _get name simple """
+        p_nazwisko = p_imie = p_imie2 = ''
+
+        tmp = value.split(" ")
+        if len(tmp) == 1:
+            p_imie = tmp[0].strip()
+        elif len(tmp) == 2:
+            if tmp[0][0].isupper() and tmp[1][0].isupper():
+                p_nazwisko = tmp[0].strip()
+                p_imie = tmp[1].strip()
+        elif len(tmp) == 3:
+            if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
+                p_nazwisko = tmp[0].strip()
+                if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
+                    or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
+                    or tmp[1].endswith('zic')):
+                    p_imie = tmp[2]
+                elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
+                    p_imie = tmp[1]
+                else:
+                    p_imie = tmp[1].strip()
+                    p_imie2 = tmp[2].strip()
+
+        return p_nazwisko, p_imie, p_imie2
+
+
+    def get_name(self):
+        """ get_name """
+
+        lista = ['(młodszy)', '(starszy)', '(Młodszy)', '(Starszy)',
+                'młodszy', 'starszy', 'Młodszy', 'Starszy', 'junior', 'senior',
+                'właśc.', 'jr']
+        for item in lista:
+            if item in self.name:
+                self.name = self.name.replace(item, '').strip()
+
+        # jeżeli postać jest w wyjątkach to funkcja zwraca wartości z tablicy wyjątków
+        if self.name in WYJATKI:
+            if 'imie' in WYJATKI[self.name]:
+                self.imie = WYJATKI[self.name]['imie'].strip()
+            if 'imie2' in WYJATKI[self.name]:
+                self.imie2 = WYJATKI[self.name]['imie2'].strip()
+            if 'imie3' in WYJATKI[self.name]:
+                self.imie3 = WYJATKI[self.name]['imie3'].strip() 
+            if 'imie4' in WYJATKI[self.name]:
+                self.imie4 = WYJATKI[self.name]['imie4'].strip()       
+            if 'nazwisko' in WYJATKI[self.name]:
+                self.nazwisko = WYJATKI[self.name]['nazwisko'].strip()
+            if 'nazwisko2' in WYJATKI[self.name]:
+                self.nazwisko2 = WYJATKI[self.name]['nazwisko2'].strip()
+
+            return
+
+        tmp = self.name.strip().split(" ")
+
+        # liczby rzymskie w przypadku władców - nie są imionami i nazwiskami
+        # zazwyczaj za taką liczbą jest przydomek, więc pomijam
+        roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+                'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
+
+        is_roman = False
+        for i, tmp_value in enumerate(tmp):
+            tmp_value = tmp_value.strip()
+            if tmp_value in roman:
+                is_roman = True
+            if is_roman:
+                tmp[i] = ''
+
+        tmp = [item for item in tmp if item.strip() != '']
+
+        if len(tmp) == 1:
+            # czy to imię czy nazwisko? Dodać słownik typowych imion? na razie wszystkie
+            # pojedyncze traktowane są jak imiona, chyba że kończy się na 'ski'
+            p_word = tmp[0].strip()
+            if p_word.endswith('ski') or p_word.endswith('ska') or p_word.endswith('cki'):
+                self.nazwisko = p_word
+            else:
+                self.imie = p_word
+
+        elif len(tmp) == 2:
+            if tmp[0][0].isupper() and tmp[1][0].isupper():
+                self.nazwisko = tmp[0].strip()
+                self.imie = tmp[1].strip()
+
+        elif len(tmp) == 3:
+            if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
+                self.nazwisko = tmp[0].strip()
+                if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
+                    or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
+                    or tmp[1].endswith('zic')):
+                    self.imie = tmp[2]
+                elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
+                    self.imie = tmp[1]
+                else:
+                    self.imie = tmp[1]
+                    self.imie2 = tmp[2]
+            else:
+                if ' z ' in self.name or ' ze ' in self.name: # Szymon ze Stawu
+                    self.imie = tmp[0].strip()
+                if (' zw. ' in self.name or 'zwany' in self.name or 'zapewne' in self.name
+                    or ' z ' in self.name or ' ze ' in self.name or ' w zak. ' in self.name
+                    or ' zak. ' in self.name or ' syn ' in self.name):
+                    pos = self.name.find(' zw. ')
+                    pos1 = self.name.find(' zwany')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    pos1 = self.name.find(' zapewne ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1     
+                    pos1 = self.name.find(' z ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    pos1 = self.name.find(' ze ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    pos1 = self.name.find(' w zak. ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    pos1 = self.name.find(' zal. ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    pos1 = self.name.find(' syn ')
+                    if pos1 > 0 and (pos == -1 or pos1 < pos):
+                        pos = pos1
+                    if pos != -1:
+                        self.name = self.name[:pos].strip().replace(',', '')
+                        self.nazwisko, self.imie, self.imie2 = self._get_name_simple(self.name)
+                elif tmp[1] == 'de':  # Camelin de Jan
+                    self.nazwisko = tmp[1] + ' ' + tmp[0].strip()
+                    self.imie = tmp[2]
+                elif tmp[-1] == 'de':  # Girard Filip de
+                    self.nazwisko = tmp[-1] + ' ' + tmp[0].strip()
+                    self.imie = tmp[1]
+                elif tmp[-1] == 'von': # Kempen Eggert von
+                    self.nazwisko = tmp[-1] + ' ' + tmp[0].strip()
+                    self.imie = tmp[1]
+                elif tmp[1] == 'del':  # Pace del Luca
+                    self.nazwisko = tmp[1] + ' ' + tmp[0].strip()
+                    self.imie = tmp[2]
+
+        else:
+            if ' de ' in self.name:
+                self.imie = tmp[-1].strip()
+                self.nazwisko = ' '.join(tmp[:-1])
+            elif (' z ' in self.name or ' ze ' in self.name or ' zw. ' in self.name
+                  or 'syn' in self.name):
+                # Boner Seweryn z Balic, Abraham ben Joszijahu z Trok, Łukasz z Nowego Miasta
+                pos = self.name.find(' z ')
+                pos1 = self.name.find(' ze ')
+                if pos1 > 0 and (pos == -1 or pos1 < pos):
+                    pos = pos1
+                pos1 = self.name.find(' zw. ')
+                if pos1 > 0 and (pos == -1 or pos1 < pos):
+                    pos = pos1
+                pos1 = self.name.find(' syn ')
+                if pos1 > 0 and (pos == -1 or pos1 < pos):
+                    pos = pos1
+
+                if pos != -1:
+                    self.name = self.name[:pos].strip()
+                    tmp = self.name.split(" ")
+                    self.nazwisko, self.imie, self.imie2 = self._get_name_simple(self.name)
+            elif tmp[-1] == 'de':  # Caraccioli Ludwik Antoni de
+                self.nazwisko = tmp[-1] + ' ' + tmp[0].strip()
+                self.imie = tmp[1]
+                self.imie2 = tmp[2]
+            elif 'van der' in self.name and len(tmp) == 4:
+                self.nazwisko = 'van der' + ' ' + tmp[0].strip()
+                self.imie = tmp[-1].strip()
+            elif 'w zakonie' in self.name or 'w zak.' in self.name or ' zak. ' in self.name:
+                pos = self.name.find(' w zak')
+                pos1 = self.name.find(' zak. ')
+                if pos1 > 0 and (pos == -1 or pos1 < pos):
+                    pos = pos1
+                if pos != -1:
+                    self.name = self.name[:pos].strip().replace(',', '')
+                    self.nazwisko, self.imie, self.imie2 = self._get_name_simple(self.name)
+            else:
+                if len(tmp) == 4:
+                    self.nazwisko = tmp[0]
+                    if (tmp[1].endswith('ski') or tmp[1].endswith('icz') 
+                        or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')):
+                        self.nazwisko2 = tmp[1]
+                        self.imie = tmp[2]
+                        self.imie2 = tmp[3]
+                    else:
+                        self.imie = tmp[1]
+                        self.imie2 = tmp[2]
+                        self.imie3 = tmp[3]
+
+        # zakładam że otczewstwo to nie imię
+        if self.imie2.endswith('icz') or self.imie2.endswith('cki'):
+            self.imie2 = ''
+        if self.imie3.endswith('icz') or self.imie3.endswith('cki'):
+            self.imie3 = ''
+
+        # jeżeli imię zaczyna się z małej litery, to błędnie rozpoznano i to nie jest imię
+        if self.imie and self.imie[0].islower():
+            self.imie = ''
+        if self.imie2 and self.imie2[0].islower():
+            self.imie2 = ''
+        if self.imie3 and self.imie3[0].islower():
+            self.imie3 = ''
+        if self.imie4 and self.imie4[0].islower():
+            self.imie4 = ''
+
+        if not self.imie and not self.nazwisko:
+            print(f'PROBLEM, nie ropoznano imienia i nazwiska: {self.org_name}')
+
+
+    def _double_space(self, value:str) -> str:
+        """ usuwa podwójne spacje z przekazanego tekstu """
+        return ' '.join(value.strip().split())
+
+
+    def postac_etykieta(self):
+        """ ustala etykietę dla postaci (imiona nazwiska)
+            imie_1 .. imie_4 - kolejne imiona postaci
+            nazwisko_1, nazwisko_2 - kolejne nazwiska postaci
+            konstrukcja etykiety powinna uwzględniać przestawienia kolejności
+            imienia i nazwiska (w indeksie BB jest odwrotnie) oraz ewentualne 
+            imiona zakonnych itp.
+        """
+        self.name_etykieta = f'{self.imie} {self.imie2} {self.imie3} {self.imie4} {self.nazwisko2} {self.nazwisko}'
+        self.name_etykieta = self.name_etykieta.strip()
+        self.name_etykieta = self._double_space(self.name_etykieta)
+
+
+    def postac_etykieta_korekty(self):
+        """ funkcja koryguje w razie potrzeby etykietę dla postaci
+            zwraca:
+            poprawioną etykietę, imię po narodzinach (dla zakonników/zakonnic)
+        """
+        if ' zwany ' in self.org_name:
+            t_mark = ' zwany '
+        elif ' zw. ' in self.org_name:
+            t_mark = ' zw. '
+        elif ' z ' in self.org_name:
+            t_mark = ' z '
+        elif ' ze ' in self.org_name:
+            t_mark = ' ze '
+        elif ' h.' in self.org_name:
+            t_mark = ' h.'
+        else:
+            t_mark = ''
+
+        if t_mark:
+            pos = self.org_name.find(t_mark)
+            toponimik = self.org_name[pos:]
+            self.name_etykieta = self.name_etykieta + toponimik
+
+        if 'starszy' in self.org_name and 'starszy' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'starszy'
+        if 'Starszy' in self.org_name and 'Starszy' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'Starszy'
+        if 'młodszy' in self.org_name and 'młodszy' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'młodszy'
+        if 'Młodszy' in self.org_name and 'Młodszy' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'Młodszy'
+        if 'junior' in self.org_name and 'junior' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'junior'
+        if 'senior' in self.org_name and 'senior' not in self.name_etykieta:
+            self.name_etykieta += ' ' + 'senior'
+
+        # imona zakonne
+        if ' w zak. ' in self.org_name:
+            z_mark = ' w zak.'
+        elif ' w zakonie ' in self.org_name:
+            z_mark = ' w zakonie '
+        elif ' w zak ' in self.org_name:
+            z_mark = ' w zak '
+        elif ' zak. ' in self.org_name:
+            z_mark = ' zak. '
+        else:
+            z_mark = ''
+
+        if z_mark:
+            pos = self.org_name.find(z_mark)
+            pos2 = pos + len(z_mark)
+            self.birth_name = self.name_etykieta
+            # zakonimik = self.name[pos:]
+            zakon_names = self.org_name[pos2:].strip()
+            self.name_etykieta = f'{zakon_names} {self.nazwisko2} {self.nazwisko}'.strip()
+
+        self.name_etykieta = self._double_space(self.name_etykieta)
+
+        # dla postaci typu 'Szneur Zalman ben Baruch' na razie tak jak w oryginale
+        if ' ben ' in self.org_name:
+            self.name_etykieta = self.org_name
+        if ' Ben ' in self.org_name:
+            self.name_etykieta = self.org_name
+
+        # dla postaci typu 'Salomon syn Joela' na razie tak jak w oryginale
+        if ' syn ' in self.org_name:
+            self.name_etykieta = self.org_name
+
+        # dla władców tak jak w oryginale
+        is_king = False
+        roman_num = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+            'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
+        for r_item in roman_num:
+            if f' {r_item} ' in self.org_name or self.org_name.endswith(f' {r_item}'):
+                is_king = True
+                break
+        if is_king:
+            self.name_etykieta = self.org_name
+
+        # konstrukcja typu Mikołaj z Jaroszowa zw. Kornicz lub Siestrzeniec
+        # zostaje bez zmian w etykiecie
+        if ' z ' in self.org_name and ' zw. ' in self.org_name:
+            self.name_etykieta = self.org_name
+        if ' z ' in self.org_name and ' zwany ' in self.org_name:
+            self.name_etykieta = self.org_name
+
+        # jeżeli nie było rozpoznanego imienia tylko przydomek/przezwisko
+        if self.name_etykieta.startswith('z '):
+            self.name_etykieta = self.org_name
+
+        # super wyjątki nie podpadające gdzie indziej
+        self.name_etykieta = ETYKIETY_WYJATKI.get(self.org_name, self.name_etykieta)
+
 
 class DateBDF:
     """ obługa daty urodzenia, śmierci lub flourit """
@@ -134,12 +481,18 @@ class DateBDF:
             self.beginning_of = True
         elif 'koniec' in self.text or 'w końcu' in self.text:
             self.end_of = True
+        elif 'poł.' in self.text:
+            self.middle_of = True
 
 
     def roman_numeric(self) -> bool:
         """ czy liczba rzymska oznaczająca wiek? 
             (ale nie część daty np. 3 V 1458)
         """
+        # jeżeli to specyficzny zapis:
+        if 'II wojny' in self.text_org:
+            return False
+
         pattern_test = r'\d{1,2}\s+[IVX]{1,4}\s+\d{4}'
         match = re.search(pattern_test, self.text_org)
         if match:
@@ -209,7 +562,10 @@ class DateBDF:
         if len(value) == 4:                          # tylko rok
             result = f"+{value}-00-00T00:00:00Z/9"
         elif len(value) == 10:                       # dokłada data
-            result = f"+{value}T00:00:00Z/11"
+            if value.endswith('00'):                 # jeżeli brak daty dziennej 
+                result = f"+{value}T00:00:00Z/10"
+            else:
+                result = f"+{value}T00:00:00Z/11"
         elif len(value) == 2 and value.isnumeric():  # wiek
             result = f"+{str(int(value)-1)}01-00-00T00:00:00Z/7"
         elif len(value) == 1 and value.isnumeric():  # wiek np. X
@@ -282,214 +638,72 @@ class DateBDF:
         return line
 
 
-def get_name_simple(value: str) -> tuple:
-    """ get name simple """
-    p_nazwisko = p_imie = p_imie2 = ''
+def ustal_etykiete_biogramu(value: str, title_value: str) -> str:
+    """ ustala etykiete biogramu do wyszukiwania elementów biogramów
+        w Wikibase
+        value - zawartość nawiasu z danymi bibliograficznymi z indeksu BB
+        title_value - tytuł biogramu
+    """
+    l_nawias = value.split(",")
+    if len(l_nawias) != 4:
+        print(f'ERROR: {l_nawias}')
+        sys.exit(1)
+    autor = text_clear(l_nawias[0])
+    autor_in_title = short_names_in_autor(autor)
+    tom = text_clear(l_nawias[1])
+    tom = tom.replace("t.","").strip()
+    strony = text_clear(l_nawias[3])
 
-    tmp = value.split(" ")
-    if len(tmp) == 1:
-        p_imie = tmp[0].strip()
-    elif len(tmp) == 2:
-        if tmp[0][0].isupper() and tmp[1][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            p_imie = tmp[1].strip()
-    elif len(tmp) == 3:
-        if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
-                or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
-                or tmp[1].endswith('zic')):
-                p_imie = tmp[2]
-            elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
-                p_imie = tmp[1]
-            else:
-                p_imie = tmp[1].strip()
-                p_imie2 = tmp[2].strip()
+    if ";" in autor_in_title:
+        autor_in_title = autor_in_title.replace(';', ',')
 
-    return p_nazwisko, p_imie, p_imie2
+    return f"{autor_in_title}, {title_value}, w: PSB {tom}, {strony}"
 
 
-def get_name(value: str) -> tuple:
-    """ get_name """
-    p_imie = p_imie2 = p_imie3 = p_imie4 = p_nazwisko = p_nazwisko2 = ''
-    original_value = value
+def load_wyjatki(path: str) -> dict:
+    """ load wyjatki - funkcja ładuje dane z arkusza xlsx z zapisanymi
+        identyfikatorami VIAF ustalonymi ręcznie dla osób
+        path - ściezka do pliku xlsx
+    """
+    result = {}
 
-    lista = ['(młodszy)', '(starszy)', '(Młodszy)', '(Starszy)',
-             'młodszy', 'starszy', 'Młodszy', 'Starszy', 'junior', 'senior',
-             'właśc.', 'jr']
-    for item in lista:
-        if item in value:
-            value = value.replace(item, '').strip()
+    try:
+        work_book = load_workbook(path)
+    except IOError:
+        print(f"ERROR. Can't open and process file: {path}")
+        sys.exit(1)
 
-    # jeżeli postać jest w wyjątkach to funkcja zwraca wartości z tablicy wyjątków
-    if value in WYJATKI:
-        if 'imie' in WYJATKI[value]:
-            p_imie = WYJATKI[value]['imie'].strip()
-        if 'imie2' in WYJATKI[value]:
-            p_imie2 = WYJATKI[value]['imie2'].strip()
-        if 'imie3' in WYJATKI[value]:
-            p_imie3 = WYJATKI[value]['imie3'].strip() 
-        if 'imie4' in WYJATKI[value]:
-            p_imie4 = WYJATKI[value]['imie4'].strip()       
-        if 'nazwisko' in WYJATKI[value]:
-            p_nazwisko = WYJATKI[value]['nazwisko'].strip()
-        if 'nazwisko2' in WYJATKI[value]:
-            p_nazwisko2 = WYJATKI[value]['nazwisko2'].strip()
-
-        return p_nazwisko, p_imie, p_imie2, p_nazwisko2, p_imie3, p_imie4
-
-    tmp = value.strip().split(" ")
-
-    # liczby rzymskie w przypadku władców - nie są imionami i nazwiskami
-    # zazwyczaj za taką liczbą jest przydomek, więc pomijam
-    roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
-             'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']
-
-    is_roman = False
-    for i, tmp_value in enumerate(tmp):
-        tmp_value = tmp_value.strip()
-        if tmp_value in roman:
-            is_roman = True
-        if is_roman:
-            tmp[i] = ''
-
-    tmp = [item for item in tmp if item.strip() != '']
-
-    if len(tmp) == 1:
-        # czy to imię czy nazwisko? Dodać słownik typowych imion? na razie wszystkie
-        # pojedyncze traktowane są jak imiona, chyba że kończy się na 'ski'
-        p_word = tmp[0].strip()
-        if p_word.endswith('ski') or p_word.endswith('ska') or p_word.endswith('cki'):
-            p_nazwisko = p_word
+    sheet = work_book['Arkusz1']
+    columns = {'POSTAĆ':0, 'VIAF':1}
+    for current_row in sheet.iter_rows(2, sheet.max_row):
+        u_osoba = current_row[columns['POSTAĆ']].value
+        u_viaf = current_row[columns['VIAF']].value
+        if u_osoba:
+            u_osoba = u_osoba.strip()
+        if u_viaf:
+            u_viaf = u_viaf.strip()
+        if u_osoba and u_viaf:
+            result[u_osoba.strip()] = u_viaf.strip()
         else:
-            p_imie = p_word
+            break
 
-    elif len(tmp) == 2:
-        if tmp[0][0].isupper() and tmp[1][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            p_imie = tmp[1].strip()
+    return result
 
-    elif len(tmp) == 3:
-        if tmp[0][0].isupper() and tmp[1][0].isupper() and tmp[2][0].isupper():
-            p_nazwisko = tmp[0].strip()
-            if (tmp[1].endswith('ski') or tmp[1].endswith('icz')
-                or tmp[1].endswith('ska') or tmp[1].endswith('iczowa')
-                or tmp[1].endswith('zic')):
-                p_imie = tmp[2]
-            elif tmp[2].endswith('wic') or tmp[2].endswith('yc'): # Januszowski Jan Łazarzowic
-                p_imie = tmp[1]
-            else:
-                p_imie = tmp[1]
-                p_imie2 = tmp[2]
-        else:
-            if ' z ' in value or ' ze ' in value: # Szymon ze Stawu
-                p_imie = tmp[0].strip()
-            if (' zw. ' in value or 'zwany' in value or 'zapewne' in value 
-                  or ' z ' in value or ' ze ' in value or ' w zak. ' in value
-                  or ' zak. ' in value or ' syn ' in value):
-                pos = value.find(' zw. ')
-                pos1 = value.find(' zwany') 
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1
-                pos1 = value.find(' zapewne ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1     
-                pos1 = value.find(' z ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1    
-                pos1 = value.find(' ze ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1
-                pos1 = value.find(' w zak. ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1    
-                pos1 = value.find(' zal. ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1
-                pos1 = value.find(' syn ')
-                if pos1 > 0 and (pos == -1 or pos1 < pos):
-                    pos = pos1
-                if pos != -1:
-                    value = value[:pos].strip().replace(',', '')
-                    p_nazwisko, p_imie, p_imie2 = get_name_simple(value)
-            elif tmp[1] == 'de':  # Camelin de Jan
-                p_nazwisko = tmp[1] + ' ' + tmp[0].strip()
-                p_imie = tmp[2]
-            elif tmp[-1] == 'de':  # Girard Filip de
-                p_nazwisko = tmp[-1] + ' ' + tmp[0].strip()
-                p_imie = tmp[1]
-            elif tmp[-1] == 'von': # Kempen Eggert von
-                p_nazwisko = tmp[-1] + ' ' + tmp[0].strip()
-                p_imie = tmp[1]
-            elif tmp[1] == 'del':  # Pace del Luca
-                p_nazwisko = tmp[1] + ' ' + tmp[0].strip()
-                p_imie = tmp[2]
 
-    else:
-        if ' de ' in value:
-            p_imie = tmp[-1].strip()
-            p_nazwisko = ' '.join(tmp[:-1])
-        elif ' z ' in value or ' ze ' in value or ' zw. ' in value or 'syn' in value:  
-            # Boner Seweryn z Balic, Abraham ben Joszijahu z Trok, Łukasz z Nowego Miasta
-            pos = value.find(' z ')
-            pos1 = value.find(' ze ')
-            if pos1 > 0 and (pos == -1 or pos1 < pos):
-                pos = pos1
-            pos1 = value.find(' zw. ')
-            if pos1 > 0 and (pos == -1 or pos1 < pos):
-                pos = pos1
-            pos1 = value.find(' syn ')
-            if pos1 > 0 and (pos == -1 or pos1 < pos):
-                pos = pos1    
-     
-            if pos != -1:
-                value = value[:pos].strip()
-                tmp = value.split(" ")
-                p_nazwisko, p_imie, p_imie2 = get_name_simple(value)        
-        elif tmp[-1] == 'de':  # Caraccioli Ludwik Antoni de
-            p_nazwisko = tmp[-1] + ' ' + tmp[0].strip()
-            p_imie = tmp[1]
-            p_imie2 = tmp[2]
-        elif 'van der' in value and len(tmp) == 4:
-            p_nazwisko = 'van der' + ' ' + tmp[0].strip()
-            p_imie = tmp[-1].strip()
-        elif 'w zakonie' in value or 'w zak.' in value or ' zak. ' in value:
-            pos = value.find(' w zak')
-            pos1 = value.find(' zak. ')
-            if pos1 > 0 and (pos == -1 or pos1 < pos):
-                pos = pos1
-            if pos != -1:
-                value = value[:pos].strip().replace(',', '')
-                p_nazwisko, p_imie, p_imie2 = get_name_simple(value)
-        else:
-            if len(tmp) == 4:
-                p_nazwisko = tmp[0]
-                if tmp[1].endswith('ski') or tmp[1].endswith('icz') or tmp[1].endswith('ska') or tmp[1].endswith('iczowa'):
-                    p_nazwisko2 = tmp[1]
-                    p_imie = tmp[2]
-                    p_imie2 = tmp[3]
-                else:
-                    p_imie = tmp[1]
-                    p_imie2 = tmp[2]
-                    p_imie3 = tmp[3]
+def diff_date(one: str, two: str, tolerancja = 3) -> bool:
+    """ badanie czy różnica lat nie jest zbyt duża """
+    result = True
+    if '-' in one:
+        tmp = one.split('-')
+        one = tmp[0]
+    if '-' in two:
+        tmp = two.split('-')
+        two = tmp[0]
 
-    # zakładam że otczewstwo to nie imię     
-    if p_imie2.endswith('icz') or p_imie2.endswith('cki'):
-        p_imie2 = ''
-    if p_imie3.endswith('icz') or p_imie3.endswith('cki'):
-        p_imie3 = ''
-
-    # jeżeli imię zaczyna się z małej litery, to błędnie rozpoznano i to nie jest imię
-    if p_imie and p_imie[0].islower():
-        p_imie = ''
-    if p_imie2 and p_imie2[0].islower():
-        p_imie2 = ''
-    if p_imie3 and p_imie3[0].islower():
-        p_imie3 = ''
-    if p_imie4 and p_imie4[0].islower():
-        p_imie4 = ''
-
-    if not p_imie and not p_nazwisko: 
-        print(f'PROBLEM: {original_value}')
-
-    return p_nazwisko, p_imie, p_imie2, p_nazwisko2, p_imie3, p_imie4
+    if len(one) >=4 and len(two) >=4:
+        # jeżeli obie daty są conajmniej roczne a różnica jest
+        # wieksza od założonej tolerancji (domyślnie 3) to zapewne 
+        # coś jest nie tak (np. znaleziono nie ten viaf id) 
+        if abs(int(one[:4]) - int(two[:4])) > tolerancja:
+            result = False
+    return result

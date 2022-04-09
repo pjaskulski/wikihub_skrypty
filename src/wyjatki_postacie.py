@@ -937,7 +937,7 @@ ETYKIETY_WYJATKI = {
     'Obrochta Jan Bartków':'Jan Bartków Obrochta',
     'Ohm Januszowski Ferdynand':'Ferdynand Januszowski Ohm',
     'Ostroróg Lwowski Marcin':'Marcin Lwowski Ostroróg',
-    'Ostroróg Lwowski Stanisław':'Stanisław Lwowski Ostroróg',  
+    'Ostroróg Lwowski Stanisław':'Stanisław Lwowski Ostroróg',
     'Pastorius ab Hirtenberg Joachim':'Joachim Pastorius ab Hirtenberg',
     'Piotr Boleścic z Pieskowic':'Piotr Boleścic z Pieskowic',
     'Piotr Ogon z Radzików i Woli':'Piotr Ogon z Radzików i Woli',
