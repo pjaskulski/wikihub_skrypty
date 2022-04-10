@@ -740,7 +740,27 @@ WYJATKI = {
             'Abraham Hirszowic':
                 {'imie':'Abraham'},
             'Wszewołodowicz Andrzej':
-                {'imie':'Andrzej'}
+                {'imie':'Andrzej'},
+            'Piotr Nieorza':
+                {'imie':'Piotr'},
+            'Albertrandy Jan Chrzciciel':
+                {'imie':'Jan', 'nazwisko':'Albertrandy'},
+            'Aleksander Korjatowicz':
+                {'imie':'Aleksander'},
+            'Szwarcenberg Czerny Andrzej':
+                {'imie':'Andrzej', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
+            'Dobrogost Świdwa Szamotulski':
+                {'imie':'Dobrogost', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Szamotulski Jan (Starszy) Świdwa':
+                {'imie':'Jan', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Szamotulski Jan Świdwa':
+                {'imie':'Jan', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Szamotulski Piotr Świdwa':
+                {'imie':'Piotr', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Szamotulski Sędziwój Świdwa':
+                {'imie':'Sędziwój', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Szamotulski Wincenty Świdwa':
+                {'imie':'Wincenty', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
 
           }
 
@@ -944,5 +964,15 @@ ETYKIETY_WYJATKI = {
     'Piotr Tłuk ze Strykowa':'Piotr Tłuk ze Strykowa',
     'Piotr Zajączek z Wrzącej':'Piotr Zajączek z Wrzącej',
     'Abraham Hirszowic':'Abraham Hirszowic',
-    'Andrzej Wszewołodowicz':'Andrzej Wszewołodowicz'
+    'Andrzej Wszewołodowicz':'Andrzej Wszewołodowicz',
+    'Piotr Nieorza':'Piotr Nieorza',
+    'Albertrandy Jan Chrzciciel':'Jan Chrzciciel Albertrandy',
+    'Aleksander Korjatowicz':'Aleksander Korjatowicz',
+    'Szwarcenberg Czerny Andrzej':'Andrzej Szwarcenberg Czerny',
+    'Szamotulski Dobrogost Świdwa':'Dobrogost Świdwa Szamotulski',
+    'Szamotulski Jan Świdwa':'Jan Świdwa Szamotulski',
+    'Szamotulski Piotr Świdwa':'Piotr Świdwa Szamotulski',
+    'Szamotulski Sędziwój Świdwa':'Sędziwój Świdwa Szamotulski',
+    'Szamotulski Wincenty Świdwa':'Wincenty Świdwa Szamotulski',
+    'Szamotulski Jan (Starszy) Świdwa':'Jan (Starszy) Świdwa Szamotulski'
 }

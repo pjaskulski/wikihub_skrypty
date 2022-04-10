@@ -26,8 +26,12 @@ def element_exists(element_id: str) -> bool:
 def element_search(search_string: str, element_type: str, lang: str, **kwargs) -> tuple:
     """
     Funkcja poszukuje kodu item lub property na podstawie podanego tekstu.
+
     Wywołanie:
         element_search('subclass of', 'property', 'en')
+        lub
+        element_search('Maria Bielińska', 'item', 'en', description='historyk')
+
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
     description = ''
@@ -38,7 +42,8 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         elif 'aliases' in kwargs:
             aliases = kwargs['aliases']
 
-    results = search_entities(search_string, language=lang, search_type=element_type, max_results=50)
+    results = search_entities(search_string, language=lang, 
+                              search_type=element_type, max_results=50)
 
     if len(results) == 0:
         return False, "NOT FOUND"
@@ -50,9 +55,10 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
             value = data["labels"][lang]["value"]
             if value == search_string:
                 if description:
-                    value_desc = data["descriptions"][lang]["value"]
-                    if value_desc == description:
-                        return True, results[0]    
+                    if lang in data['descriptions']:
+                        value_desc = data["descriptions"][lang]["value"]
+                        if value_desc == description:
+                            return True, results[0]
                 else:
                     return True, results[0]
             elif aliases:
@@ -60,13 +66,14 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                 for alias in value_alias:
                     if search_string == alias['value']:
                         if description:
-                            value_desc = data["descriptions"][lang]["value"]
-                            if value_desc == description:
-                                return True, results[0]
+                            if lang in data['descriptions']:
+                                value_desc = data["descriptions"][lang]["value"]
+                                if value_desc == description:
+                                    return True, results[0]
                         else:
                             return True, results[0]
 
-        else:   
+        else:
             print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
 
         return False, f"AMBIGIOUS ID FOUND {results}"
@@ -79,10 +86,11 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
             value = data["labels"][lang]["value"]
             if value == search_string:
                 if description:
-                    value_desc = data["descriptions"][lang]["value"]
-                    if value_desc == description:
-                        exact_id = qid
-                        break
+                    if lang in data['descriptions']:
+                        value_desc = data["descriptions"][lang]["value"]
+                        if value_desc == description:
+                            exact_id = qid
+                            break
                 else:
                     exact_id = qid
                     break
@@ -91,10 +99,11 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                 for alias in value_alias:
                     if search_string == alias['value']:
                         if description:
-                            value_desc = data["descriptions"][lang]["value"]
-                            if value_desc == description:
-                                exact_id = qid
-                                break
+                            if lang in data['descriptions']:
+                                value_desc = data["descriptions"][lang]["value"]
+                                if value_desc == description:
+                                    exact_id = qid
+                                    break
                         else:
                             exact_id = qid
                             break

@@ -36,6 +36,8 @@ VIAF_ID = {}
 VIAF_BIRTH = {}
 VIAF_DEATH = {}
 VIAF_WYJATKI = {}
+IMIONA = {}
+NAZWISKA = {}
 BIOGRAMY = {}
 WERYFIKACJA_VIAF = {}
 MALE_FEMALE_NAME = ['Maria', 'Anna']
@@ -43,6 +45,58 @@ MALE_FEMALE_NAME = ['Maria', 'Anna']
 # czy wczytywanie i zapisywanie słowników z/do pickle
 LOAD_DICT = True
 SAVE_DICT = True
+
+
+def given_name_qid(value: str, gender_first:str = '') -> str:
+    """ wyszukuje Q w wkibase dla podanego imienia, najpierw sprawdzając słownik,
+        jeżeli brak w słowniku szuka online w wikibase i w razie powidzenia
+        uzupełnia słownik
+
+        Parametry:
+            value - poszukiwane imie
+            gender_first - opcjonalnie rodzaj pierwszego imienia postaci do obsługi
+                           przypadków typu Maria, Anna jako imion męskich
+
+        Zwraca:
+            identyfikator Q w wikibase (str)
+    """
+    gender_name = gender_detector(value)
+    if gender_first == 'imię męskie' and gender_name != gender_first:
+        value = value + ':male'
+        gender_name = gender_first
+    if value in IMIONA:
+        return IMIONA[value]
+
+    znaleziono, qid = element_search(value, 'item', 'pl', description=gender_name)
+    if not znaleziono:
+        qid = '{Q:' + f'{value}' + '}'
+    else:
+        IMIONA[value] = qid
+
+    return qid
+
+
+def family_name_qid(value: str) -> str:
+    """ wyszukuje Q w wkibase dla podanego nazwiska, najpierw sprawdzając słownik,
+        jeżeli brak w słowniku szuka online w wikibase i w razie powidzenia
+        uzupełnia słownik
+
+        Parametry:
+            value - poszukiwane nazwisko
+
+        Zwraca:
+            identyfikator Q w wikibase (str)
+    """
+    if value in NAZWISKA:
+        return NAZWISKA[value]
+
+    znaleziono, qid = element_search(value, 'item', 'pl', description='family name')
+    if not znaleziono:
+        qid = '{Q:' + f'{value}' + '}'
+    else:
+        NAZWISKA[value] = qid
+
+    return qid
 
 
 def get_viaf_data(v_url: str) -> tuple:
@@ -222,6 +276,8 @@ if __name__ == "__main__":
     postacie_death_pickle = Path('.').parent / 'out/postacie_death.pickle'
     biogramy_pickle = Path('.').parent / 'out/biogramy.pickle'
     postacie_viaf_html = Path('.').parent / 'out/postacie_viaf.html'
+    imiona_pickle = Path('.').parent / 'out/postacie_imiona.pickle'
+    nazwiska_pickle = Path('.').parent / 'out/postacie_nazwiska.pickle'
 
     # odmrażanie słowników
     if LOAD_DICT:
@@ -240,6 +296,14 @@ if __name__ == "__main__":
         if os.path.isfile(postacie_death_pickle):
             with open(postacie_death_pickle, 'rb') as handle:
                 VIAF_DEATH = pickle.load(handle)
+
+        if os.path.isfile(imiona_pickle):
+            with open(imiona_pickle, 'rb') as handle:
+                IMIONA = pickle.load(handle)
+
+        if os.path.isfile(nazwiska_pickle):
+            with open(nazwiska_pickle, 'rb') as handle:
+                NAZWISKA = pickle.load(handle)
 
     with open(file_path, "r", encoding='utf-8') as f:
         indeks = f.readlines()
@@ -282,12 +346,17 @@ if __name__ == "__main__":
                 years = title[start + 1: stop].strip()
                 years = years.replace('–', '-')
 
-            # wyszukiwanie biogramu w Wikibase
-            ok, q_biogram = element_search(etykieta, 'item', 'pl')
-            if not ok:
-                q_biogram = '{Q:biogram}'
+            # wyszukiwanie biogramu w słowniku
+            if etykieta in BIOGRAMY:
+                q_biogram = BIOGRAMY[etykieta]
             else:
-                BIOGRAMY[name] = q_biogram
+                # jeżeli brak w słowniku wyszukiwanie biogramu w Wikibase
+                ok, q_biogram = element_search(etykieta, 'item', 'pl')
+                if not ok:
+                    q_biogram = '{Q:biogram}'
+                    print('ERROR: nie znaleziono biogramu: ', etykieta)
+                else:
+                    BIOGRAMY[etykieta] = q_biogram
 
             # daty urodzenia i śmierci
             separator = ',' if ',' in years else '-'
@@ -357,49 +426,22 @@ if __name__ == "__main__":
                 f.write(f'LAST\tDen\t"{years}"\n')
             if postac.imie:
                 gender1 = gender_detector(postac.imie)
-                ok, q_imie = element_search(postac.imie, 'item', 'pl', description=gender1)
-                if not ok:
-                    q_imie = '{Q:' + f'{postac.imie}' + '}'
+                q_imie = given_name_qid(postac.imie)
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie2:
-                gender = gender_detector(postac.imie2)
-                # czy to przypadek 'Maria', 'Anna'?
-                if (postac.imie2 in MALE_FEMALE_NAME and gender1 == 'imię męskie'
-                    and gender != gender1):
-                    gender = gender1
-                ok, q_imie = element_search(postac.imie2, 'item', 'pl', description=gender)
-                if not ok:
-                    q_imie = '{Q:' + f'{postac.imie2}' + '}'
+                q_imie = given_name_qid(postac.imie2, gender_first=gender1)
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie3:
-                gender = gender_detector(postac.imie3)
-                # czy to przypadek 'Maria', 'Anna' - imion zarówno meskich jak i żeńskich?
-                if (postac.imie3 in MALE_FEMALE_NAME and gender1 == 'imię męskie' 
-                    and gender != gender1):
-                    gender = gender1
-                ok, q_imie = element_search(postac.imie3, 'item', 'pl', description=gender)
-                if not ok:
-                    q_imie = '{Q:' + f'{postac.imie3}' + '}'
+                q_imie = given_name_qid(postac.imie3, gender_first=gender1)
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie4:
-                gender = gender_detector(postac.imie4)
-                # czy to przypadek 'Maria', 'Anna'?
-                if (postac.imie4 in MALE_FEMALE_NAME and gender1 == 'imię męskie'
-                    and gender != gender1):
-                    gender = gender1
-                ok, q_imie = element_search(postac.imie4, 'item', 'pl', description=gender)
-                if not ok:
-                    q_imie = '{Q:' + f'{postac.imie4}' + '}'
+                q_imie = given_name_qid(postac.imie4, gender_first=gender1)
                 f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.nazwisko:
-                ok, q_nazwisko = element_search(postac.nazwisko, 'item', 'en', description='family name')
-                if not ok:
-                    q_nazwisko = '{Q:' + f'{postac.nazwisko}' + '}'
+                q_nazwisko = family_name_qid(postac.nazwisko)
                 f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
             if postac.nazwisko2:
-                ok, q_nazwisko = element_search(postac.nazwisko2, 'item', 'en', description='family name')
-                if not ok:
-                    q_nazwisko = '{Q:' + f'{postac.nazwisko2}' + '}'
+                q_nazwisko = family_name_qid(postac.nazwisko2)
                 f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             # imię i nazwisko przy urodzeniu (głównie dla zakoników/zakonnic)
@@ -440,6 +482,10 @@ if __name__ == "__main__":
             pickle.dump(VIAF_BIRTH, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(postacie_death_pickle, 'wb') as handle:
             pickle.dump(VIAF_DEATH, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(imiona_pickle, 'wb') as handle:
+            pickle.dump(IMIONA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(nazwiska_pickle, 'wb') as handle:
+            pickle.dump(NAZWISKA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # zapis wyszukiwań VIAF w HTML dla łatwiejszej weryfikacji
     with open(postacie_viaf_html, "w", encoding='utf-8') as h:

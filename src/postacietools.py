@@ -7,7 +7,6 @@ from wyjatki_postacie import WYJATKI
 from wyjatki_postacie import ETYKIETY_WYJATKI
 from wikidariahtools import text_clear, short_names_in_autor
 
-
 class FigureName:
     """ obsługa imion i nazwisk postaci historycznych """
 
@@ -616,8 +615,12 @@ class DateBDF:
                 line += f'\t{self.P_SOURCING_CIRCUMSTANCES}\t{self.Q_CIRCA}'
         if self.after:
             line += f'\t{self.P_EARLIEST_DATE}\t{print_kw_date}'
-        if self.before:
+
+        if self.before and self.after: # dla opisu: zm. w lub po 1458 a przed 1467
+            line += f'\t{self.P_LATEST_DATE}\t{print_kw_date_2}'
+        elif self.before:
             line += f'\t{self.P_LATEST_DATE}\t{print_kw_date}'
+
         if self.between:
             line += f'\t{self.P_EARLIEST_DATE}\t{print_kw_date}'
             line += f'\t{self.P_LATEST_DATE}\t{print_kw_date_2}'
