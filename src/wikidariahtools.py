@@ -227,11 +227,13 @@ def gender_detector(value: str) -> str:
                 'Benzelstierna', 'Kostka', 'Jura', 'Nata', 'Jona', 'Ilia',
                 'Prandota', 'Mrokota', 'Saba', 'Żegota', 'Battista', 'Wierzbięta',
 			    'Zaklika', 'Akiba', 'Szaja', 'Sima','Sławęta', 'Szachna', 'Seraja',
-                'Prędota', 'Pełka', 'Panięta', 'Ninota', 'Niemira', 'Niemierza', 
+                'Prędota', 'Pełka', 'Panięta', 'Ninota', 'Niemira', 'Niemierza',
                 'Mykoła', 'Mykola', 'Mikora', 'Luca', 'Kuźma', 'Jursza', 'Janota',
-                'Jaksa', 'Hinczka', 'Hincza', 'Bogusza', 'Andrea']
+                'Jaksa', 'Hinczka', 'Hincza', 'Bogusza', 'Andrea', 'Dyzma',
+                'Ewangelista', 'Juda']
     k_wyjatki = ['Mercedes', 'Denise', 'Huguette', 'Isabel', 'Nijolė', 'Antoinette',
-                 'Ruth', 'Rachel', 'Mary', 'Marie', 'Margit', 'Margaret', 'Annie']
+                 'Ruth', 'Rachel', 'Mary', 'Marie', 'Margit', 'Margaret', 'Annie',
+                 'Perel', 'Violet']
 
     if value in m_wyjatki:
         result = 'imię męskie'

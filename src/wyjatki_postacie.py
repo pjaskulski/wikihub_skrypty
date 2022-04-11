@@ -108,7 +108,7 @@ WYJATKI = {
             'Bokum ab Alten Jan Henryk':
                 {'imie':'Jan', 'imie2': 'Henryk', 'nazwisko':'Bokum ab Alten'},
             'Bokum Jan Kazimierz de Alten':
-                {'imie':'Jan', 'imie2':'Kazimierz', 'nazwisko':'Bokum','nazwisko2':'de Alten'},
+                {'imie':'Jan', 'imie2':'Kazimierz', 'nazwisko':'Bokum de Alten'},
             'Andrzej zw. Andrzejem z Krakowa':
                 {'imie':'Andrzej'},
             'Aleksy de Lekenstein':
@@ -209,7 +209,7 @@ WYJATKI = {
                 {'imie': 'Joanna'},
             'Józef ben Jeszua':
                 {'imie': 'Józef'},
-            'Kierdej Jan – Said bej':
+            'Kierdej Jan - Said bej':
                 {'imie': 'Jan', 'nazwisko':'Kierdej'},
             'Kocmyrzowski von Lorenzberg Stanisław Mateusz':
                 {'imie': 'Stanisław', 'imie2':'Mateusz', 'nazwisko':'Kocmyrzowski', 'nazwisko2': 'von Lorenzberg'},
@@ -285,7 +285,7 @@ WYJATKI = {
                 {'imie':'Jan', 'nazwisko':'von der Linde'}, 
             'Linde Jan Ernest von der':
                 {'imie':'Jan', 'nazwisko':'von der Linde'},
-            '   ':
+            'Linde Łukasz von der':
                 {'imie':'Łukasz', 'nazwisko':'von der Linde'},
             'Osten von der Ulryk':
                 {'imie':'Ulryk', 'nazwisko':'von der Osten'},
@@ -309,7 +309,7 @@ WYJATKI = {
                 {'imie':'Aleksander','nazwisko':'Jagiellończyk'},
             'Anna Jagiellonka':
                 {'imie':'Anna', 'nazwisko':'Jagiellonka'},
-            'Arquien de la Grange Anna Ludwik ':
+            'Arquien de la Grange Anna Ludwik':
                 {'imie':'Anna', 'imie2:':'Ludwik', 'nazwisko':'d’Arquien', 'nazwisko2':'de la Grange'},
             'Badowski Kłoda Józef':
                 {'imie':'Józef', 'nazwisko':'Badowski', 'nazwisko2':'Kłoda'},
@@ -321,6 +321,10 @@ WYJATKI = {
                 {'imie':'Barbara', 'nazwisko':'Radziwiłłówna'},
             'Bojarski Czarnota Kajetan Henryk':
                 {'imie':'Kajetan', 'imie2':'Henryk', 'nazwisko':'Bojarski', 'nazwisko2':'Czarnota'},
+            'Bojarski Czarnota Alfred':
+                {'imie':'Alfred', 'nazwisko':'Bojarski', 'nazwisko2':'Czarnota'},
+            'Bojarski Czarnota Bronisław':
+                 {'imie':'Bronisław', 'nazwisko':'Bojarski', 'nazwisko2':'Czarnota'},
             'Bykowski Jaksa Antoni Jerzy':
                 {'imie':'Antoni', 'imie2':'Jerzy', 'nazwisko':'Bykowski', 'nazwisko2':'Jaksa'},
             'Bykowski Jaksa Ignacy':
@@ -441,6 +445,10 @@ WYJATKI = {
                 {'imie':'Michał', 'nazwisko':'Asanka', 'nazwisko2':'Japołł'},
             'Anna Austriaczka':
                 {'imie':'Anna', 'przydomek':'Austriaczka'},
+            'Elżbieta Austriaczka':
+                {'imie':'Elżbieta', 'przydomek':'Austriaczka'},
+            'Katarzyna Austriaczka':
+                {'imie':'Katarzyna', 'przydomek':'Austriaczka'},
             'Michalewicz Bajnosz Josif':
                 {'imie':'Josif', 'imie2':'Bajnosz', 'nazwisko':'Michalewicz'},
             'Obrochta Jan Bartków':
@@ -505,9 +513,7 @@ WYJATKI = {
                 {'nazwisko':'Śmiarowski'},
             'Poniecki Marcin Ściborzyc':
                 {'imie':'Marcin', 'nazwisko':'Poniecki'},
-            'Klobassa Zręcki Karol senior':
-                {'imie':'Karol', 'nazwisko':'Klobassa', 'nazwisko2':'Zręcki'},
-            'Klobassa Zręcki Karol junior':
+            'Klobassa Zręcki Karol':
                 {'imie':'Karol', 'nazwisko':'Klobassa', 'nazwisko2':'Zręcki'},
             'Klobassa Zręcki Stanisław Karol':
                 {'imie':'Stanisław', 'imie2':'Karol','nazwisko':'Klobassa', 'nazwisko2':'Zręcki'},
@@ -737,8 +743,6 @@ WYJATKI = {
                 {'imie':'Salomon', 'nazwisko':'Syri', 'nazwisko2':'Zgórski'},
             'Sawa Caliński Józef':
                 {'imie':'Jozef', 'nazwisko':'Sawa', 'nazwisko2':'Caliński'},
-            'Abraham Hirszowic':
-                {'imie':'Abraham'},
             'Wszewołodowicz Andrzej':
                 {'imie':'Andrzej'},
             'Piotr Nieorza':
@@ -749,7 +753,15 @@ WYJATKI = {
                 {'imie':'Aleksander'},
             'Szwarcenberg Czerny Andrzej':
                 {'imie':'Andrzej', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
-            'Dobrogost Świdwa Szamotulski':
+            'Szwarcenberg Czerny Franciszek Ksawery':
+                {'imie':'Franciszek', 'imie2':'Ksawery', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
+            'Szwarcenberg Czerny Kazimierz':
+                {'imie':'Kazimierz', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
+            'Szwarcenberg Czerny Michał':
+                {'imie':'Michał', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
+            'Szwarcenberg Czerny Stanisław':
+                {'imie':'Stanisław', 'nazwisko':'Szwarcenberg', 'nazwisko2':'Czerny'},
+            'Szamotulski Dobrogost Świdwa':
                 {'imie':'Dobrogost', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
             'Szamotulski Jan (Starszy) Świdwa':
                 {'imie':'Jan', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
@@ -761,6 +773,82 @@ WYJATKI = {
                 {'imie':'Sędziwój', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
             'Szamotulski Wincenty Świdwa':
                 {'imie':'Wincenty', 'nazwisko':'Szamotulski', 'nazwisko2':'Świdwa'},
+            'Andrzej Łaskarz':
+                {'imie':'Andrzej'},
+            'Izaak Polak':
+                {'imie':'Izaak'},
+            'Benedykt Polak':
+                {'imie':'Benedykt'},
+            'Kazimierz Karol Odnowiciel':
+                {'imie':'Kazimierz'},
+            'Kazimierz Sprawiedliwy':
+                {'imie':'Kazimierz'},
+            'Kazimierz Wielki':
+                {'imie':'Kazimierz'},
+            'Kazimierz Andrzej Jagiellończyk':
+                {'imie':'Kazimierz'},
+            'Kazimierz Jagiellończyk':
+                {'imie':'Kazimierz'},
+            'Michał Trestka':
+                {'imie':'Michał'},
+            'Abraham Hirszowicz':
+                {'imie':'Abraham'},
+            'Jakowicka Friderici Teodozja':
+                {'imie':'Teodozja', 'nazwisko':'Jakowicka', 'nazwisko2':'Friderici'},
+            'Fabrycy (Fabricius) Walenty Groza':
+                {'imie':'Walenty', 'nazwisko':'Fabrycy'},
+            'Joszua Heszel':
+                {'imie':'Joszua'},
+            'Singer Izrael Joszua':
+                {'imie':'Joszua', 'imie2':'Izrael', 'nazwisko':'Singer'},
+            'Eufemia (Ofka)':
+                {'imie':'Eufemia'},
+            'Henryk (VII)':
+                {'imie':'Henryk'},
+            'Jasieński Bruno (Wiktor)':
+                {'imie':'Bruno', 'nazwisko':'Jasieński'},
+            'Mikołaj Lyboldy':
+                {'imie':'Mikołaj', 'nazwisko':'Lyboldy'},
+            'Aldona Anna':
+                {'imię':'Anna','imie2':'Aldona'},
+            'Ambroży Marek':
+                {'imie':'Marek', 'imie2':'Ambroży'},
+            'Amelia Augusta':
+                {'imie':'Amelia', 'imie2':'Augusta'},
+            'Andrzej Wszewołodowicz':
+                {'imie':'Andrzej'},
+            'Anianus Burgonius':
+                {'imie':'Anianus'},
+            'Barthel de Weydenthal Przemysław Antoni':
+                {'imie':'Przemysław', 'imie2':'Antoni', 'nazwisko':'Barthel de Weydenthal'},
+            'Bronikowski Oppeln Mikołaj':
+                {'imie':'Mikołaj', 'nazwisko':'Bronikowski', 'nazwisko2':'Oppeln'},
+            'Bronikowski Oppeln Rajmund':
+                 {'imie':'Rajmund', 'nazwisko':'Bronikowski', 'nazwisko2':'Oppeln'},
+            'Buy Andrault de Franciszek':
+                {'imie':'Franciszek', 'nazwisko':'Andrault de Buy'},
+            'Chotomski Dienheim Bolesław':
+                {'imie':'Bolesław', 'nazwisko':'Chotomski', 'nazwisko2':'Dienheim'},
+            'Darowska Weryha Marcelina':
+                {'imie':'Marcelina', 'nazwisko':'Darowska'},
+            'Darowski Weryha Aleksander':
+                {'imie':'Aleksander', 'nazwisko':'Darowski'},
+            'Darowski Weryha Bolesław':
+                {'imie':'Bolesław', 'nazwisko':'Darowski'},  
+            'Darowski Weryha Mieczysław':
+                {'imie':'Mieczysław', 'nazwisko':'Darowski'},
+            'Dupont de Nemours Piotr Samuel':
+                {'imie':'Piotr', 'imie2':'Samuel', 'nazwisko':'Dupont de Nemours'},
+            'Ejtminowicz Montwiłł Bogusław':
+                {'imie':'Bogusław', 'nazwisko':'Ejtminowicz'},
+            'Ejtminowicz Montwiłł Julian':
+                 {'imie':'Julian', 'nazwisko':'Ejtminowicz'},
+            'Elżbieta Ryksa':
+                {'imie':'Elżbieta', 'imie2':'Ryksa'},
+            'Łuszczkiewicz Gallowa Róża Antonina':
+                {'imie':'Róża', 'imie2':'Antonina', 'nazwisko':'Łuszczkiewicz', 'nazwisko2':'Gallowa'},
+            'Marcin Polak':
+                {'imie':'Marcin', 'przydomek':'Polak'}
 
           }
 
@@ -926,7 +1014,7 @@ ETYKIETY_WYJATKI = {
     'Kalkstein Stoliński Krystian':'Krystian Stoliński Kalkstein',
     'Karaimowicz Wadowski Iliasz':'Iliasz Wadowski Karaimowicz',
     'Karwat Wojcikiewicz Seweryn':'Seweryn Wojcikiewicz Karwat',
-    'Kierdej Jan – Said bej':'Jan Kierdej - Said bej',
+    'Kierdej Jan - Said bej':'Jan Kierdej - Said bej',
     'Kieżgajło Stanisław Janowicz':'Stanisław Janowicz Kieżgajło',
     'Kłoczko Wojciech Janowicz':'Wojciech Janowicz Kłoczko',
     'Kmita Filon Czarnobylski':'Filon Czarnobylski Kmita',
@@ -963,7 +1051,6 @@ ETYKIETY_WYJATKI = {
     'Piotr Ogon z Radzików i Woli':'Piotr Ogon z Radzików i Woli',
     'Piotr Tłuk ze Strykowa':'Piotr Tłuk ze Strykowa',
     'Piotr Zajączek z Wrzącej':'Piotr Zajączek z Wrzącej',
-    'Abraham Hirszowic':'Abraham Hirszowic',
     'Andrzej Wszewołodowicz':'Andrzej Wszewołodowicz',
     'Piotr Nieorza':'Piotr Nieorza',
     'Albertrandy Jan Chrzciciel':'Jan Chrzciciel Albertrandy',
@@ -974,5 +1061,31 @@ ETYKIETY_WYJATKI = {
     'Szamotulski Piotr Świdwa':'Piotr Świdwa Szamotulski',
     'Szamotulski Sędziwój Świdwa':'Sędziwój Świdwa Szamotulski',
     'Szamotulski Wincenty Świdwa':'Wincenty Świdwa Szamotulski',
-    'Szamotulski Jan (Starszy) Świdwa':'Jan (Starszy) Świdwa Szamotulski'
-}
+    'Szamotulski Jan (Starszy) Świdwa':'Jan (Starszy) Świdwa Szamotulski',
+    'Andrzej Łaskarz':'Andrzej Łaskarz',
+    'Izaak Polak':'Izaak Polak',
+    'Kazimierz Karol Odnowiciel':'Kazimierz Karol Odnowiciel',
+    'Kazimierz Sprawiedliwy':'Kazimierz Sprawiedliwy',
+    'Kazimierz Wielki':'Kazimierz Wielki',
+    'Kazimierz Andrzej Jagiellończyk':'Kazimierz Andrzej Jagiellończyk',
+    'Kazimierz Jagiellończyk':'Kazimierz Jagiellończyk',
+    'Michał Trestka':'Michał Trestka',
+    'Henryk IX (starszy)':'Henryk IX (starszy)',
+    'Henryk IX (młodszy)':'Henryk IX (młodszy)',
+    'Abraham Hirszowicz':'Abraham Hirszowicz',
+    'Ścibor (młodszy) ze Ściborza i Beckova':'Ścibor (młodszy) ze Ściborza i Beckova',
+    'Joszua Heszel':'Joszua Heszel',
+    'Singer Izrael Joszua':'Singer Izrael Joszua',
+    'Eufemia (Ofka)':'Eufemia (Ofka)',
+    'Jasieński Bruno (Wiktor)':'Jasieński Bruno (Wiktor)',
+    'Kazimierz (Kazek)':'Kazimierz (Kazek)',
+    'Konrad (Kędzierzawy)':'Konrad (Kędzierzawy)',
+    'Lubomirska Izabela (Elżbieta)':'Izabela Lubomirska (Elżbieta)',
+    'Mieszko (Plątonogi)':'Mieszko (Plątonogi)',
+    'Mieszko (otyły)':'Mieszko (otyły)',
+    'Simon (Iwanowski)':'Simon (Iwanowski)',
+    'Singer Perel (Józefa)':'Perel Singer (Józefa)',
+    'Smreczyński Stanisław (junior)':'Stanisław Smreczyński (junior)',
+    'Benedykt Polak':'Benedykt Polak',
+    'Marcin Polak':'Marcin Polak'
+    }

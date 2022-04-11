@@ -5,13 +5,13 @@ import roman as romenum
 from openpyxl import load_workbook
 from wyjatki_postacie import WYJATKI
 from wyjatki_postacie import ETYKIETY_WYJATKI
-from wikidariahtools import text_clear, short_names_in_autor
+from wikidariahtools import text_clear, short_names_in_autor, get_last_nawias
 
 class FigureName:
     """ obsługa imion i nazwisk postaci historycznych """
 
     def __init__(self, f_name: str) -> None:
-        self.name = f_name.strip()
+        self.name = self._double_space(f_name.strip())
         self.org_name = self.name
         self.imie = ''
         self.imie2 = ''
@@ -62,6 +62,7 @@ class FigureName:
         for item in lista:
             if item in self.name:
                 self.name = self.name.replace(item, '').strip()
+                self.name = self._double_space(self.name)
 
         # jeżeli postać jest w wyjątkach to funkcja zwraca wartości z tablicy wyjątków
         if self.name in WYJATKI:
@@ -70,9 +71,9 @@ class FigureName:
             if 'imie2' in WYJATKI[self.name]:
                 self.imie2 = WYJATKI[self.name]['imie2'].strip()
             if 'imie3' in WYJATKI[self.name]:
-                self.imie3 = WYJATKI[self.name]['imie3'].strip() 
+                self.imie3 = WYJATKI[self.name]['imie3'].strip()
             if 'imie4' in WYJATKI[self.name]:
-                self.imie4 = WYJATKI[self.name]['imie4'].strip()       
+                self.imie4 = WYJATKI[self.name]['imie4'].strip()      
             if 'nazwisko' in WYJATKI[self.name]:
                 self.nazwisko = WYJATKI[self.name]['nazwisko'].strip()
             if 'nazwisko2' in WYJATKI[self.name]:
@@ -95,8 +96,8 @@ class FigureName:
             if is_roman:
                 tmp[i] = ''
 
-        tmp = [item for item in tmp if item.strip() != '']
-
+        # pomija aliasy i przydomki w nawiasach
+        tmp = [item.strip() for item in tmp if item.strip() != '' and not item.startswith('(') and not item.endswith(')')]
         if len(tmp) == 1:
             # czy to imię czy nazwisko? Dodać słownik typowych imion? na razie wszystkie
             # pojedyncze traktowane są jak imiona, chyba że kończy się na 'ski'
@@ -157,6 +158,8 @@ class FigureName:
                 elif tmp[1] == 'de':  # Camelin de Jan
                     self.nazwisko = tmp[1] + ' ' + tmp[0].strip()
                     self.imie = tmp[2]
+                    if len(tmp) > 3: # Beaupré de Józef Antoni
+                        self.imie2 = tmp[3]
                 elif tmp[-1] == 'de':  # Girard Filip de
                     self.nazwisko = tmp[-1] + ' ' + tmp[0].strip()
                     self.imie = tmp[1]
@@ -558,8 +561,10 @@ class DateBDF:
             np. +1839-00-00T00:00:00Z/9
         """
         result = ''
-        if len(value) == 4:                          # tylko rok
+        if len(value) == 4:                          # tylko rok np. 1525
             result = f"+{value}-00-00T00:00:00Z/9"
+        elif len(value) == 3:                        # tylko rok np. 980
+            result = f"+{value.zfill(4)}-00-00T00:00:00Z/9"
         elif len(value) == 10:                       # dokłada data
             if value.endswith('00'):                 # jeżeli brak daty dziennej 
                 result = f"+{value}T00:00:00Z/10"
@@ -705,8 +710,23 @@ def diff_date(one: str, two: str, tolerancja = 3) -> bool:
 
     if len(one) >=4 and len(two) >=4:
         # jeżeli obie daty są conajmniej roczne a różnica jest
-        # wieksza od założonej tolerancji (domyślnie 3) to zapewne 
-        # coś jest nie tak (np. znaleziono nie ten viaf id) 
+        # wieksza od założonej tolerancji (domyślnie 3) to zapewne
+        # coś jest nie tak (np. znaleziono nie ten viaf id)
         if abs(int(one[:4]) - int(two[:4])) > tolerancja:
             result = False
+    return result
+
+
+def get_years(value: str) -> str:
+    """ zwraca zawartość nawiasu z latami życia postaci na podstawie tekstu
+        bez ostatniego nawiasu z danymi bibliograficznymi
+    """
+    result = ''
+    is_years = value.count('(') >= 1 and value.count(')') >= 1
+
+    if is_years:
+        result, tmp = get_last_nawias(value)
+        if result:
+            result = result.replace('–', '-').replace('(','').replace(')','')
+
     return result

@@ -12,7 +12,7 @@ from urllib.parse import quote
 from wikibaseintegrator.wbi_config import config as wbi_config
 import requests
 from postacietools import DateBDF, FigureName, ustal_etykiete_biogramu, load_wyjatki
-from postacietools import diff_date
+from postacietools import diff_date, get_years
 from wikidariahtools import element_search, gender_detector
 from wikidariahtools import get_last_nawias
 
@@ -40,15 +40,48 @@ IMIONA = {}
 NAZWISKA = {}
 BIOGRAMY = {}
 WERYFIKACJA_VIAF = {}
-MALE_FEMALE_NAME = ['Maria', 'Anna']
+MALE_FEMALE_NAME = ['Maria', 'Anna', 'Róża', 'Magdalena', 'Zofia']
 
 # czy wczytywanie i zapisywanie słowników z/do pickle
 LOAD_DICT = True
 SAVE_DICT = True
+OFFLINE = True
+OFFLINE_VIAF = True
 
 
-def given_name_qid(value: str, gender_first:str = '') -> str:
-    """ wyszukuje Q w wkibase dla podanego imienia, najpierw sprawdzając słownik,
+def biogram_qid(value: str, offline: bool=False) -> str:
+    """ wyszukuje biogram w wikibase dla podanej etykiety biogramu
+
+        Parametry:
+            value - etykieta biogramu
+            offline - jeżeli True to nie wyszukuje w Wikibase, jedynie w lokalnym
+                      słowniku
+
+        Zwraca:
+            Q biogramu lub wartość '{Q:biogram} jeżeli nie znaleziono'
+    """
+
+    # sprawdzenie w słowniku
+    if value in BIOGRAMY:
+        return BIOGRAMY[value]
+
+    # jeżeli brak w słowniku wyszukiwanie biogramu w Wikibase o ile paramtetr
+    # offline nie jest == True
+    if offline:
+        return '{Q:biogram}'
+
+    znaleziono, qid = element_search(value, 'item', 'pl')
+    if not znaleziono:
+        qid = '{Q:biogram}'
+        print('ERROR: nie znaleziono biogramu: ', value)
+    else:
+        BIOGRAMY[value] = qid
+
+    return qid
+
+
+def given_name_qid(value: str, gender_first:str = '', offline: bool=False) -> str:
+    """ wyszukuje Q w wikibase dla podanego imienia, najpierw sprawdzając słownik,
         jeżeli brak w słowniku szuka online w wikibase i w razie powidzenia
         uzupełnia słownik
 
@@ -56,33 +89,44 @@ def given_name_qid(value: str, gender_first:str = '') -> str:
             value - poszukiwane imie
             gender_first - opcjonalnie rodzaj pierwszego imienia postaci do obsługi
                            przypadków typu Maria, Anna jako imion męskich
+            offline - jeżeli True to nie wyszukuje w Wikibase, jedynie w lokalnym
+                      słowniku
 
         Zwraca:
             identyfikator Q w wikibase (str)
     """
     gender_name = gender_detector(value)
+    value_f = value
     if gender_first == 'imię męskie' and gender_name != gender_first:
-        value = value + ':male'
+        value_f = value + ':male'
         gender_name = gender_first
-    if value in IMIONA:
-        return IMIONA[value]
+    if value_f in IMIONA:
+        return IMIONA[value_f]
+
+    if offline:
+        #return '{Q:' + f'{value}' + '}'
+        return ''
 
     znaleziono, qid = element_search(value, 'item', 'pl', description=gender_name)
     if not znaleziono:
-        qid = '{Q:' + f'{value}' + '}'
+        # qid = '{Q:' + f'{value}' + '}'
+        qid = ''
     else:
-        IMIONA[value] = qid
+        IMIONA[value_f] = qid
 
     return qid
 
 
-def family_name_qid(value: str) -> str:
+def family_name_qid(value: str, offline: bool=False) -> str:
     """ wyszukuje Q w wkibase dla podanego nazwiska, najpierw sprawdzając słownik,
         jeżeli brak w słowniku szuka online w wikibase i w razie powidzenia
         uzupełnia słownik
 
         Parametry:
             value - poszukiwane nazwisko
+            offline - jeżeli True to nie wyszukuje w Wikibase, jedynie w lokalnym
+                      słowniku
+
 
         Zwraca:
             identyfikator Q w wikibase (str)
@@ -90,13 +134,41 @@ def family_name_qid(value: str) -> str:
     if value in NAZWISKA:
         return NAZWISKA[value]
 
-    znaleziono, qid = element_search(value, 'item', 'pl', description='family name')
+    if offline:
+        #return '{Q:' + f'{value}' + '}'
+        return ''
+
+    znaleziono, qid = element_search(value, 'item', 'en', description='family name')
     if not znaleziono:
-        qid = '{Q:' + f'{value}' + '}'
+        # qid = '{Q:' + f'{value}' + '}'
+        qid = ''
     else:
         NAZWISKA[value] = qid
 
     return qid
+
+
+def postac_qid(value: str, description: str='', offline=False) -> str:
+    """ wyszukuje Q dla postaci w Wikibase/słowniku
+
+        Parametry:
+            value - etykieta postaci
+            description - opis dla postaci
+            offline - jeżeli True to nie wyszukuje w Wikibase, jedynie w lokalnym
+                      słowniku
+
+        Zwraca:
+            identyfikator Q w wikibase (str)
+    """
+    if offline:
+        return ''
+
+    znaleziono, qid = element_search(value, 'item', 'en', description=description)
+    if znaleziono:
+        print('ERROR:', value, 'jest już w wikibase:', qid)
+        return qid
+
+    return ''
 
 
 def get_viaf_data(v_url: str) -> tuple:
@@ -122,7 +194,7 @@ def get_viaf_data(v_url: str) -> tuple:
 def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
                 offline: bool = False) -> tuple:
     """ szukanie identyfikatora VIAF na podstawie nazwy osoby (imię nazwisko
-        przydomek itp) oraz dodatkowo daty urodzenia i śmierci osobt jeżeli
+        przydomek itp) oraz dodatkowo daty urodzenia i śmierci osoby jeżeli
         była wcześniej znana.
         offline - jeżeli = True to nie wyszukuje na serwerze viaf.org, korzysta
         jedynie z zapisanego wcześniej słownika z wynikami wyszukiwania
@@ -326,37 +398,16 @@ if __name__ == "__main__":
             # etykieta biogramu do wyszukania w wikibase
             etykieta = ustal_etykiete_biogramu(nawias, title)
 
-            # czy są informacje o latach życia i aliasy?
-            isYears = title.count('(') == 1 and title.count(')') == 1
-            isAlias = title.count('(') == 2 and title.count(')') == 2
+            # informacja o latach życia postaci, dacie urodzin, śmierci, okresie
+            # aktywności
+            years = get_years(title)
 
             # imiona i nazwiska
-            start = title.find('(')
-            name = title[:start].strip()
+            name = title.replace(years, '').replace('()','').strip()
             postac = FigureName(name)
 
-            if isAlias:
-                start = title.find('(', start + 1)
-
-            # lata życia - jeżeli we wpisie jest alias, przydomek itp. to daty
-            # są w drugim nawiasie
-            years = ''
-            if isYears:
-                stop = title.find(')', start)
-                years = title[start + 1: stop].strip()
-                years = years.replace('–', '-')
-
             # wyszukiwanie biogramu w słowniku
-            if etykieta in BIOGRAMY:
-                q_biogram = BIOGRAMY[etykieta]
-            else:
-                # jeżeli brak w słowniku wyszukiwanie biogramu w Wikibase
-                ok, q_biogram = element_search(etykieta, 'item', 'pl')
-                if not ok:
-                    q_biogram = '{Q:biogram}'
-                    print('ERROR: nie znaleziono biogramu: ', etykieta)
-                else:
-                    BIOGRAMY[etykieta] = q_biogram
+            q_biogram = biogram_qid(etykieta, offline=False)
 
             # daty urodzenia i śmierci
             separator = ',' if ',' in years else '-'
@@ -383,9 +434,9 @@ if __name__ == "__main__":
             # jeżeli znamy tylko imię postaci odpytywanie VIAF nie ma sensu (?)
             if ' ' in name:
                 viaf_ok, viaf_id, viaf_url, viaf_date_b, viaf_date_d = viaf_search(name,
-                                                                                   s_birth=p_birth,
-                                                                                   s_death=p_death,
-                                                                                   offline=True)
+                                                                        s_birth=p_birth,
+                                                                        s_death=p_death,
+                                                                        offline=OFFLINE_VIAF)
             else:
                 viaf_ok = False
 
@@ -397,7 +448,7 @@ if __name__ == "__main__":
             # różnią się o ponad 3 lata, co może wskazywać na nieprawidłową
             # identyfikację w viaf.org
             if viaf_ok and viaf_date_b and date_of_1:
-                if (date_of_1.type == 'B' and date_of_1.date != viaf_date_b 
+                if (date_of_1.type == 'B' and date_of_1.date != viaf_date_b
                     and diff_date(date_of_1.date, viaf_date_b)):
                     date_of_1.date = viaf_date_b
             if viaf_ok and viaf_date_d and date_of_1:
@@ -411,9 +462,8 @@ if __name__ == "__main__":
 
             # test czy postać nie jest już w Wikibase, wówczas wyświetla informacje
             # i pomija daną postać (na razie nie obsługujemy uaktualnień):
-            ok, q_postac = element_search(postac.name_etykieta, 'item', 'en', description=years)
-            if ok:
-                print('ERROR:', postac.name_etykieta, 'jest już w wikibase:', q_postac)
+            q_postac = postac_qid(postac.name_etykieta, description=years, offline=OFFLINE)
+            if q_postac:
                 continue
 
             # zapis quickstatements
@@ -426,23 +476,29 @@ if __name__ == "__main__":
                 f.write(f'LAST\tDen\t"{years}"\n')
             if postac.imie:
                 gender1 = gender_detector(postac.imie)
-                q_imie = given_name_qid(postac.imie)
-                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                q_imie = given_name_qid(postac.imie, gender_first='', offline=False)
+                if q_imie:
+                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie2:
-                q_imie = given_name_qid(postac.imie2, gender_first=gender1)
-                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                q_imie = given_name_qid(postac.imie2, gender_first=gender1, offline=False)
+                if q_imie:
+                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie3:
-                q_imie = given_name_qid(postac.imie3, gender_first=gender1)
-                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                q_imie = given_name_qid(postac.imie3, gender_first=gender1, offline=False)
+                if q_imie:
+                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.imie4:
-                q_imie = given_name_qid(postac.imie4, gender_first=gender1)
-                f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                q_imie = given_name_qid(postac.imie4, gender_first=gender1, offline=False)
+                if q_imie:
+                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
             if postac.nazwisko:
-                q_nazwisko = family_name_qid(postac.nazwisko)
-                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+                q_nazwisko = family_name_qid(postac.nazwisko, offline=False)
+                if q_nazwisko:
+                    f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
             if postac.nazwisko2:
-                q_nazwisko = family_name_qid(postac.nazwisko2)
-                f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+                q_nazwisko = family_name_qid(postac.nazwisko2, offline=False)
+                if q_nazwisko:
+                    f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             # imię i nazwisko przy urodzeniu (głównie dla zakoników/zakonnic)
             if postac.birth_name:
@@ -452,14 +508,14 @@ if __name__ == "__main__":
 
             # daty życia - z obsługą kwalifikatorów
             if date_of_1 and date_of_1.somevalue:
-                #fd.write(date_of_1.prepare_qs('Q:'+ name_etykieta + '|' + years))
-                f.write(date_of_1.prepare_qs('LAST'))
+                fd.write(date_of_1.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
+                #f.write(date_of_1.prepare_qs('LAST'))
             elif date_of_1 and not date_of_1.somevalue:
                 f.write(date_of_1.prepare_qs())
 
             if date_of_2 and date_of_2.somevalue:
-                #fd.write(date_of_2.prepare_qs('Q:'+ name_etykieta + '|' + years))
-                f.write(date_of_2.prepare_qs('LAST'))
+                fd.write(date_of_2.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
+                #f.write(date_of_2.prepare_qs('LAST'))
             elif date_of_2 and not date_of_2.somevalue:
                 f.write(date_of_2.prepare_qs())
 
