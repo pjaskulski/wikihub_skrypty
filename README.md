@@ -84,3 +84,15 @@ W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już 
 - [x]  modyfikacja istniejących właściwości
 - [x]  druga zakładka (P_statements): obsługa referencji
 - [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
+
+# Autorzy
+
+autorzy.py - skrypt do generowania zapisów w formacie QuickStatements V1 z listy autorów biogramów PSB utworzonej na podstawie indeksu biogramów PSB, tworzy listę autorów do zaimportowania w Wikibase
+
+# Biogramy
+
+biogramy.py - skrypt do generowania zapisów w formacie QuickStatements V1 z indeksu biogramów PSB, tworzy listę biogramów postaci historycznych do zaimportowania do Wikibase.
+
+# Postacie
+
+postacie.py - skrypt do generowania zapisów w formacie QuickStatements V1 z indeksu biogramów PSB - tworzy listę postaci historycznych do zaimportowania do Wikibase.
