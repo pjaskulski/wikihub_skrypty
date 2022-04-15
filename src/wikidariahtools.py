@@ -125,7 +125,7 @@ def text_clear(value: str) -> str:
     return value
 
 
-def get_last_nawias(line: str) -> str:
+def get_last_nawias(line: str, only_value: bool = False) -> str:
     """ zwraca zawartość ostatniego nawiasu """
     line = line.strip()
     start = stop = 0
@@ -138,6 +138,9 @@ def get_last_nawias(line: str) -> str:
         if start and stop:
             result = line[start:stop]
             break
+
+    if only_value:
+        return result
 
     return result, start - 1
 

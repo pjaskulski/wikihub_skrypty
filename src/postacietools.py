@@ -21,6 +21,7 @@ class FigureName:
         self.nazwisko2 = ''
         self.birth_name = ''
         self.name_etykieta = ''
+        self.zakon_names = []
         self.get_name()
         self.postac_etykieta()
         self.postac_etykieta_korekty()
@@ -310,8 +311,10 @@ class FigureName:
             pos = self.org_name.find(z_mark)
             pos2 = pos + len(z_mark)
             self.birth_name = self.name_etykieta
-            # zakonimik = self.name[pos:]
             zakon_names = self.org_name[pos2:].strip()
+            t_zakon_names = zakon_names.split(' ')
+            for zakon_name in t_zakon_names:
+                self.zakon_names.append(zakon_name.strip())
             self.name_etykieta = f'{zakon_names} {self.nazwisko2} {self.nazwisko}'.strip()
 
         self.name_etykieta = self._double_space(self.name_etykieta)
@@ -511,7 +514,7 @@ class DateBDF:
     def find_date(self):
         """ wyszukuje daty """
         # XVI w.
-        if self.roman: 
+        if self.roman:
             matches = [x.group() for x in re.finditer(r'[IVX]{1,5}', self.text_org)]
             if len(matches) == 1:
                 self.date = str(romenum.fromRoman(matches[0]))
@@ -547,13 +550,31 @@ class DateBDF:
                     d = t_match[0]
                     self.date = f'{y}-{m.zfill(2)}-{d.zfill(2)}'
                 else:
+                    # a może jest podany miesiąc?
+                    m = []
+                    months = {'stycz':'01', 'luty':'02', 'maj':'05',
+                              'marzec':'03', 'marcem':'03', 'sierpn':'08',
+                              'wrześniem':'09', 'kwie':'04', 'listo':'11',
+                              'czerw':'06', 'lip':'07', 'paźdz':'10',
+                              'grud':'12'}
+                    for key, value in months.items():
+                        if key in self.text_org:
+                            m.append(value)
+
                     pattern = r'\d{3,4}'
                     matches = [x.group() for x in re.finditer(pattern, self.text)]
                     if len(matches) == 1:
                         self.date = matches[0]
+                        if len(m) == 1:
+                            self.date += '-'+ m[0]
                     elif len(matches) > 1:
                         self.date = matches[0]
+                        if len(m) > 1:
+                            self.date += '-'+ m[0]
                         self.date_2 = matches[1]
+                        if len(m) > 1:
+                            self.date += '-'+ m[1]
+
 
 
     def _format_date(self, value: str) -> str:
@@ -565,8 +586,10 @@ class DateBDF:
             result = f"+{value}-00-00T00:00:00Z/9"
         elif len(value) == 3:                        # tylko rok np. 980
             result = f"+{value.zfill(4)}-00-00T00:00:00Z/9"
+        elif len(value) == 7 and '-' in value:       # rok i miesiąc
+            result = f"+{value}-00T00:00:00Z/10"
         elif len(value) == 10:                       # dokłada data
-            if value.endswith('00'):                 # jeżeli brak daty dziennej 
+            if value.endswith('00'):                 # jeżeli brak daty dziennej
                 result = f"+{value}T00:00:00Z/10"
             else:
                 result = f"+{value}T00:00:00Z/11"
@@ -578,7 +601,7 @@ class DateBDF:
 
         return result
 
-    def prepare_qs(self, etykieta: str = '') -> str:
+    def prepare_qs(self, qid: str = '') -> str:
         """ drukuje zapisy QuickStatements"""
         # data urodzin
         print_date = print_date_2 = print_kw_date = print_kw_date_2 = ''
@@ -599,11 +622,6 @@ class DateBDF:
             print_type = self.P_FLORUIT
         else:
             print('ERROR: nieokreślony typ daty.')
-
-        if print_date == 'somevalue':
-            qid = etykieta
-        else:
-            qid = 'LAST'
 
         line = f'{qid}\t{print_type}\t{print_date}'
         if self.about:
@@ -708,12 +726,14 @@ def diff_date(one: str, two: str, tolerancja = 3) -> bool:
         tmp = two.split('-')
         two = tmp[0]
 
-    if len(one) >=4 and len(two) >=4:
+    if len(one) >=3 and len(two) >=3:
         # jeżeli obie daty są conajmniej roczne a różnica jest
         # wieksza od założonej tolerancji (domyślnie 3) to zapewne
         # coś jest nie tak (np. znaleziono nie ten viaf id)
-        if abs(int(one[:4]) - int(two[:4])) > tolerancja:
+
+        if one.isnumeric() and two.isnumeric() and abs(int(one) - int(two)) > tolerancja:
             result = False
+
     return result
 
 
@@ -725,7 +745,7 @@ def get_years(value: str) -> str:
     is_years = value.count('(') >= 1 and value.count(')') >= 1
 
     if is_years:
-        result, tmp = get_last_nawias(value)
+        result = get_last_nawias(value, only_value=True)
         if result:
             result = result.replace('–', '-').replace('(','').replace(')','')
 

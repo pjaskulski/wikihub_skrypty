@@ -1,5 +1,5 @@
 """ skrypt generujący quickstatements dla postaci z PSB na podstawie
-    indeksu Bożeny Bigaj
+    indeksu biogramów postaci z PSB (tzw. indeksu Bożeny Bigaj)
 """
 
 import sys
@@ -31,6 +31,7 @@ P_VIAF = 'P79'
 P_REFERENCE_URL = 'S182'
 P_BIRTH_NAME = 'P63'
 P_DESCRIBED_BY_SOURCE = 'P17'
+P_RELIGIOUS_NAME = 'P191'
 
 VIAF_ID = {}
 VIAF_BIRTH = {}
@@ -39,6 +40,7 @@ VIAF_WYJATKI = {}
 IMIONA = {}
 NAZWISKA = {}
 BIOGRAMY = {}
+POSTACIE = {}
 WERYFIKACJA_VIAF = {}
 MALE_FEMALE_NAME = ['Maria', 'Anna', 'Róża', 'Magdalena', 'Zofia']
 
@@ -135,12 +137,10 @@ def family_name_qid(value: str, offline: bool=False) -> str:
         return NAZWISKA[value]
 
     if offline:
-        #return '{Q:' + f'{value}' + '}'
         return ''
 
     znaleziono, qid = element_search(value, 'item', 'en', description='family name')
     if not znaleziono:
-        # qid = '{Q:' + f'{value}' + '}'
         qid = ''
     else:
         NAZWISKA[value] = qid
@@ -158,17 +158,22 @@ def postac_qid(value: str, description: str='', offline=False) -> str:
                       słowniku
 
         Zwraca:
-            identyfikator Q w wikibase (str)
+            identyfikator Q w wikibase (str) lub 'LAST' (dla nowych elementów)
     """
-    if offline:
-        return ''
+    postac_key = f'{value}|{description}'
+    if postac_key in POSTACIE:
+        return POSTACIE[postac_key]
 
-    znaleziono, qid = element_search(value, 'item', 'en', description=description)
+    if offline:
+        return 'LAST'
+
+    znaleziono, qid = element_search(value, 'item', 'pl', description=description)
     if znaleziono:
-        print('ERROR:', value, 'jest już w wikibase:', qid)
+        print('INFO:', value, 'jest już w wikibase:', qid)
+        POSTACIE[postac_key] = qid
         return qid
 
-    return ''
+    return 'LAST'
 
 
 def get_viaf_data(v_url: str) -> tuple:
@@ -202,8 +207,8 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
     info = id_url = birthDate = deathDate = ''
     result = False
 
-    # jeżeli osoba jest w wyjątkach to pobieramy dane ze znanego adresu
-    # lub od razu NOT FOUND
+    # jeżeli osoba jest w wyjątkach to pobiera dane ze znanego adresu
+    # lub gdy w wyjątkach mamy wpis BRAK to od razu zwraca NOT FOUND
     if person_name in VIAF_WYJATKI:
         if VIAF_WYJATKI[person_name].strip() == 'BRAK':
             return False, "NOT_FOUND", '', '', ''
@@ -285,27 +290,21 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
 
                             # jeżeli mamy podane daty w viaf i w indeksie to mogą się różnić
                             # o maksymalnie 3 lata
-                            if len(birthDate) == 10:
-                                int_birth_date = int(birthDate[:4])
-                            elif len(birthDate) == 9:
-                                int_birth_date = int(birthDate[:3])
-                            elif len(birthDate) == 4 and birthDate.isnumeric():
+                            int_birth_date = -1
+                            if '-' in birthDate:
+                                t_tmp = birthDate.split('-')
+                                if t_tmp[0].isnumeric():
+                                    int_birth_date = int(t_tmp[0])
+                            elif birthDate.isnumeric():
                                 int_birth_date = int(birthDate)
-                            elif len(birthDate) == 3 and birthDate.isnumeric():
-                                int_birth_date = int(birthDate)
-                            else:
-                                int_birth_date = -1
 
-                            if len(deathDate) == 10:
-                                int_death_date = int(deathDate[:4])
-                            elif len(deathDate) == 9:
-                                int_death_date = int(deathDate[:3])
-                            elif len(deathDate) == 4 and deathDate.isnumeric():
+                            int_death_date = -1
+                            if '-' in deathDate:
+                                t_tmp = deathDate.split('-')
+                                if t_tmp[0].isnumeric():
+                                    int_death_date = int(t_tmp[0])
+                            elif deathDate.isnumeric():
                                 int_death_date = int(deathDate)
-                            elif len(deathDate) == 3 and deathDate.isnumeric():
-                                int_death_date = int(deathDate)
-                            else:
-                                int_death_date = -1
 
                             if s_birth and int_birth_date > 0:
                                 y_diff = abs(int(s_birth) - int_birth_date)
@@ -343,7 +342,10 @@ if __name__ == "__main__":
     uzup_path = Path('.').parent / 'data/postacie_viaf_uzup.xlsx'
     output = Path('.').parent / 'out/postacie.qs'
     output_daty = Path('.').parent / 'out/postacie_daty.qs'
+    output_aktualizacje = Path('.').parent / 'out/postacie_aktualizacje.qs'
+
     postacie_pickle = Path('.').parent / 'out/postacie.pickle'
+    postacie_qid_pickle = Path('.').parent / 'out/postacie_qid.pickle'
     postacie_birth_pickle = Path('.').parent / 'out/postacie_birth.pickle'
     postacie_death_pickle = Path('.').parent / 'out/postacie_death.pickle'
     biogramy_pickle = Path('.').parent / 'out/biogramy.pickle'
@@ -356,6 +358,10 @@ if __name__ == "__main__":
         if os.path.isfile(postacie_pickle):
             with open(postacie_pickle, 'rb') as handle:
                 VIAF_ID = pickle.load(handle)
+
+        if os.path.isfile(postacie_qid_pickle):
+            with open(postacie_qid_pickle, 'rb') as handle:
+                POSTACIE = pickle.load(handle)
 
         if os.path.isfile(biogramy_pickle):
             with open(biogramy_pickle, 'rb') as handle:
@@ -377,6 +383,7 @@ if __name__ == "__main__":
             with open(nazwiska_pickle, 'rb') as handle:
                 NAZWISKA = pickle.load(handle)
 
+    # wczytywanie zawartości indeksu biogramów PSB
     with open(file_path, "r", encoding='utf-8') as f:
         indeks = f.readlines()
 
@@ -390,7 +397,7 @@ if __name__ == "__main__":
     # otwierane są dwa pliki, główny z quickstatements dla postaci, oraz uzupełniający
     # z dodatkowymi wpisami dla dat określonych jako 'somevalue', które muszą zostać
     # dodane w drugim przebiegu ze względu na błąd w QS
-    with open(output, "w", encoding='utf-8') as f, open(output_daty, "w", encoding='utf-8') as fd:
+    with open(output, "w", encoding='utf-8') as f, open(output_daty, "w", encoding='utf-8') as fd, open(output_aktualizacje, "w", encoding='utf-8') as fa:
         for line in indeks:
             nawias, title_stop = get_last_nawias(line)
             title = line[:title_stop].strip()
@@ -406,13 +413,12 @@ if __name__ == "__main__":
             name = title.replace(years, '').replace('()','').strip()
             postac = FigureName(name)
 
-            # wyszukiwanie biogramu w słowniku
-            q_biogram = biogram_qid(etykieta, offline=False)
+            # wyszukiwanie biogramu w słowniku lub Wikibase
+            q_biogram = biogram_qid(etykieta, offline=True)
 
             # daty urodzenia i śmierci
             separator = ',' if ',' in years else '-'
             date_of_1 = date_of_2 = None
-
             # jeżeli zakres dat
             if separator in years:
                 tmp = years.split(separator)
@@ -440,7 +446,7 @@ if __name__ == "__main__":
             else:
                 viaf_ok = False
 
-            # jeżeli VIAF ma daty to zakładam że są lepsze niż w PSB,
+            # jeżeli rekord VIAF ma podane daty to zakładam, że są lepsze niż w PSB,
             # tylko jeżeli dat nie ma w VIAF lub są identyczne jak w PSB
             # to obsługa dat z PSB, z niepewnościami włącznie typu:
             # 'before', 'after' , 'about', 'or', 'between', 'roman', 'turn'
@@ -460,70 +466,84 @@ if __name__ == "__main__":
                     and diff_date(date_of_2.date, viaf_date_d)):
                     date_of_2.date = viaf_date_d
 
-            # test czy postać nie jest już w Wikibase, wówczas wyświetla informacje
-            # i pomija daną postać (na razie nie obsługujemy uaktualnień):
-            q_postac = postac_qid(postac.name_etykieta, description=years, offline=OFFLINE)
-            if q_postac:
-                continue
+            # test czy postać nie jest już w Wikibase, wówczas aktualizacja danych
+            p_qid = postac_qid(postac.name_etykieta, description='('+years+')', offline=True)
+
+            # zapis do osobnego pliku dla aktualizacji
+            if p_qid == 'LAST':
+                w = f
+            else:
+                w = fa
 
             # zapis quickstatements
-            f.write('CREATE\n')
-            f.write(f'LAST\tLpl\t"{postac.name_etykieta}"\n')
-            f.write(f'LAST\tLen\t"{postac.name_etykieta}"\n')
+            if p_qid == 'LAST':
+                w.write('CREATE\n')
+            w.write(f'{p_qid}\tLpl\t"{postac.name_etykieta}"\n')
+            w.write(f'{p_qid}\tLen\t"{postac.name_etykieta}"\n')
             if years:
                 years = f'({years})'
-                f.write(f'LAST\tDpl\t"{years}"\n')
-                f.write(f'LAST\tDen\t"{years}"\n')
+                w.write(f'{p_qid}\tDpl\t"{years}"\n')
+                w.write(f'{p_qid}\tDen\t"{years}"\n')
             if postac.imie:
+                # ustalenie rodzaju imienia (m/ż)
                 gender1 = gender_detector(postac.imie)
-                q_imie = given_name_qid(postac.imie, gender_first='', offline=False)
+                # poszukiwanie imienia w Wikibase lub w słowniku
+                q_imie = given_name_qid(postac.imie, gender_first='', offline=True)
                 if q_imie:
-                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                    w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
             if postac.imie2:
-                q_imie = given_name_qid(postac.imie2, gender_first=gender1, offline=False)
+                q_imie = given_name_qid(postac.imie2, gender_first=gender1, offline=True)
                 if q_imie:
-                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                    w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
             if postac.imie3:
-                q_imie = given_name_qid(postac.imie3, gender_first=gender1, offline=False)
+                q_imie = given_name_qid(postac.imie3, gender_first=gender1, offline=True)
                 if q_imie:
-                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                    w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
             if postac.imie4:
-                q_imie = given_name_qid(postac.imie4, gender_first=gender1, offline=False)
+                q_imie = given_name_qid(postac.imie4, gender_first=gender1, offline=True)
                 if q_imie:
-                    f.write(f'LAST\t{P_IMIE}\t{q_imie}\n')
+                    w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
             if postac.nazwisko:
-                q_nazwisko = family_name_qid(postac.nazwisko, offline=False)
+                # poszukiwanie nazwiska w Wikibase lub w słowniku
+                q_nazwisko = family_name_qid(postac.nazwisko, offline=True)
                 if q_nazwisko:
-                    f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+                    w.write(f'{p_qid}\t{P_NAZWISKO}\t{q_nazwisko}\n')
             if postac.nazwisko2:
-                q_nazwisko = family_name_qid(postac.nazwisko2, offline=False)
+                q_nazwisko = family_name_qid(postac.nazwisko2, offline=True)
                 if q_nazwisko:
-                    f.write(f'LAST\t{P_NAZWISKO}\t{q_nazwisko}\n')
+                    w.write(f'{p_qid}\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
             # imię i nazwisko przy urodzeniu (głównie dla zakoników/zakonnic)
             if postac.birth_name:
-                f.write(f'LAST\t{P_BIRTH_NAME}\tpl:"{postac.birth_name}"')
+                w.write(f'{p_qid}\t{P_BIRTH_NAME}\tpl:"{postac.birth_name}"\n')
+            # imiona we wspólnocie religijniej
+            if postac.zakon_names:
+                for z_name in postac.zakon_names:
+                    w.write(f'{p_qid}\t{P_RELIGIOUS_NAME}\tpl:"{z_name}"\n')
 
-            f.write(f'LAST\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
+            w.write(f'{p_qid}\t{P_INSTANCE_OF}\t{Q_HUMAN}\n')
 
-            # daty życia - z obsługą kwalifikatorów
+            # daty życia - z obsługą kwalifikatorów, daty nieprecyzyjne zapisywane w osobnym
+            # pliku ze względu na błąd w QS, muszą być importowane po wprowadzeniu postaci
+            # do wikibase
             if date_of_1 and date_of_1.somevalue:
                 fd.write(date_of_1.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
                 #f.write(date_of_1.prepare_qs('LAST'))
             elif date_of_1 and not date_of_1.somevalue:
-                f.write(date_of_1.prepare_qs())
+                w.write(date_of_1.prepare_qs(p_qid))
 
             if date_of_2 and date_of_2.somevalue:
                 fd.write(date_of_2.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
                 #f.write(date_of_2.prepare_qs('LAST'))
             elif date_of_2 and not date_of_2.somevalue:
-                f.write(date_of_2.prepare_qs())
+                w.write(date_of_2.prepare_qs(p_qid))
 
             # opisany w źródle
-            f.write(f'LAST\t{P_DESCRIBED_BY_SOURCE}\t{q_biogram}\n')
+            w.write(f'{p_qid}\t{P_DESCRIBED_BY_SOURCE}\t{q_biogram}\n')
+            # zapis VIAF, adres url obecnie jest pomijany, właściwość w wikibase
+            # tworzy adres url dynamicznie
             if viaf_ok and viaf_id and viaf_url:
-                # wystarczy samo id, reference url jest już zbędny
-                f.write(f'LAST\t{P_VIAF}\t"{viaf_id}"\n')
+                w.write(f'{p_qid}\t{P_VIAF}\t"{viaf_id}"\n')
                 WERYFIKACJA_VIAF[name] = viaf_url
 
             print('Przetworzono: ', postac.name_etykieta)
@@ -534,6 +554,8 @@ if __name__ == "__main__":
             pickle.dump(BIOGRAMY, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(postacie_pickle, 'wb') as handle:
             pickle.dump(VIAF_ID, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(postacie_qid_pickle, 'wb') as handle:
+            pickle.dump(POSTACIE, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(postacie_birth_pickle, 'wb') as handle:
             pickle.dump(VIAF_BIRTH, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(postacie_death_pickle, 'wb') as handle:
@@ -543,7 +565,7 @@ if __name__ == "__main__":
         with open(nazwiska_pickle, 'wb') as handle:
             pickle.dump(NAZWISKA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    # zapis wyszukiwań VIAF w HTML dla łatwiejszej weryfikacji
+    # zapis wyszukiwań VIAF w HTML dla łatwiejszej weryfikacji poprawności id
     with open(postacie_viaf_html, "w", encoding='utf-8') as h:
         h.write('<html>\n')
         h.write('<head>\n')

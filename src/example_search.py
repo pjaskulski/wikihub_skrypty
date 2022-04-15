@@ -42,9 +42,9 @@ if __name__ == "__main__":
         if 'P162' in claims:
             print('jest')
 
-    ok, q_imie = element_search('Michał Brensztejn', 'item', 'en', aliases=True)
-    print(ok, q_imie)
-    exit()
+    ok, q_imie = element_search('Giacomo Tencalla', 'item', 'en', aliases=True)
+    print(ok, 'Giacomo Tencalla', q_imie)
+
 
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))
@@ -66,6 +66,7 @@ if __name__ == "__main__":
 
     # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47
     # (instance_of) o wartości Q32 (human), z limitem do 5 resultatów
+    print('SPARQL query test.')
     query = """
         SELECT ?item
         WHERE
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     print('inverse property: ', element_search('inverse property', 'property', 'en'))
 
     # wyszukanie typu właściwości na podstawie ID
+    print('Typ wartości dla P47:')
     params = {'action': 'wbgetentities', 'ids': 'P47',
               'props': 'datatype'}
 
