@@ -43,6 +43,8 @@ BIOGRAMY = {}
 POSTACIE = {}
 WERYFIKACJA_VIAF = {}
 MALE_FEMALE_NAME = ['Maria', 'Anna', 'Róża', 'Magdalena', 'Zofia']
+LISTA_IMION = []
+LISTA_NAZWISK = []
 
 # czy wczytywanie i zapisywanie słowników z/do pickle
 LOAD_DICT = True
@@ -340,6 +342,8 @@ def viaf_search(person_name: str, s_birth: str = '', s_death: str = '',
 if __name__ == "__main__":
     file_path = Path('.').parent / 'data/lista_hasel_PSB_2020.txt'
     uzup_path = Path('.').parent / 'data/postacie_viaf_uzup.xlsx'
+    lista_imion_path = Path('.').parent / 'data/imiona_all.txt'
+    lista_nazwisk_path = Path('.').parent / 'data/nazwiska_all.txt'
     output = Path('.').parent / 'out/postacie.qs'
     output_daty = Path('.').parent / 'out/postacie_daty.qs'
     output_aktualizacje = Path('.').parent / 'out/postacie_aktualizacje.qs'
@@ -394,9 +398,19 @@ if __name__ == "__main__":
     # identyfikatory VIAF znalezione ręcznie są pobierane z pliku xlsx
     VIAF_WYJATKI = load_wyjatki(uzup_path)
 
-    # otwierane są dwa pliki, główny z quickstatements dla postaci, oraz uzupełniający
+    # wczytywanie list 'legalnych' (zweryfikowanych) imion i nazwisk
+    with open(lista_imion_path, "r", encoding='utf-8') as f:
+        lines = f.readlines()
+        LISTA_IMION = [imie.strip() for imie in lines]
+
+    with open(lista_nazwisk_path, "r", encoding='utf-8') as f:
+        lines = f.readlines()
+        LISTA_NAZWISK = [nazwisko.strip() for nazwisko in lines]
+
+    # otwierane są trzy pliki, główny z quickstatements dla nowych postaci, uzupełniający
     # z dodatkowymi wpisami dla dat określonych jako 'somevalue', które muszą zostać
-    # dodane w drugim przebiegu ze względu na błąd w QS
+    # dodane w drugim przebiegu ze względu na błąd w QS, trzeci z danymi aktualizacyjnymi
+    # dla postaci już wprowadzonych do Wikibase
     with open(output, "w", encoding='utf-8') as f, open(output_daty, "w", encoding='utf-8') as fd, open(output_aktualizacje, "w", encoding='utf-8') as fa:
         for line in indeks:
             nawias, title_stop = get_last_nawias(line)
@@ -414,7 +428,7 @@ if __name__ == "__main__":
             postac = FigureName(name)
 
             # wyszukiwanie biogramu w słowniku lub Wikibase
-            q_biogram = biogram_qid(etykieta, offline=True)
+            q_biogram = biogram_qid(etykieta, offline=OFFLINE)
 
             # daty urodzenia i śmierci
             separator = ',' if ',' in years else '-'
@@ -467,7 +481,7 @@ if __name__ == "__main__":
                     date_of_2.date = viaf_date_d
 
             # test czy postać nie jest już w Wikibase, wówczas aktualizacja danych
-            p_qid = postac_qid(postac.name_etykieta, description='('+years+')', offline=True)
+            p_qid = postac_qid(postac.name_etykieta, description='('+years+')', offline=OFFLINE)
 
             # zapis do osobnego pliku dla aktualizacji
             if p_qid == 'LAST':
@@ -484,32 +498,32 @@ if __name__ == "__main__":
                 years = f'({years})'
                 w.write(f'{p_qid}\tDpl\t"{years}"\n')
                 w.write(f'{p_qid}\tDen\t"{years}"\n')
-            if postac.imie:
+            if postac.imie and postac.imie in LISTA_IMION:
                 # ustalenie rodzaju imienia (m/ż)
                 gender1 = gender_detector(postac.imie)
                 # poszukiwanie imienia w Wikibase lub w słowniku
-                q_imie = given_name_qid(postac.imie, gender_first='', offline=True)
+                q_imie = given_name_qid(postac.imie, gender_first='', offline=OFFLINE)
                 if q_imie:
                     w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
-            if postac.imie2:
-                q_imie = given_name_qid(postac.imie2, gender_first=gender1, offline=True)
+            if postac.imie2 and postac.imie2 in LISTA_IMION:
+                q_imie = given_name_qid(postac.imie2, gender_first=gender1, offline=OFFLINE)
                 if q_imie:
                     w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
-            if postac.imie3:
-                q_imie = given_name_qid(postac.imie3, gender_first=gender1, offline=True)
+            if postac.imie3 and postac.imie3 in LISTA_IMION:
+                q_imie = given_name_qid(postac.imie3, gender_first=gender1, offline=OFFLINE)
                 if q_imie:
                     w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
-            if postac.imie4:
-                q_imie = given_name_qid(postac.imie4, gender_first=gender1, offline=True)
+            if postac.imie4 and postac.imie4 in LISTA_IMION:
+                q_imie = given_name_qid(postac.imie4, gender_first=gender1, offline=OFFLINE)
                 if q_imie:
                     w.write(f'{p_qid}\t{P_IMIE}\t{q_imie}\n')
-            if postac.nazwisko:
+            if postac.nazwisko and postac.nazwisko in LISTA_NAZWISK:
                 # poszukiwanie nazwiska w Wikibase lub w słowniku
-                q_nazwisko = family_name_qid(postac.nazwisko, offline=True)
+                q_nazwisko = family_name_qid(postac.nazwisko, offline=OFFLINE)
                 if q_nazwisko:
                     w.write(f'{p_qid}\t{P_NAZWISKO}\t{q_nazwisko}\n')
-            if postac.nazwisko2:
-                q_nazwisko = family_name_qid(postac.nazwisko2, offline=True)
+            if postac.nazwisko2 and postac.nazwisko2 in LISTA_NAZWISK:
+                q_nazwisko = family_name_qid(postac.nazwisko2, offline=OFFLINE)
                 if q_nazwisko:
                     w.write(f'{p_qid}\t{P_NAZWISKO}\t{q_nazwisko}\n')
 
@@ -528,13 +542,11 @@ if __name__ == "__main__":
             # do wikibase
             if date_of_1 and date_of_1.somevalue:
                 fd.write(date_of_1.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
-                #f.write(date_of_1.prepare_qs('LAST'))
             elif date_of_1 and not date_of_1.somevalue:
                 w.write(date_of_1.prepare_qs(p_qid))
 
             if date_of_2 and date_of_2.somevalue:
                 fd.write(date_of_2.prepare_qs('Q:'+ postac.name_etykieta + '|' + years))
-                #f.write(date_of_2.prepare_qs('LAST'))
             elif date_of_2 and not date_of_2.somevalue:
                 w.write(date_of_2.prepare_qs(p_qid))
 
