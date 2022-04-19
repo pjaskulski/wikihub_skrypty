@@ -51,12 +51,16 @@ class WDHSpreadsheet:
     """
     def __init__(self, path: str):
         self.path = path
-        self.sheets = ['P_list', 'P_statments']
-        self.p_list = None
-        self.p_statements = None
+        self.sheets = ['P_list', 'P_statments', 'Q_list', 'Q_statements']
+        self.p_list = None          # arkusz z listą właściwości
+        self.p_statements = None    # arkusz z listą deklaracji dla właściwości
         self.workbook = None
         self.property_columns = []
         self.statement_columns = []
+        self.i_list = None          # arkusz z listą elementów (item)
+        self.i_statements = None    # arkusz z listą deklaracji dla elementów
+        self.item_columns = []
+        self.item_statement_columns = []
 
     @property
     def path(self) -> str:
@@ -82,6 +86,7 @@ class WDHSpreadsheet:
                 print(f"ERROR. Expected worksheet '{sheet}' is missing in the file.")
                 sys.exit(1)
 
+        # arlkusz właściwości
         self.p_list = self.workbook[self.sheets[0]]
         self.property_columns = self.get_col_names(self.p_list)
         p_list_expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
@@ -90,12 +95,32 @@ class WDHSpreadsheet:
             print(f'ERROR. Worksheet {self.sheets[0]}. The expected columns ({inf}) are missing.')
             sys.exit(1)
 
+        # arkusz deklaracji dla właściwości
         self.p_statements = self.workbook[self.sheets[1]]
         self.statement_columns = self.get_col_names(self.p_statements)
         p_statements_expected = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
         res, inf = self.test_columns(self.statement_columns, p_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[1]}. The expected columns ({inf}) are missing.')
+            sys.exit(1)
+
+        # arkusz elementów
+        self.i_list = self.workbook[self.sheets[2]]
+        self.item_columns = self.get_col_names(self.i_list)
+        i_list_expected = ['Label_en', 'Label_pl', 'also_known_as_en', 'also_known_as_pl',
+                           'Description_en', 'Description_pl', 'Wiki_id']
+        res, inf = self.test_columns(self.item_columns, i_list_expected)
+        if not res:
+            print(f'ERROR. Worksheet {self.sheets[2]}. The expected columns ({inf}) are missing.')
+            sys.exit(1)
+
+        # arkusz deklaracji dla elementów
+        self.i_statements = self.workbook[self.sheets[3]]
+        self.item_statement_columns = self.get_col_names(self.i_statements)
+        i_statements_expected = ['Label_en', 'Label_pl', 'Value']
+        res, inf = self.test_columns(self.item_statement_columns, i_statements_expected)
+        if not res:
+            print(f'ERROR. Worksheet {self.sheets[3]}. The expected columns ({inf}) are missing.')
             sys.exit(1)
 
 
@@ -203,6 +228,43 @@ class WDHSpreadsheet:
                 s_list.append(s_item)
 
         return s_list
+
+    def get_item_list(self) -> list:
+        """ zwraca listę elementów (w formie obiektów WDHItem) do dodania
+        """
+        i_list = []
+        for row in self.i_list.iter_rows(2, self.i_list.max_row):
+            basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+            p_item = WDHItem()
+            for col in basic_cols:
+                key = col.lower()
+                col_value = row[self.property_columns[col]].value
+                if key == 'label_en':
+                    p_item.label_en = col_value
+                elif key == 'description_en':
+                    p_item.description_en = col_value
+                elif key == 'datatype':
+                    p_item.datatype = col_value
+                elif key == 'label_pl':
+                    p_item.label_pl = col_value
+
+            # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
+            # dane właściwości są dodawane do listy
+            if p_item.label_en and p_item.description_en and p_item.datatype and p_item.label_pl:
+                extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
+                for col in extend_cols:
+                    key = col.lower()
+                    col_value = row[self.property_columns[col]].value
+                    if key == 'description_pl':
+                        p_item.description_pl = col_value
+                    elif key == 'wiki_id':
+                        p_item.wiki_id = col_value
+                    elif key == 'inverse_property':
+                        p_item.inverse_property = col_value
+
+                p_list.append(p_item)
+
+        return p_list
 
 
 class WDHProperty:
@@ -400,6 +462,119 @@ class WDHStatement:
 
     def write_to_wikibase(self):
         """ zapis deklaracji w instancji wikibase """
+        pass
+
+
+
+class WDHItem:
+    """ Klasa dla elementu (item)
+    """
+    def __init__(self, label_en: str = '', description_en: str = '', alias_en: str = '',
+                 label_pl: str = '', description_pl: str = '', alias_pl: str = '',
+                 wiki_id: str = ''):
+        self.label_en = label_en
+        self.description_en = description_en
+        self.alias_en = alias_en
+        self.label_pl = label_pl
+        self.description_pl = description_pl
+        self.alias_pl = alias_pl
+        self.wiki_id = wiki_id
+
+    @property
+    def label_en(self) -> str:
+        """ get label_en """
+        return self._label_en
+
+    @label_en.setter
+    def label_en(self, value: str):
+        """ set label_en """
+        if value:
+            self._label_en = value.strip()
+        else:
+            self._label_en = ''
+
+    @property
+    def description_en(self) -> str:
+        """ get description_en """
+        return self._description_en
+
+    @description_en.setter
+    def description_en(self, value: str):
+        """ set description_en """
+        if value:
+            self._description_en = value.strip()
+        else:
+            self._description_en = ''
+
+    @property
+    def alias_en(self) -> str:
+        """ get alias_en """
+        return self._alias_en
+
+    @alias_en.setter
+    def alias_en(self, value: str):
+        """ set alias_en """
+        if value:
+            tmp = value.split('|')
+            self._alias_en = [element.strip() for element in tmp]
+        else:
+            self._alias_en = []
+
+    @property
+    def label_pl(self) -> str:
+        """ get label_pl """
+        return self._label_pl
+
+    @label_pl.setter
+    def label_pl(self, value: str):
+        """ set label_pl """
+        if value:
+            self._label_pl = value.strip()
+        else:
+            self._label_pl = ''
+
+    @property
+    def description_pl(self) -> str:
+        """ get description_pl """
+        return self._description_pl
+
+    @description_pl.setter
+    def description_pl(self, value: str):
+        """ set description_pl """
+        if value:
+            self._description_pl = value.strip()
+        else:
+            self._description_pl = ''
+
+    @property
+    def alias_pl(self) -> str:
+        """ get alias_pl """
+        return self._alias_pl
+
+    @alias_pl.setter
+    def alias_pl(self, value: str):
+        """ set alias_pl """
+        if value:
+            tmp = value.split('|')
+            self._alias_pl = [element.strip() for element in tmp]
+        else:
+            self._alias_pl = []
+
+    @property
+    def wiki_id(self) -> str:
+        """ get wiki_id """
+        return self._wiki_id
+
+    @wiki_id.setter
+    def wiki_id(self, value: str):
+        """ set wiki_id """
+        if value:
+            self._wiki_id = value.strip()
+        else:
+            self._wiki_id = ''
+
+    def write_to_wikibase(self):
+        """ zapis właściwości w instancji wikibase """
         pass
 
 
@@ -681,7 +856,8 @@ def get_property_type(p_id: str) -> str:
 
 def has_statement(pid_to_check: str, claim_to_check: str):
     """
-    Funkcja weryfikuje czy właściwość (property) ma już taką deklarację (statement)
+    Funkcja weryfikuje czy właściwość (property) lub element (item) ma już
+    taką deklarację (statement)
     """
     has_claim = False
     wb_prop = wbi_core.ItemEngine(item_id=pid_to_check)
@@ -732,3 +908,6 @@ if __name__ == "__main__":
     for stm in dane:
         result, info = add_property_statement(stm)
         print(f'{info}')
+
+    # elementy 'strukruralne' ('definicyjne')
+    dane_elementy = plik_xlsx.get_item_list()
