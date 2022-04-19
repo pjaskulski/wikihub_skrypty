@@ -1,6 +1,15 @@
 # wikidariah_skrypty
 Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiDARIAH 
 
+## proste przykłady:
+
+- example_item_add.py: dodawanie nowego elementu (i deklaracji dla elementu)
+- example_property.add.py: dodawanie nowej właściwości
+- example_search.py: przykład wyszukiwania
+- example_statement_add.py: dodawanie deklaracji do istniejącej właściwości
+- example_statement_edit.py: edycja istniejącej deklaracji w istniejącej właściwości
+- wikidariahtools: funkcje pomocnicze 
+
 ## property_import.py
 
 Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
