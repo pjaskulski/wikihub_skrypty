@@ -21,7 +21,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 if __name__ == "__main__":
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
-    # i P47 (instance of)
+    # i właściwości P152 (painting style)
     try:
         my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q30')
         data = my_first_wikidata_item.get_json_representation()
@@ -32,10 +32,11 @@ if __name__ == "__main__":
         data = data_p = data_p2 = None
 
     if data:
-        #print(len(data))
-        #print(data["labels"]["pl"]["value"])
-        #pprint.pprint([data])
+        # etykieta 
+        print(data["labels"]["pl"]["value"])
+        # opis
         print(data["descriptions"]["pl"]["value"])
+        #pprint.pprint([data])
 
     if data_p:
         claims = data_p['claims']
@@ -45,24 +46,26 @@ if __name__ == "__main__":
     ok, q_imie = element_search('Giacomo Tencalla', 'item', 'en', aliases=True)
     print(ok, 'Giacomo Tencalla', q_imie)
 
-
+    # sprawdzanie czy element istnieje
     print('Q30: ', element_exists('Q30'))
     print('Q3000: ', element_exists('Q3000'))
     print('P4: ', element_exists('P4'))
     print('Q4000: ', element_exists('Q4000'))
 
+    # wyszukiwanie właściwości
     print('subclass of: ', element_search('subclass of', 'property', 'en'))
     print('date of birth: ', element_search('date of birth', 'property', 'en'))
     print('very unique property: ', element_search('very unique property', 'property',
                                                    'en'))
     print('place of: ', element_search('place of', 'property', 'en'))
+    print('family name', element_search('family name', 'property', 'en'))
+    print('inverse property: ', element_search('inverse property', 'property', 'en'))
 
+    # wyszukiwanie elementów
     print('Świeżawski Tadeusz Michał: ', element_search('Świeżawski Tadeusz Michał', 'item',
                                                         'en'))
-    print('Świeżowiecki Edwin Gerhard: ', 
+    print('Świeżowiecki Edwin Gerhard: ',
           element_search('Świeżowiecki Edwin Gerhard', 'item', 'en'))
-
-    print('family name', element_search('family name', 'property', 'en'))
 
     # zapytanie SPARQL o listę wszystkich elementów posiadających właściwość P47
     # (instance_of) o wartości Q32 (human), z limitem do 5 resultatów
@@ -81,9 +84,7 @@ if __name__ == "__main__":
     for result in results["results"]["bindings"]:
         print(result["item"]["value"])
 
-    print('inverse property: ', element_search('inverse property', 'property', 'en'))
-
-    # wyszukanie typu właściwości na podstawie ID
+    # wyszukanie typu właściwości na podstawie ID poprzez zapytania API
     print('Typ wartości dla P47:')
     params = {'action': 'wbgetentities', 'ids': 'P47',
               'props': 'datatype'}
