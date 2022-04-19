@@ -1,7 +1,7 @@
 # wikidariah_skrypty
 Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiDARIAH 
 
-## proste przykłady:
+## 1. proste przykłady:
 
 - example_item_add.py: dodawanie nowego elementu (i deklaracji dla elementu)
 - example_property.add.py: dodawanie nowej właściwości
@@ -10,7 +10,7 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 - example_statement_edit.py: edycja istniejącej deklaracji w istniejącej właściwości
 - wikidariahtools: funkcje pomocnicze 
 
-## property_import.py
+## 2. property_import.py
 
 Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
 
@@ -86,7 +86,7 @@ Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykry
 przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
 W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już istniejące w wikibase dla danej właściwości deklaracje. 
 
-## TODO
+### TODO
 
 - [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
 - [ ]  wyszukiwanie P/Q w wikibase bez względu na wielkość liter
@@ -94,22 +94,22 @@ W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już 
 - [x]  druga zakładka (P_statements): obsługa referencji
 - [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
 
-# Imiona Nazwiska
+## 3. Imiona Nazwiska
 
 imiona_nazwiska.py - skrypt do generowania zapisów w formacie QuickStatements V1 z listy autorów biogramów PSB utworzonej na podstawie indeksu biogramów PSB, tworzy listę imion i nazwisk autorów, które będą zaimportowane do Wikibase jako elementy. 
 
-# Autorzy
+## 4. Autorzy
 
 autorzy.py - skrypt do generowania zapisów w formacie QuickStatements V1 z listy autorów biogramów PSB utworzonej na podstawie indeksu biogramów PSB, tworzy listę autorów do zaimportowania w Wikibase.
 
-# Biogramy
+## 5. Biogramy
 
 biogramy.py - skrypt do generowania zapisów w formacie QuickStatements V1 z indeksu biogramów PSB, tworzy listę biogramów postaci historycznych do zaimportowania do Wikibase.
 
-# Imiona Nazwiska Postacie
+## 6. Imiona Nazwiska Postacie
 
 imiona_nazwiska_postacie.py - skrypt do generowania zapisów w formacie QuickStatements V1 z listy autorów biogramów PSB, tworzy listę imion i nazwisk postaci, które będą zaimportowane do Wikibase jako elementy.
 
-# Postacie
+## 7. Postacie
 
 postacie.py - skrypt do generowania zapisów w formacie QuickStatements V1 z indeksu biogramów PSB - tworzy listę postaci historycznych do zaimportowania do Wikibase.
