@@ -107,8 +107,7 @@ class WDHSpreadsheet:
         # arkusz elementów
         self.i_list = self.workbook[self.sheets[2]]
         self.item_columns = self.get_col_names(self.i_list)
-        i_list_expected = ['Label_en', 'Label_pl', 'also_known_as_en', 'also_known_as_pl',
-                           'Description_en', 'Description_pl', 'Wiki_id']
+        i_list_expected = ['Label_en', 'Label_pl', 'Description_en', 'Description_pl', 'Wiki_id']
         res, inf = self.test_columns(self.item_columns, i_list_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[2]}. The expected columns ({inf}) are missing.')
@@ -234,37 +233,33 @@ class WDHSpreadsheet:
         """
         i_list = []
         for row in self.i_list.iter_rows(2, self.i_list.max_row):
-            basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
-            p_item = WDHItem()
+            basic_cols = ['Label_en', 'Label_pl', 'Description_en', 'Description_pl']
+            i_item = WDHItem()
             for col in basic_cols:
                 key = col.lower()
-                col_value = row[self.property_columns[col]].value
+                col_value = row[self.item_columns[col]].value
                 if key == 'label_en':
-                    p_item.label_en = col_value
+                    i_item.label_en = col_value
                 elif key == 'description_en':
-                    p_item.description_en = col_value
-                elif key == 'datatype':
-                    p_item.datatype = col_value
+                    i_item.description_en = col_value
+                elif key == 'description_pl':
+                    i_item.description_pl = col_value
                 elif key == 'label_pl':
-                    p_item.label_pl = col_value
+                    i_item.label_pl = col_value
 
-            # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
+            # tylko jeżeli etykieta i opis w języku angielskim oraz polskim są wypełnione
             # dane właściwości są dodawane do listy
-            if p_item.label_en and p_item.description_en and p_item.datatype and p_item.label_pl:
-                extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
+            if i_item.label_en and i_item.description_en and i_item.description_pl and i_item.label_pl:
+                extend_cols = ['Wiki_id']
                 for col in extend_cols:
                     key = col.lower()
-                    col_value = row[self.property_columns[col]].value
-                    if key == 'description_pl':
-                        p_item.description_pl = col_value
-                    elif key == 'wiki_id':
-                        p_item.wiki_id = col_value
-                    elif key == 'inverse_property':
-                        p_item.inverse_property = col_value
+                    col_value = row[self.item_columns[col]].value
+                    if key == 'wiki_id':
+                        i_item.wiki_id = col_value
 
-                p_list.append(p_item)
+                i_list.append(i_item)
 
-        return p_list
+        return i_list
 
 
 class WDHProperty:
@@ -469,15 +464,12 @@ class WDHStatement:
 class WDHItem:
     """ Klasa dla elementu (item)
     """
-    def __init__(self, label_en: str = '', description_en: str = '', alias_en: str = '',
-                 label_pl: str = '', description_pl: str = '', alias_pl: str = '',
-                 wiki_id: str = ''):
+    def __init__(self, label_en: str = '', description_en: str = '',
+                 label_pl: str = '', description_pl: str = '', wiki_id: str = ''):
         self.label_en = label_en
         self.description_en = description_en
-        self.alias_en = alias_en
         self.label_pl = label_pl
         self.description_pl = description_pl
-        self.alias_pl = alias_pl
         self.wiki_id = wiki_id
 
     @property
@@ -507,20 +499,6 @@ class WDHItem:
             self._description_en = ''
 
     @property
-    def alias_en(self) -> str:
-        """ get alias_en """
-        return self._alias_en
-
-    @alias_en.setter
-    def alias_en(self, value: str):
-        """ set alias_en """
-        if value:
-            tmp = value.split('|')
-            self._alias_en = [element.strip() for element in tmp]
-        else:
-            self._alias_en = []
-
-    @property
     def label_pl(self) -> str:
         """ get label_pl """
         return self._label_pl
@@ -547,20 +525,6 @@ class WDHItem:
             self._description_pl = ''
 
     @property
-    def alias_pl(self) -> str:
-        """ get alias_pl """
-        return self._alias_pl
-
-    @alias_pl.setter
-    def alias_pl(self, value: str):
-        """ set alias_pl """
-        if value:
-            tmp = value.split('|')
-            self._alias_pl = [element.strip() for element in tmp]
-        else:
-            self._alias_pl = []
-
-    @property
     def wiki_id(self) -> str:
         """ get wiki_id """
         return self._wiki_id
@@ -574,8 +538,50 @@ class WDHItem:
             self._wiki_id = ''
 
     def write_to_wikibase(self):
-        """ zapis właściwości w instancji wikibase """
-        pass
+        """ zapis elementu w instancji wikibase """
+        search_item, search_id = element_search(self.label_en, 'item', 'en', 
+                                                description=self.description_en)
+        if search_item:
+            print(f"Item: '{self.label_en}' already exists: {search_id}, update mode enabled.")
+            wd_item = wbi_core.ItemEngine(item_id=search_id)
+            mode = 'updated: '
+        else:
+            wd_item = wbi_core.ItemEngine(new_item=True)
+            mode = 'added: '
+
+        wd_item.set_label(self.label_en, lang='en')
+        wd_item.set_description(self.description_en, lang='en')
+        wd_item.set_label(self.label_pl,lang='pl')
+        wd_item.set_description(self.description_pl, lang='pl')
+        wiki_dane = None
+        if self.wiki_id: 
+            if (wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == ''):
+                wikibase_prop.get_wiki_properties()
+            url = f'https://www.wikidata.org/wiki/{self.wiki_id}'
+            references = [
+                [
+                wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
+                ]
+            ]
+            wiki_dane = wbi_datatype.ExternalID(value=self.wiki_id, prop_nr=wikibase_prop.wiki_id,
+                references=references)
+
+        # zapis w Wikibase
+        try:
+            new_id = wd_item.write(login_instance, entity_type='item')
+            if search_item:
+                new_id = search_id
+
+            # deklaracje dla elementu
+            data = []
+            if wiki_dane:
+                data.append(wiki_dane)
+                wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
+                wd_statement.write(login_instance, entity_type='item')
+
+            print(mode + new_id)
+        except (MWApiError, KeyError):
+            print('ERROR: ', self.label_en)
 
 
 def add_property(p_dane: WDHProperty) -> tuple:
@@ -909,5 +915,9 @@ if __name__ == "__main__":
         result, info = add_property_statement(stm)
         print(f'{info}')
 
-    # elementy 'strukruralne' ('definicyjne')
+    # elementy 'strukturalne' ('definicyjne')
     dane_elementy = plik_xlsx.get_item_list()
+    for wb_item in dane_elementy:
+        wb_item.write_to_wikibase()
+
+    # deklaracje dla elementów strukturalnych
