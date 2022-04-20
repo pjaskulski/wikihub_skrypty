@@ -117,7 +117,7 @@ class WDHSpreadsheet:
         # arkusz deklaracji dla elementów
         self.i_statements = self.workbook[self.sheets[3]]
         self.item_statement_columns = self.get_col_names(self.i_statements)
-        i_statements_expected = ['Label_en', 'P', 'Value']
+        i_statements_expected = ['Label_en', 'P', 'Value','Qualifier', 'Qualifier_value']
         res, inf = self.test_columns(self.item_statement_columns, i_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[3]}. The expected columns ({inf}) are missing.')
@@ -267,23 +267,41 @@ class WDHSpreadsheet:
         """
         s_list = []
         for row in self.i_statements.iter_rows(2, self.i_statements.max_row):
-            basic_cols = ['Label_en', 'P', 'Value']
-            s_item = WDHStatementItem()
+            basic_cols = ['Label_en', 'P', 'Value', 'Qualifier', 'Qualifier_value']
+
+            label_en = statement_property = statement_value = qualifier = qualifier_value = ''
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.item_statement_columns[col]].value
 
                 if key == 'label_en':
-                    s_item.label_en = col_value
+                    label_en = col_value
                 elif key == 'p':
-                    s_item.statement_property = col_value
+                    statement_property = col_value
                 elif key == 'value':
-                    s_item.statement_value = col_value
+                    statement_value = col_value
+                elif key == 'qualifier':
+                    qualifier = col_value
+                elif key == 'qualifier_value':
+                    qualifier_value = col_value
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
-            if s_item.label_en and s_item.statement_property and s_item.statement_value:
+            if label_en and statement_property and statement_value:
+                s_item = WDHStatementItem()
+                s_item.label_en = label_en
+                s_item.statement_property = statement_property
+                s_item.statement_value = statement_value
+                if qualifier and qualifier_value:
+                    s_item.qualifiers[qualifier] = qualifier_value
+
                 s_list.append(s_item)
+            # jeżeli nie ma wartości etykiety, właściwości i wartości deklaracji
+            # a są dane kwalifikatora to  dodaje kwalifikator do ostatnio dodanej
+            # pozycji z listy
+            else:
+                if qualifier and qualifier_value:
+                    s_list[-1].qualifiers[qualifier] = qualifier_value
 
         return s_list
 
@@ -614,10 +632,14 @@ class WDHStatementItem:
     """ Klasa dla deklaracji (statement) dla elementów
     """
     def __init__(self, label_en: str = '', statement_property: str = '',
-                 statement_value: str = ''):
+                 statement_value: str = '', qualifier: str = '',
+                 qualifier_value: str = ''):
         self.label_en = label_en
         self.statement_property = statement_property
         self.statement_value = statement_value
+        self.qualifiers = {}
+        if qualifier and qualifier_value:
+            self.qualifiers[qualifier.strip()] = qualifier_value.strip()
 
     @property
     def label_en(self) -> str:
@@ -686,26 +708,60 @@ class WDHStatementItem:
                 print('ERROR:', f'brak właściwości -> {self.statement_property}')
                 return
 
+            if self.qualifiers:
+                # zmiana nazwy kwalifikatora na jego Q
+                tmp = {}
+                for q_key, value in self.qualifiers.items():
+                    is_ok, qualifier_id = find_name_qid(q_key, 'property')
+                    if not is_ok:
+                        print('ERROR:', f'brak właściwości -> {q_key}')
+                        return
+
+                    tmp[qualifier_id] = value
+
+                self.qualifiers = tmp
+
             # tu obsługa specyficznych typów właściwości: item/property wartość
             # wprowadzana jako deklaracją powinna być symbolem P lub Q
             prop_type = get_property_type(prop_id)
             if prop_type == 'wikibase-item':
-                is_ok, value = find_name_qid(self.statement_value, 'item')
+                is_ok, p_value = find_name_qid(self.statement_value, 'item')
                 if not is_ok:
                     print('ERROR:', f'brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}')
                     return
             elif prop_type == 'wikibase-property':
-                is_ok, value = find_name_qid(self.statement_value, 'property')
+                is_ok, p_value = find_name_qid(self.statement_value, 'property')
                 if not is_ok:
                     print('ERROR:', f'brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}')
                     return
             else:
-                value = self.statement_value
+                p_value = self.statement_value
+
+            # tu podobna obsługa j.w. dla kwalifikatorów
+            tmp = {}
+            for key, value in self.qualifiers.items():
+                qualifier_type = get_property_type(key)
+                if qualifier_type == 'wikibase-item':
+                    is_ok, q_value = find_name_qid(value, 'item')
+                    if not is_ok:
+                        print('ERROR:', f'brak elementu -> {value} będącego wartością kwalifikatora -> {key}')
+                        return
+                elif qualifier_type == 'wikibase-property':
+                    is_ok, q_value = find_name_qid(value, 'property')
+                    if not is_ok:
+                        print('ERROR:', f'brak właściwości -> {value} będącej wartością kwalifikatora -> {key}')
+                        return
+                else:
+                    q_value = value
+
+                tmp[key] = q_value
+
+            self.qualifiers = tmp
 
             if has_statement(p_id, prop_id):
-                return (False, f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
+                print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
 
-            st_data = create_statement_data(self.statement_property, value, '', '')
+            st_data = create_statement_data(prop_id, p_value, '', '', self.qualifiers)
             if st_data:
                 try:
                     data =[st_data]
@@ -826,7 +882,8 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
     return output
 
 
-def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) ->Union[
+def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
+                                            is_qlf: bool = False, qlfs = None) ->Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -838,7 +895,7 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) -
                                                        wbi_datatype.GlobeCoordinate,
                                                        wbi_datatype.MonolingualText]:
     """
-    Funkcja tworzy obiekt będący deklaracją lub referencją
+    Funkcja tworzy obiekt będący deklaracją lub referencją lub kwalifikatorem
     """
     statement = None
 
@@ -847,29 +904,36 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) -
         property_type = get_property_type(property_nr)
         if property_type == 'string':
             statement = wbi_datatype.String(value=value, prop_nr=property_nr,
-                                            is_reference=is_ref, references=refs)
+                                            is_reference=is_ref, references=refs,
+                                            is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'wikibase-item':
             res, value_id = find_name_qid(value, 'item')
             if res:
                 statement = wbi_datatype.ItemID(value=value_id, prop_nr=property_nr,
-                                                is_reference=is_ref, references=refs)
+                                                is_reference=is_ref, references=refs,
+                                                is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'wikibase-property':
             res, value_id = find_name_qid(value, 'property')
             if res:
                 statement = wbi_datatype.Property(value=value_id, prop_nr=property_nr,
-                                                  is_reference=is_ref, references=refs)
+                                                  is_reference=is_ref, references=refs,
+                                                  is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'external-id':
             statement = wbi_datatype.ExternalID(value=value, prop_nr=property_nr,
-                                                is_reference=is_ref, references=refs)
+                                                is_reference=is_ref, references=refs,
+                                                is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'url':
             statement = wbi_datatype.Url(value=value, prop_nr=property_nr,
-                                         is_reference=is_ref, references=refs)
+                                         is_reference=is_ref, references=refs,
+                                         is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'monolingualtext':
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr,
-                                                     is_reference=is_ref, references=refs)
+                                                     is_reference=is_ref, references=refs,
+                                                     is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'quantity':
             statement = wbi_datatype.Quantity(quantity=value, prop_nr=property_nr,
-                                              is_reference=is_ref, references=refs)
+                                              is_reference=is_ref, references=refs,
+                                              is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'time':
             tmp = value.split("/")
             if len(tmp) == 2:
@@ -877,12 +941,14 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) -
                 precision = int(tmp[1])
                 statement = wbi_datatype.Time(time_value, prop_nr=property_nr,
                                               precision=precision, is_reference=is_ref,
-                                              references=refs)
+                                              references=refs, is_qualifier=is_qlf,
+                                              qualifiers=qlfs)
             else:
                 print(f'ERROR: invalid value for time type: {value}.')
         elif property_type == 'geo-shape':
             statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
-                                              references=refs)
+                                              references=refs, is_qualifier=is_qlf,
+                                              qualifiers=qlfs)
         elif property_type == 'globe-coordinate':
             tmp = value.split(",")
             try:
@@ -897,7 +963,8 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None) -
             else:
                 statement = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
                                                          prop_nr=property_nr, is_reference=is_ref,
-                                                         references=refs)
+                                                         references=refs, is_qualifier=is_qlf,
+                                                         qualifiers=qlfs)
 
     return statement
 
@@ -913,8 +980,23 @@ def create_references(ref_property: str, ref_value: str) ->list:
 
     return new_references
 
+def create_qualifiers(qlf_dict: dict) ->list:
+    """ Funkcja tworzy kwalifikatory
+    """
+    new_qualifiers = []
+    for key, value in qlf_dict.items():
+        statement = create_statement(key, value, is_qlf=True, qlfs=None)
+        if statement:
+            new_qualifiers.append(statement)
 
-def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) -> Union[
+    if len(new_qualifiers) == 0:
+        new_qualifiers = None
+
+    return new_qualifiers
+
+
+def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str,
+                                                qualifier_dict: dict) -> Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -929,10 +1011,15 @@ def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) 
     Funkcja tworzy dane deklaracji z opcjonalnymy referencjami
     """
     references = None
-    if ref_prop and ref_value :
+    if ref_prop and ref_value:
         references = create_references(ref_prop, ref_value)
 
-    output_data = create_statement(prop, value, is_ref=False, refs=references)
+    qualifiers = None
+    if qualifier_dict:
+        qualifiers = create_qualifiers(qualifier_dict)
+
+    output_data = create_statement(prop, value, is_ref=False, refs=references,
+                                   is_qlf=False, qlfs=qualifiers)
 
     return output_data
 
@@ -969,7 +1056,8 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
     st_data = create_statement_data(s_item.statement_property, value,
-                                    s_item.reference_property, s_item.reference_value)
+                                    s_item.reference_property, s_item.reference_value,
+                                    qualifier_dict=None)
     if st_data:
         try:
             data =[st_data]
@@ -1048,7 +1136,7 @@ if __name__ == "__main__":
         if result:
             print(f'Property {info}')
 
-    # dodatkowe deklaracje
+    # dodatkowe deklaracje dla właściwości
     dane = plik_xlsx.get_statement_list()
     for stm in dane:
         result, info = add_property_statement(stm)
@@ -1059,7 +1147,7 @@ if __name__ == "__main__":
     for wb_item in dane:
         wb_item.write_to_wikibase()
 
-    # deklaracje dla elementów strukturalnych/definicyjnych
+    # dodatkowe deklaracje dla elementów strukturalnych/definicyjnych
     dane = plik_xlsx.get_item_statement_list()
     for stm in dane:
         stm.write_to_wikibase()
