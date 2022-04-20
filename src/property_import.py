@@ -21,6 +21,7 @@ wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sp
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 
+# --- klasy ---
 class BasicProp:
     """ Identyfikatory podstawowych właściwości
     """
@@ -51,7 +52,7 @@ class WDHSpreadsheet:
     """
     def __init__(self, path: str):
         self.path = path
-        self.sheets = ['P_list', 'P_statments', 'Q_list', 'Q_statements']
+        self.sheets = ['P_list', 'P_statements', 'Q_list', 'Q_statements']
         self.p_list = None          # arkusz z listą właściwości
         self.p_statements = None    # arkusz z listą deklaracji dla właściwości
         self.workbook = None
@@ -86,7 +87,7 @@ class WDHSpreadsheet:
                 print(f"ERROR. Expected worksheet '{sheet}' is missing in the file.")
                 sys.exit(1)
 
-        # arlkusz właściwości
+        # arkusz właściwości
         self.p_list = self.workbook[self.sheets[0]]
         self.property_columns = self.get_col_names(self.p_list)
         p_list_expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
@@ -116,7 +117,7 @@ class WDHSpreadsheet:
         # arkusz deklaracji dla elementów
         self.i_statements = self.workbook[self.sheets[3]]
         self.item_statement_columns = self.get_col_names(self.i_statements)
-        i_statements_expected = ['Label_en', 'Label_pl', 'Value']
+        i_statements_expected = ['Label_en', 'P', 'Value']
         res, inf = self.test_columns(self.item_statement_columns, i_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[3]}. The expected columns ({inf}) are missing.')
@@ -205,7 +206,7 @@ class WDHSpreadsheet:
         s_list = []
         for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
             basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
-            s_item = WDHStatement()
+            s_item = WDHStatementProperty()
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.statement_columns[col]].value
@@ -260,6 +261,31 @@ class WDHSpreadsheet:
                 i_list.append(i_item)
 
         return i_list
+
+    def get_item_statement_list(self) -> list:
+        """ zwraca listę obiektów deklaracji do dodania do elementów
+        """
+        s_list = []
+        for row in self.i_statements.iter_rows(2, self.i_statements.max_row):
+            basic_cols = ['Label_en', 'P', 'Value']
+            s_item = WDHStatementItem()
+            for col in basic_cols:
+                key = col.lower()
+                col_value = row[self.item_statement_columns[col]].value
+
+                if key == 'label_en':
+                    s_item.label_en = col_value
+                elif key == 'p':
+                    s_item.statement_property = col_value
+                elif key == 'value':
+                    s_item.statement_value = col_value
+
+            # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
+            # dane deklaracji są dodawane do listy
+            if s_item.label_en and s_item.statement_property and s_item.statement_value:
+                s_list.append(s_item)
+
+        return s_list
 
 
 class WDHProperty:
@@ -378,8 +404,8 @@ class WDHProperty:
         pass
 
 
-class WDHStatement:
-    """ Klasa dla deklaracji (statement)
+class WDHStatementProperty:
+    """ Klasa dla deklaracji (statement) dla właściwości
     """
     def __init__(self, label_en: str = '', statement_property: str = '',
                  statement_value: str = '', reference_property: str = '',
@@ -554,7 +580,7 @@ class WDHItem:
         wd_item.set_label(self.label_pl,lang='pl')
         wd_item.set_description(self.description_pl, lang='pl')
         wiki_dane = None
-        if self.wiki_id: 
+        if self.wiki_id:
             if (wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == ''):
                 wikibase_prop.get_wiki_properties()
             url = f'https://www.wikidata.org/wiki/{self.wiki_id}'
@@ -583,6 +609,116 @@ class WDHItem:
         except (MWApiError, KeyError):
             print('ERROR: ', self.label_en)
 
+
+class WDHStatementItem:
+    """ Klasa dla deklaracji (statement) dla elementów
+    """
+    def __init__(self, label_en: str = '', statement_property: str = '',
+                 statement_value: str = ''):
+        self.label_en = label_en
+        self.statement_property = statement_property
+        self.statement_value = statement_value
+
+    @property
+    def label_en(self) -> str:
+        """ getter: label_en """
+        return self._label_en
+
+    @label_en.setter
+    def label_en(self, value: str):
+        """ setter: label_en """
+        if value:
+            self._label_en = value.strip()
+        else:
+            self._label_en = ''
+
+    @property
+    def statement_property(self) -> str:
+        """ get statement_property """
+        return self._statement_property
+
+    @statement_property.setter
+    def statement_property(self, value: str):
+        """ set statement_property"""
+        if value:
+            self._statement_property = value.strip()
+        else:
+            self._statement_property = ''
+
+    @property
+    def statement_value(self):
+        """ get statement_value """
+        return self._statement_value
+
+    @statement_value.setter
+    def statement_value(self, value: str):
+        """ set statement_value """
+        if value:
+            self._statement_value = value.strip()
+        else:
+            self._statement_value = ''
+
+    def write_to_wikibase(self):
+        """ zapis deklaracji dla elementu w instancji wikibase
+            także zapis aliasu dla elementu - zależnie od wartości
+            self.statement_property
+        """
+        is_ok, p_id = find_name_qid(self.label_en, 'item')
+        if not is_ok:
+            print('ERROR:', f'brak elementu -> {self.label_en}')
+            return
+
+        # jeżeli to alias?
+        if self.statement_property in ('Apl', 'Aen'):
+            try:
+                wd_item = wbi_core.ItemEngine(item_id=p_id)
+                wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
+                wd_item.write(login_instance, entity_type='item')
+                print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+
+            except (MWApiError, KeyError, ValueError):
+                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+
+        # jeżeli to deklaracja?
+        else:
+            is_ok, prop_id = find_name_qid(self.statement_property, 'property')
+            if not is_ok:
+                print('ERROR:', f'brak właściwości -> {self.statement_property}')
+                return
+
+            # tu obsługa specyficznych typów właściwości: item/property wartość
+            # wprowadzana jako deklaracją powinna być symbolem P lub Q
+            prop_type = get_property_type(prop_id)
+            if prop_type == 'wikibase-item':
+                is_ok, value = find_name_qid(self.statement_value, 'item')
+                if not is_ok:
+                    print('ERROR:', f'brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}')
+                    return
+            elif prop_type == 'wikibase-property':
+                is_ok, value = find_name_qid(self.statement_value, 'property')
+                if not is_ok:
+                    print('ERROR:', f'brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}')
+                    return
+            else:
+                value = self.statement_value
+
+            if has_statement(p_id, prop_id):
+                return (False, f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
+
+            st_data = create_statement_data(self.statement_property, value, '', '')
+            if st_data:
+                try:
+                    data =[st_data]
+                    wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                    wd_statement.write(login_instance, entity_type='item')
+                    print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
+                except (MWApiError, KeyError, ValueError):
+                    print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
+            else:
+                print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
+
+
+# --- funkcje ---
 
 def add_property(p_dane: WDHProperty) -> tuple:
     """
@@ -656,7 +792,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
         # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy
         # dodać odwrotność: nową właściwość jako jej inverse_property
         if inverse_dane:
-            inv_statement = WDHStatement(inv_pid, wikibase_prop.inverse, p_new_id)
+            inv_statement = WDHStatementProperty(inv_pid, wikibase_prop.inverse, p_new_id)
             add_res, add_info = add_property_statement(inv_statement)
             if not add_res:
                 print(f'{add_info}')
@@ -801,7 +937,7 @@ def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str) 
     return output_data
 
 
-def add_property_statement(s_item: WDHStatement) -> tuple:
+def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     """
     Funkcja dodaje deklaracje (statement) do właściwości
     Parametry:
@@ -815,22 +951,25 @@ def add_property_statement(s_item: WDHStatement) -> tuple:
     if not is_ok:
         return (False, prop_id)
 
+    # tu obsługa specyficznych typów właściwości: item/property wartość
+    # wprowadzana jako deklaracją powinna być symbolem P lub Q
     prop_type = get_property_type(prop_id)
     if prop_type == 'wikibase-item':
-        is_ok, value_id = find_name_qid(s_item.statement_value, 'item')
+        is_ok, value = find_name_qid(s_item.statement_value, 'item')
         if not is_ok:
-            return (False, value_id)
-
-    if prop_type == 'wikibase-property':
-        is_ok, value_id = find_name_qid(s_item.statement_value, 'property')
+            return (False, value)
+    elif prop_type == 'wikibase-property':
+        is_ok, value = find_name_qid(s_item.statement_value, 'property')
         if not is_ok:
-            return (False, value_id)
+            return (False, value)
+    else:
+        value = s_item.statement_value
 
     if has_statement(p_id, prop_id):
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
-    st_data = create_statement_data(s_item.statement_property, s_item.statement_value, 
-                                    s_item.set_reference_property, s_item.reference_value)
+    st_data = create_statement_data(s_item.statement_property, value,
+                                    s_item.reference_property, s_item.reference_value)
     if st_data:
         try:
             data =[st_data]
@@ -916,8 +1055,11 @@ if __name__ == "__main__":
         print(f'{info}')
 
     # elementy 'strukturalne' ('definicyjne')
-    dane_elementy = plik_xlsx.get_item_list()
-    for wb_item in dane_elementy:
+    dane = plik_xlsx.get_item_list()
+    for wb_item in dane:
         wb_item.write_to_wikibase()
 
-    # deklaracje dla elementów strukturalnych
+    # deklaracje dla elementów strukturalnych/definicyjnych
+    dane = plik_xlsx.get_item_statement_list()
+    for stm in dane:
+        stm.write_to_wikibase()
