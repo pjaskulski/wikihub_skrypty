@@ -12,7 +12,7 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 ## 2. property_import.py
 
-Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
+Skrypt wspomagający tworzenie właściwości i elementów w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
 
 Skrypt obsługuje także tzw. strukturalne/definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski'. W przykładowym pliku test.xlsx w folderze /data znajdują się arkusze Q_list i Q_statments.  
 
@@ -111,6 +111,7 @@ Arkusz powinien mieć minimum trzy kolumny:
 Opcjonalnie można dodać do deklaracji kwalifikatory, służą do tego kolejne dwie kolumny:
 - 'Qualifier' - etykieta właściwości która ma być kwalifikatorem (lub identyfikator P)
 - 'Qualifier_value' - wartość kwalifikatora, w przypadku gdy ma to być np. element można podać jego ang. etykietę lub konkretny identyfikator Q, dla kwalifikatorów typu String to będzie po prostu tekst, który stanie się zawartością kwalifikatora.
+
 Deklaracja może zawierać wiele kwalifikatorów, jeżeli po wierszu z definicją deklaracji
 i pierwszego kwalifikatora będą dodane kolejne wiersze z pustymi kolumnami 'Label_en', 'P', 'Value' lecz z wypełnioną zawartością 'Qualifier', 'Qualifier_value' to skrypt przyjmie że są to kolejne 
 definicje kwalifikatorów do tej samej deklaracji.
