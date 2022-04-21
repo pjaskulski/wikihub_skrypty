@@ -14,11 +14,11 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 
 Skrypt wspomagający tworzenie właściwości w Wikibase (domyślnie w instancji wikibase WikiDARIAH). Na podstawie zawartości arkuszy w formacie XLSX tworzy właściwości oraz dodaje do nich deklaracje. W arkuszu P_list przetwarzanego pliku XLSX powinna znajdować się lista właściwości do dodania, w arkuszu P_statements powinna znajdować się lista dodatkowych deklaracji dla istniejących już właściwości. 
 
-W przyszłości skrypt będzie mógł obsługować także tzw. definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski' (w przykładowym pliku test.xlsx w folderze data znajdują się już arkusze Q_list i Q_statments, ale ich struktura może się jeszcze zmienić).  
+Skrypt obsługuje także tzw. strukturalne/definicyjne elementy (item) w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski'. W przykładowym pliku test.xlsx w folderze /data znajdują się arkusze Q_list i Q_statments.  
 
 Celem prac nad tym skryptem nie jest stworzenie skomplikowanego systemu do zarządzania Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
 
-Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) definicyjnych. 
+Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) strukturalnych/definicyjnych. 
 
 ### Opis działania
 
@@ -33,6 +33,8 @@ Aby import zadziałał poprawnie należy ustawić w pliku .env właściwe warto
  - WIKIDARIAH_PWD hasło bota (przed hasłem nazwa bota oddzielona znakiem %)
 
 Aby skrypt mógł wprowadzać i modyfikować dane użytkownik tworzący hasło bota w wikibase musi mieć nadane odpowiednie uprawnienia.
+
+### Obsługa właściwości (property)
 
 Plik XLSX, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **P_list**, w którym 
 znajdują się kolumny (obecnie 7):
@@ -49,7 +51,7 @@ Dwie ostatnie nie są wymagane. Jeżeli podano wartość 'Wiki_id' skrypt doda d
 
 Jeżeli podano wartość 'inverse_property', to właściwość będąca jej wartością automatycznie otrzyma  analogiczną właściwość 'odwrotną', np. jeżeli dodajemy właściwość 'followed by', dla której podaliśmy 'inverse_property' = 'follows' (P161) to skrypt utworzy także dla właścicowści P161 'follows' deklarację z właściwością 'inverse property' wskazującą na nowo dodaną właściwość 'followed by'.
 
-W przypadku importu do całkowicie nowej i pustej instancji Wikibase należałoby więc w pierwszej kolejności umieścić w arkuszu 'P_list' właściowości 'Wikidata ID', 'Wikidata URL', 'inverse property'.
+W przypadku importu do całkowicie nowej i pustej instancji Wikibase należałoby więc w pierwszej kolejności umieścić w arkuszu 'P_list' właściwości 'Wikidata ID', 'Wikidata URL', 'inverse property'.
 
 Przykład zawartości arkusza:
 ```
@@ -58,7 +60,7 @@ followed by         | następca              | wikibase-item | immediately follo
 follows             | poprzednik            | wikibase-item | immediately prior item in a series     | poprzedni element z serii         | P155  | followed by
 ```
 
-Istnienie arkuszy i kolumn o oczekiwanych nazwach jest weryfikowane przez skrypt.
+**Uwaga**: istnienie arkuszy i kolumn o oczekiwanych nazwach jest weryfikowane przez skrypt.
 
 Plik XLSX powinien też posiadać arkusz **P_statments**, w którym dla istniejących już właściwości P można przygotować listę dodatkowych deklaracji (statements).
 Arkusz powinien mieć trzy kolumny: 
@@ -85,6 +87,33 @@ W przypadku gdy podano ang. etykietę właściwości (property) lub elementu (it
 Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykryciu jej w wikibase
 przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
 W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już istniejące w wikibase dla danej właściwości deklaracje. 
+
+### Obsługa elementów (item) strukturalnych/definicyjnych
+
+Plik XLSX, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **Q_list**, wówczas
+podejmie próbę uzupełnienia Wikibase o elementy strukturalne/definicyjne. Obecnie oczekiwanych
+jest w arkuszy Q_list 5 kolumn: 'Label_en', 'Label_pl', 'Description_en', 'Description_pl', 'Wiki_id', ta ostatnia opcjonalnie, jeżeli chcemy dodać do elementu deklarację ze wskazaniem na odpowiadający mu element w serwisie wikidata.org. Opis kolumn:
+
+- Label_en - etykieta ang.
+- Label_pl - etykieta pl.
+- Description_en - opis ang.
+- Description_pl - opis pl.
+- Wiki_id - identyfiktor odpowiednika właściwości w wikidata.org (samo id w postaci Qxxx, skrypt sam utworzy adres url do referencji deklaracji)
+
+Pola etykiet i pola opisów nie powinny zawierać więcej niż 1000 znaków - tyle obecnie obsługuje instancja Wikibase projektu DARIAH. 
+
+Plik XLSX powinien też posiadać arkusz **Q_statments**, w którym dla istniejących już elementów Q można przygotować listę dodatkowych deklaracji (statements).
+Arkusz powinien mieć minimum trzy kolumny: 
+- 'Label_en' - element do której dodajemy deklarację (jego ang. etykieta lub numer Q), 
+- 'P' - właściwość, którą chcemy dopisać w deklaracji (jej ang. etykieta lub numer P) oraz 
+- 'Value' - wartość dopisywanej właściwości. W przypadku gdy typem wartości właściwości jest item lub property można wprowadzić ich angielskie etykiety lub identyfikatory Q lub P.
+
+Opcjonalnie można dodać do deklaracji kwalifikatory, służą do tego kolejne dwie kolumny:
+- 'Qualifier' - etykieta właściwości która ma być kwalifikatorem (lub identyfikator P)
+- 'Qualifier_value' - wartość kwalifikatora, w przypadku gdy ma to być np. element można podać jego ang. etykietę lub konkretny identyfikator Q, dla kwalifikatorów typu String to będzie po prostu tekst, który stanie się zawartością kwalifikatora.
+Deklaracja może zawierać wiele kwalifikatorów, jeżeli po wierszu z definicją deklaracji
+i pierwszego kwalifikatora będą dodane kolejne wiersze z pustymi kolumnami 'Label_en', 'P', 'Value' lecz z wypełnioną zawartością 'Qualifier', 'Qualifier_value' to skrypt przyjmie że są to kolejne 
+definicje kwalifikatorów do tej samej deklaracji.
 
 ### TODO
 
