@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     params = {
         'action': 'delete',
-        'title': f'Item:{delete_item}'
+        'title': f'Item:{delete_item}'  # jeżeli usuwany właściwość to 'Property:'
     }
 
     try:

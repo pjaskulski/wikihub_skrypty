@@ -2,12 +2,11 @@
 
 import os
 from pathlib import Path
-from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikibaseintegrator.wbi_functions import remove_claims
 from dotenv import load_dotenv
+from wikidariahtools import get_claim_id
 
 
 # adresy
@@ -18,27 +17,6 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 # brak ustawienia tych wartości w wikibase powoduje ostrzeżenia, ale skrypt działa
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
-
-def get_claim_id(qid: str, claim_property: str, claim_value: str) -> list:
-    """ zwraca identyfikator deklaracji """
-    claim_id = []
-
-    try:
-        wikibase_item = wbi_core.ItemEngine(item_id=qid)
-        property_list = wikibase_item.get_property_list()
-        if claim_property not in property_list:
-            return None
-
-        data = wikibase_item.get_entity()
-        if len(data['claims'][claim_property]) > 0:
-            for item in data['claims'][claim_property]:
-                if item['mainsnak']['datavalue']['value'] == claim_value:
-                    claim_id.append(item['id'])
-
-        return claim_id
-
-    except (MWApiError, KeyError, ValueError):
-        return None
 
 
 if __name__ == "__main__":
