@@ -8,9 +8,10 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 - example_search.py: przykład wyszukiwania
 - example_statement_add.py: dodawanie deklaracji do istniejącej właściwości
 - example_statement_edit.py: edycja istniejącej deklaracji w istniejącej właściwości
+- example_statement_delete.py: usuwanie deklaracji z elementu (item)
 - example_item_delete.py: usuwanie elementu
 - bn_marc_artykuly.py: przykład dodawania serii elementów (artykuły z bibliografii udostępnionej
-przez Bibliotekę Narodową)
+przez Bibliotekę Narodową), szybkość dodawana elementów na testowanej instancji wikibase - ok. 16-17 na minutę (1000/h).
 - wikidariahtools: funkcje pomocnicze 
 
 ## 2. property_import.py
