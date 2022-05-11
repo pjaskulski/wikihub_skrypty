@@ -256,7 +256,6 @@ if __name__ == '__main__':
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
     file_marc = Path('.').parent / 'data/bibs-artykul.marc'
 
-
     with open(file_marc, 'rb') as fh:
         # dodatkowe metody do klasy record z pymarc
         Record.czy_historia = czy_historia
@@ -288,6 +287,9 @@ if __name__ == '__main__':
 
             if rec.czy_historia():
                 historia += 1
+                if historia < 101:
+                    continue
+
                 label = rec.create_label()
 
                 # deklaracja, że to element testowy
@@ -318,12 +320,12 @@ if __name__ == '__main__':
                 wd_item.set_description('publikacja (artykuł)', lang='pl')
                 wd_item.set_description('publication (article)', lang='en')
 
-                new_id = wd_item.write(login_instance, bot_account=True, entity_type='item')
+                new_id = wd_item.write(login_instance, bot_account=True, entity_type='item', retry_after=20)
                 print(new_id)
                 #print(label)
 
                 # tylko 100 pierwszych z dziedziny historia
-                if historia > 100:
+                if historia > 200:
                     break
 
         end = time.time()

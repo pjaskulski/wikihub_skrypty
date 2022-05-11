@@ -207,6 +207,7 @@ class WDHSpreadsheet:
         for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
             basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
             s_item = WDHStatementProperty()
+            reference_property = reference_value = ''
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.statement_columns[col]].value
@@ -218,14 +219,23 @@ class WDHSpreadsheet:
                 elif key == 'value':
                     s_item.statement_value = col_value
                 elif key == 'reference_property':
-                    s_item.reference_property = col_value
+                    reference_property = col_value
                 elif key == 'reference_value':
-                    s_item.reference_value = col_value
+                    reference_value = col_value
+
+                if reference_property and reference_value:
+                    s_item.references[reference_property] = reference_value
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
             if s_item.label_en and s_item.statement_property and s_item.statement_value:
                 s_list.append(s_item)
+            # jeżeli nie ma wartości etykiety, właściwości i wartości deklaracji
+            # a są dane referencji to  dodaje referencje do ostatnio dodanej
+            # pozycji z listy
+            else:
+                if reference_property and reference_value:
+                    s_list[-1].references[reference_property] = reference_value
 
         return s_list
 
@@ -431,8 +441,11 @@ class WDHStatementProperty:
         self.label_en = label_en
         self.statement_property = statement_property
         self.statement_value = statement_value
-        self.reference_property = reference_property
-        self.reference_value = reference_value
+        #self.reference_property = reference_property
+        #self.reference_value = reference_value
+        self.references = {}
+        if reference_property and reference_value:
+            self.references[reference_property.strip()] = reference_value.strip()
 
     @property
     def label_en(self) -> str:
@@ -761,7 +774,7 @@ class WDHStatementItem:
             if has_statement(p_id, prop_id):
                 print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
 
-            st_data = create_statement_data(prop_id, p_value, '', '', self.qualifiers)
+            st_data = create_statement_data(prop_id, p_value, None, self.qualifiers)
             if st_data:
                 try:
                     data =[st_data]
@@ -969,16 +982,21 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
     return statement
 
 
-def create_references(ref_property: str, ref_value: str) ->list:
+def create_references(ref_dict: dict) ->list:
     """ Funkcja tworzy referencje
     """
-    statement = create_statement(ref_property, ref_value, is_ref=True, refs=None)
-    if statement:
-        new_references = [[ statement ]]
+    if ref_dict:
+        statements = []
+        for key, value in ref_dict.items():
+            statement = create_statement(key, value, is_ref=True, refs=None)
+            if statement:
+                statements.append(statement)
+        new_references = [ statements ]
     else:
         new_references = None
 
     return new_references
+
 
 def create_qualifiers(qlf_dict: dict) ->list:
     """ Funkcja tworzy kwalifikatory
@@ -995,7 +1013,7 @@ def create_qualifiers(qlf_dict: dict) ->list:
     return new_qualifiers
 
 
-def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str,
+def create_statement_data(prop: str, value: str, reference_dict: dict,
                                                 qualifier_dict: dict) -> Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
@@ -1011,8 +1029,8 @@ def create_statement_data(prop: str, value: str, ref_prop: str, ref_value: str,
     Funkcja tworzy dane deklaracji z opcjonalnymy referencjami
     """
     references = None
-    if ref_prop and ref_value:
-        references = create_references(ref_prop, ref_value)
+    if reference_dict:
+        references = create_references(reference_dict)
 
     qualifiers = None
     if qualifier_dict:
@@ -1056,7 +1074,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
 
     st_data = create_statement_data(s_item.statement_property, value,
-                                    s_item.reference_property, s_item.reference_value,
+                                    s_item.references,
                                     qualifier_dict=None)
     if st_data:
         try:
