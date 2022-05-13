@@ -92,6 +92,8 @@ Jeżeli podana w arkuszu 'P_list' właściwość już istnieje skrypt po wykry
 przechodzi w tryb aktualizacji i modyfikuje dane właściwości według zawartości kolumn w arkuszu (etykiety i opisy).
 W przypadku deklaracji w arkuszu 'P_statements' skrypt weryfikuje i pomija już istniejące w wikibase dla danej właściwości deklaracje. 
 
+Deklaracja właściwości może posiadać referencję złożoną z wielu właściwości ('blokową' referencję), jeżeli po wierszu z definicją deklaracji i pierwszej referencji będą dodane kolejne wiersze z pustymi kolumnami 'Label_en', 'P', 'Value' lecz z wypełnioną zawartością 'reference_property', 'reference_value' to skrypt przyjmie że są to kolejne elementy defiinicji tej samej referencji i utworzy taką 'blokową' referencję np. https://prunus-208.man.poznan.pl/wiki/Property:P193.
+
 ### Obsługa elementów (item) strukturalnych/definicyjnych
 
 Plik XLSX, z którym współpracuje skrypt powinien posiadać arkusz o nazwie **Q_list**, wówczas
