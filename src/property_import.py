@@ -940,7 +940,15 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                                          is_reference=is_ref, references=refs,
                                          is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'monolingualtext':
-            statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr,
+            # zakładając że wartość monolingualtext jest zapisana w formie:
+            # pl:To jest tekst w języku polskim, a jeżeli brak przedrostka z kodem
+            # języka to przyjmujemy 'en'
+            if value[2] == ':':
+                prop_lang = value[:2]
+                value = value[3:]
+            else:
+                prop_lang = 'en'
+            statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
                                                      is_reference=is_ref, references=refs,
                                                      is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'quantity':
@@ -1105,17 +1113,21 @@ def get_property_type(p_id: str) -> str:
     return data_type
 
 
-def has_statement(pid_to_check: str, claim_to_check: str):
+def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''):
     """
     Funkcja weryfikuje czy właściwość (property) lub element (item) ma już
-    taką deklarację (statement)
+    taką deklarację (statement), opcjonalnie - z podaną wartością
     """
     has_claim = False
     wb_prop = wbi_core.ItemEngine(item_id=pid_to_check)
     data_prop = wb_prop.get_json_representation()
     claims = data_prop['claims']
     if claim_to_check in claims:
-        has_claim = True
+        if not value_to_check:
+            has_claim = True
+        else:
+            if claims[claim_to_check] == value_to_check:
+                has_claim = True
 
     return has_claim
 
