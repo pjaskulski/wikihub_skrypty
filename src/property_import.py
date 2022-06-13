@@ -20,6 +20,9 @@ wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
+# globalne
+global_reference = {}
+
 
 # --- klasy ---
 class BasicProp:
@@ -283,6 +286,7 @@ class WDHSpreadsheet:
     def get_item_statement_list(self) -> list:
         """ zwraca listę obiektów deklaracji do dodania do elementów
         """
+
         s_list = []
         for row in self.i_statements.iter_rows(2, self.i_statements.max_row):
             basic_cols = ['Label_en', 'P', 'Value', 'Qualifier', 'Qualifier_value']
@@ -322,6 +326,18 @@ class WDHSpreadsheet:
                     s_list[-1].qualifiers[qualifier] = qualifier_value
 
         return s_list
+    
+    def get_global(self) -> dict:
+        """ get_global """
+        s_list = {}
+        for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
+            basic_cols = ['Sheet', 'reference_property', 'reference_value']
+            for col in basic_cols:
+                key = col.lower()
+                col_value = row[self.statement_columns[col]].value
+
+                if key == 'label_en':
+     
 
 
 class WDHProperty:
