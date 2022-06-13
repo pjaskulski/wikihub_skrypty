@@ -159,6 +159,12 @@ class WDHSpreadsheet:
                 t_datatype = 'wikibase-property'
             elif t_datatype == 'external identifier':
                 t_datatype = 'external-id'
+            elif value == 'URL':
+                value = 'url'
+            elif value == 'monolingual text':
+                value = 'monolingualtext'
+            elif value == 'geographic coordinates':
+                value = 'globe-coordinate'
 
         return t_datatype
 
@@ -217,7 +223,9 @@ class WDHSpreadsheet:
                 elif key == 'p':
                     s_item.statement_property = col_value
                 elif key == 'value':
-                    s_item.statement_value = col_value
+                    if not isinstance(col_value, str):
+                        col_value = str(col_value)
+                    s_item.statement_value = col_value                    
                 elif key == 'reference_property':
                     reference_property = col_value
                 elif key == 'reference_value':
@@ -371,6 +379,12 @@ class WDHProperty:
                 value = 'wikibase-property'
             elif value == 'external identifier':
                 value = 'external-id'
+            elif value == 'URL':
+                value = 'url'
+            elif value == 'monolingual text':
+                value = 'monolingualtext'
+            elif value == 'geographic coordinates':
+                value = 'globe-coordinate'
             self._datatype = value.strip()
         else:
             self._datatype = ''
@@ -956,6 +970,8 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                                               is_reference=is_ref, references=refs,
                                               is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'time':
+            # czas w formacie +1539-12-08T00:00:00Z/11, po slashu precyzja daty zgodnie
+            # ze standardami wikibase 11 - dzień, 9 - rok
             tmp = value.split("/")
             if len(tmp) == 2:
                 time_value = tmp[0]
@@ -967,10 +983,16 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
             else:
                 print(f'ERROR: invalid value for time type: {value}.')
         elif property_type == 'geo-shape':
+            # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda
             statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
                                               qualifiers=qlfs)
         elif property_type == 'globe-coordinate':
+            # oczekuje na zapis w formacie: 51.2,20.1 opcjonalnie jeszcze ,0.1
+            # czyli latitude, longitude (jako liczby dziesiętne), oraz precyzja, domyślnie 0.1
+            # domyślny glob = Earth, ale można zmienić na Marsa
+            # https://www.wikidata.org/wiki/Help:Data_type/pl#Globe_coordinate
+
             tmp = value.split(",")
             try:
                 latitude = float(tmp[0])
