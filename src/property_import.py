@@ -941,11 +941,11 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                                          is_qualifier=is_qlf, qualifiers=qlfs)
         elif property_type == 'monolingualtext':
             # zakładając że wartość monolingualtext jest zapisana w formie:
-            # pl:To jest tekst w języku polskim, a jeżeli brak przedrostka z kodem
+            # pl:"To jest tekst w języku polskim", a jeżeli brak przedrostka z kodem
             # języka to przyjmujemy 'en'
             if value[2] == ':':
                 prop_lang = value[:2]
-                value = value[3:]
+                value = value[4:-1] # bez cudzysłowów
             else:
                 prop_lang = 'en'
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
