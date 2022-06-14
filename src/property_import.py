@@ -327,6 +327,7 @@ class WDHSpreadsheet:
                 s_item.statement_value = statement_value
                 if qualifier and qualifier_value:
                     s_item.qualifiers[qualifier] = qualifier_value
+                s_item.sheet_name = self.sheets[3]
 
                 s_list.append(s_item)
             # jeżeli nie ma wartości etykiety, właściwości i wartości deklaracji
@@ -693,6 +694,8 @@ class WDHStatementItem:
         self.qualifiers = {}
         if qualifier and qualifier_value:
             self.qualifiers[qualifier.strip()] = qualifier_value.strip()
+        self.sheet_name = ''
+        self.references = {}
 
     @property
     def label_en(self) -> str:
@@ -774,6 +777,11 @@ class WDHStatementItem:
 
                 self.qualifiers = tmp
 
+            # jeżeli są globalne referencje
+            if self.sheet_name in GLOBAL_REFERENCE:
+                g_ref_property, g_ref_value = GLOBAL_REFERENCE[self.sheet_name]
+                self.references[g_ref_property] = g_ref_value
+
             # tu obsługa specyficznych typów właściwości: item/property wartość
             # wprowadzana jako deklaracją powinna być symbolem P lub Q
             prop_type = get_property_type(prop_id)
@@ -790,7 +798,7 @@ class WDHStatementItem:
             else:
                 p_value = self.statement_value
 
-            # tu podobna obsługa j.w. dla kwalifikatorów
+            # tu podobna obsługa j.w. ale tym razem dla dla kwalifikatorów
             tmp = {}
             for key, value in self.qualifiers.items():
                 qualifier_type = get_property_type(key)
@@ -811,10 +819,10 @@ class WDHStatementItem:
 
             self.qualifiers = tmp
 
-            if has_statement(p_id, prop_id):
+            if has_statement(p_id, prop_id):  # TODO - dodać też kontrolę wartości
                 print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
 
-            st_data = create_statement_data(prop_id, p_value, None, self.qualifiers)
+            st_data = create_statement_data(prop_id, p_value, self.references, self.qualifiers)
             if st_data:
                 try:
                     data =[st_data]
@@ -1009,7 +1017,7 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
             else:
                 print(f'ERROR: invalid value for time type: {value}.')
         elif property_type == 'geo-shape':
-            # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda
+            # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda?
             statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
                                               qualifiers=qlfs)
@@ -1038,8 +1046,10 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
     return statement
 
 
-def create_references(ref_dict: dict) ->list:
-    """ Funkcja tworzy referencje
+def create_references(ref_dict: dict, additional_ref_dict: dict = None) ->list:
+    """ Funkcja tworzy referencje z przekazanago słownika referencji, opcjonalnie
+        może zostać przekazany drugi słownik referencji np. globalnych wówczas
+        utworzny zostanie drugi blok referencji
     """
     if ref_dict:
         statements = []
@@ -1050,6 +1060,18 @@ def create_references(ref_dict: dict) ->list:
         new_references = [ statements ]
     else:
         new_references = None
+
+    if additional_ref_dict:
+        statements = []
+        for key, value in  additional_ref_dict.items():
+            statement = create_statement(key, value, is_ref=True, refs=None)
+            if statement:
+                statements.append(statement)
+        
+        if new_references:
+            new_references.append(statements)
+        else:
+            new_references = [ statements ]
 
     return new_references
 
@@ -1070,7 +1092,7 @@ def create_qualifiers(qlf_dict: dict) ->list:
 
 
 def create_statement_data(prop: str, value: str, reference_dict: dict,
-                                                qualifier_dict: dict) -> Union[
+                                                qualifier_dict: dict, add_ref_dict: dict = None) -> Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -1086,7 +1108,7 @@ def create_statement_data(prop: str, value: str, reference_dict: dict,
     """
     references = None
     if reference_dict:
-        references = create_references(reference_dict)
+        references = create_references(reference_dict, add_ref_dict)
 
     qualifiers = None
     if qualifier_dict:
@@ -1126,12 +1148,21 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     else:
         value = s_item.statement_value
 
-    if has_statement(p_id, prop_id):
+    if has_statement(p_id, prop_id): # TODO - dodać jeszcze kontrolę wartości
         return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
+
+    # jeżeli są globalne referencje
+    sheet_name = 'P_statements'
+    additional_references = None
+    if 'P_statements' in GLOBAL_REFERENCE:
+        g_ref_property, g_ref_value = GLOBAL_REFERENCE[sheet_name]
+        additional_references = {}
+        additional_references[g_ref_property] = g_ref_value
 
     st_data = create_statement_data(s_item.statement_property, value,
                                     s_item.references,
-                                    qualifier_dict=None)
+                                    qualifier_dict=None,
+                                    add_ref_dict=additional_references)
     if st_data:
         try:
             data =[st_data]
