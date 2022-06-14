@@ -754,6 +754,35 @@ class WDHStatementItem:
                 wd_item.write(login_instance, entity_type='item')
                 print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
 
+                # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości 
+                # 'stated as'
+                is_ok, prop_id = find_name_qid('stated as', 'property')
+                if not is_ok:
+                    print('ERROR:', 'brak właściwości -> stated as')
+                    return
+
+                # jeżeli są globalne referencje
+                if self.sheet_name in GLOBAL_REFERENCE:
+                    g_ref_property, g_ref_value = GLOBAL_REFERENCE[self.sheet_name]
+                    self.references[g_ref_property] = g_ref_value
+
+                lang_id = self.statement_property[1:]
+                p_value = f'{lang_id}:"{self.statement_value}"'
+                # if has_statement(p_id, prop_id):  # TODO - dodać też kontrolę wartości
+                #     print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
+
+                st_data = create_statement_data(prop_id, p_value, self.references,None)
+                if st_data:
+                    try:
+                        data =[st_data]
+                        wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                        wd_statement.write(login_instance, entity_type='item')
+                        print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {p_value}')
+                    except (MWApiError, KeyError, ValueError):
+                        print(f'ERROR, {p_id}: {prop_id} -> {p_value}')
+                else:
+                    print(f'INVALID DATA, {p_id}: {prop_id} -> {p_value}')
+
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
 
