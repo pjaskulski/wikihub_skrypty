@@ -179,6 +179,8 @@ class WDHSpreadsheet:
                 value = 'monolingualtext'
             elif value == 'geographic coordinates':
                 value = 'globe-coordinate'
+            elif value == 'point in time':
+                value = 'time'
 
         return t_datatype
 
@@ -412,6 +414,9 @@ class WDHProperty:
                 value = 'monolingualtext'
             elif value == 'geographic coordinates':
                 value = 'globe-coordinate'
+            elif value == 'point in time':
+                value = 'time'
+
             self._datatype = value.strip()
         else:
             self._datatype = ''
@@ -747,7 +752,9 @@ class WDHStatementItem:
             return
 
         # jeżeli to alias?
-        if self.statement_property in ('Apl', 'Aen'):
+        if self.statement_property in ('Apl', 'Aen', 'Ade', 'Aru', 'Aes', 'Afr', 'Alt', 'Alv', 'Aet', 
+                                         'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
+                                         'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
@@ -783,6 +790,19 @@ class WDHStatementItem:
                 else:
                     print(f'INVALID DATA, {p_id}: {prop_id} -> {p_value}')
 
+            except (MWApiError, KeyError, ValueError):
+                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+
+        # jeżeli to etykieta
+        elif self.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
+                                         'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
+                                         'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
+            try:
+                wd_item = wbi_core.ItemEngine(item_id=p_id)
+                wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
+                wd_item.write(login_instance, entity_type='item')
+                print(f'LABEL ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+            
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
 
