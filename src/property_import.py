@@ -20,8 +20,8 @@ wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
-# globalne
-global_reference = {}
+# słownik globalnych referencji dla arkuszy (z deklaracjami)
+GLOBAL_REFERENCE = {}
 
 
 # --- klasy ---
@@ -55,7 +55,7 @@ class WDHSpreadsheet:
     """
     def __init__(self, path: str):
         self.path = path
-        self.sheets = ['P_list', 'P_statements', 'Q_list', 'Q_statements']
+        self.sheets = ['P_list', 'P_statements', 'Q_list', 'Q_statements', 'Globals']
         self.p_list = None          # arkusz z listą właściwości
         self.p_statements = None    # arkusz z listą deklaracji dla właściwości
         self.workbook = None
@@ -65,6 +65,8 @@ class WDHSpreadsheet:
         self.i_statements = None    # arkusz z listą deklaracji dla elementów
         self.item_columns = []
         self.item_statement_columns = []
+        self.globals = None         # arkusz z globalnymi referencjami
+        self.globals_columns = []
 
     @property
     def path(self) -> str:
@@ -124,6 +126,15 @@ class WDHSpreadsheet:
         res, inf = self.test_columns(self.item_statement_columns, i_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[3]}. The expected columns ({inf}) are missing.')
+            sys.exit(1)
+
+        # arkusz globalnych referencji dla poszczególnych arkuszy
+        self.globals = self.workbook[self.sheets[4]]
+        self.globals_columns = self.get_col_names(self.globals)
+        globals_expected = ['Sheet', 'reference_property', 'reference_value']
+        res, inf = self.test_columns(self.globals_columns, globals_expected)
+        if not res:
+            print(f'ERROR. Worksheet {self.sheets[4]}. The expected columns ({inf}) are missing.')
             sys.exit(1)
 
 
@@ -326,18 +337,17 @@ class WDHSpreadsheet:
                     s_list[-1].qualifiers[qualifier] = qualifier_value
 
         return s_list
-    
+
     def get_global(self) -> dict:
         """ get_global """
-        s_list = {}
-        for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
-            basic_cols = ['Sheet', 'reference_property', 'reference_value']
-            for col in basic_cols:
-                key = col.lower()
-                col_value = row[self.statement_columns[col]].value
+        global GLOBAL_REFERENCE
 
-                if key == 'label_en':
-     
+        for row in self.globals.iter_rows(2, self.globals.max_row):
+            g_sheet = row[self.globals_columns['Sheet']].value
+            g_property = row[self.globals_columns['reference_property']].value
+            g_value = row[self.globals_columns['reference_value']].value
+            GLOBAL_REFERENCE[g_sheet] = (g_property, g_value)
+
 
 
 class WDHProperty:
@@ -1196,6 +1206,9 @@ if __name__ == "__main__":
 
     plik_xlsx = WDHSpreadsheet(filename)
     plik_xlsx.open()
+
+    # globalne referencje
+    plik_xlsx.get_global()
 
     # właściwośći
     dane = plik_xlsx.get_property_list()
