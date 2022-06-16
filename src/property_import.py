@@ -773,13 +773,20 @@ class WDHStatementItem:
                                        'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
-                wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
-                wd_item.write(login_instance, entity_type='item')
-                print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                lang = self.statement_property[1:]
+                aliasy = wd_item.get_aliases(lang=lang)
+                skip_alias = False
+                if self.statement_value in aliasy:
+                    print(f"SKIP: element: '{p_id}' już posiada alias: '{self.statement_value}' dla języka: {lang}.")
+                    skip_alias = True
+                else:
+                    wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
+                    wd_item.write(login_instance, entity_type='item')
+                    print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
 
                 # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
                 # 'stated as', ale tylko jeżeli są dla arkusza globalne referencje
-                if self.additional_references:
+                if not skip_alias and self.additional_references:
                     is_ok, prop_id = find_name_qid('stated as', 'property')
                     if not is_ok:
                         print('ERROR:', 'brak właściwości -> stated as')
@@ -821,7 +828,7 @@ class WDHStatementItem:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
                 wd_item.write(login_instance, entity_type='item')
-                print(f'LABEL ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                print(f'LABEL ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
             
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
@@ -886,20 +893,20 @@ class WDHStatementItem:
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
                 print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
-
-            st_data = create_statement_data(prop_id, p_value, self.references,
-                                            self.qualifiers, add_ref_dict=self.additional_references,
-                                            if_exists='APPEND')
-            if st_data:
-                try:
-                    data =[st_data]
-                    wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-                    wd_statement.write(login_instance, entity_type='item')
-                    print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
-                except (MWApiError, KeyError, ValueError):
-                    print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
             else:
-                print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
+                st_data = create_statement_data(prop_id, p_value, self.references,
+                                                self.qualifiers, add_ref_dict=self.additional_references,
+                                                if_exists='APPEND')
+                if st_data:
+                    try:
+                        data =[st_data]
+                        wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                        wd_statement.write(login_instance, entity_type='item')
+                        print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
+                    except (MWApiError, KeyError, ValueError):
+                        print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
+                else:
+                    print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
 
 
 # --- funkcje ---
@@ -1034,27 +1041,32 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
         if property_type == 'string':
             statement = wbi_datatype.String(value=value, prop_nr=property_nr,
                                             is_reference=is_ref, references=refs,
-                                            is_qualifier=is_qlf, qualifiers=qlfs)
+                                            is_qualifier=is_qlf, qualifiers=qlfs, 
+                                            if_exists=if_exists)
         elif property_type == 'wikibase-item':
             res, value_id = find_name_qid(value, 'item')
             if res:
                 statement = wbi_datatype.ItemID(value=value_id, prop_nr=property_nr,
                                                 is_reference=is_ref, references=refs,
-                                                is_qualifier=is_qlf, qualifiers=qlfs)
+                                                is_qualifier=is_qlf, qualifiers=qlfs, 
+                                                if_exists=if_exists)
         elif property_type == 'wikibase-property':
             res, value_id = find_name_qid(value, 'property')
             if res:
                 statement = wbi_datatype.Property(value=value_id, prop_nr=property_nr,
                                                   is_reference=is_ref, references=refs,
-                                                  is_qualifier=is_qlf, qualifiers=qlfs)
+                                                  is_qualifier=is_qlf, qualifiers=qlfs, 
+                                                  if_exists=if_exists)
         elif property_type == 'external-id':
             statement = wbi_datatype.ExternalID(value=value, prop_nr=property_nr,
                                                 is_reference=is_ref, references=refs,
-                                                is_qualifier=is_qlf, qualifiers=qlfs)
+                                                is_qualifier=is_qlf, qualifiers=qlfs, 
+                                                if_exists=if_exists)
         elif property_type == 'url':
             statement = wbi_datatype.Url(value=value, prop_nr=property_nr,
                                          is_reference=is_ref, references=refs,
-                                         is_qualifier=is_qlf, qualifiers=qlfs)
+                                         is_qualifier=is_qlf, qualifiers=qlfs, 
+                                         if_exists=if_exists)
         elif property_type == 'monolingualtext':
             # zakładając że wartość monolingualtext jest zapisana w formie:
             # pl:"To jest tekst w języku polskim", a jeżeli brak przedrostka z kodem
@@ -1066,11 +1078,13 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 prop_lang = 'en'
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
                                                      is_reference=is_ref, references=refs,
-                                                     is_qualifier=is_qlf, qualifiers=qlfs, if_exists='APPEND')
+                                                     is_qualifier=is_qlf, qualifiers=qlfs, 
+                                                     if_exists=if_exists)
         elif property_type == 'quantity':
             statement = wbi_datatype.Quantity(quantity=value, prop_nr=property_nr,
                                               is_reference=is_ref, references=refs,
-                                              is_qualifier=is_qlf, qualifiers=qlfs)
+                                              is_qualifier=is_qlf, qualifiers=qlfs, 
+                                              if_exists=if_exists)
         elif property_type == 'time':
             # czas w formacie +1539-12-08T00:00:00Z/11, po slashu precyzja daty zgodnie
             # ze standardami wikibase 11 - dzień, 9 - rok
@@ -1081,14 +1095,14 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 statement = wbi_datatype.Time(time_value, prop_nr=property_nr,
                                               precision=precision, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
-                                              qualifiers=qlfs)
+                                              qualifiers=qlfs, if_exists=if_exists)
             else:
                 print(f'ERROR: invalid value for time type: {value}.')
         elif property_type == 'geo-shape':
             # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda?
             statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
-                                              qualifiers=qlfs)
+                                              qualifiers=qlfs, if_exists=if_exists)
         elif property_type == 'globe-coordinate':
             # oczekuje na zapis w formacie: 51.2,20.1 opcjonalnie jeszcze ,0.1
             # czyli latitude, longitude (jako liczby dziesiętne), oraz precyzja, domyślnie 0.1
@@ -1109,7 +1123,7 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 statement = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
                                                          prop_nr=property_nr, is_reference=is_ref,
                                                          references=refs, is_qualifier=is_qlf,
-                                                         qualifiers=qlfs)
+                                                         qualifiers=qlfs, if_exists=if_exists)
 
     return statement
 
@@ -1271,8 +1285,26 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
         else:
             lista = claims[claim_to_check]
             for item in lista:
-                print(item['mainsnak']['datavalue']['value'], ' - ', value_to_check)
-                if claims[claim_to_check] == value_to_check:
+                value_json = item['mainsnak']['datavalue']['value']
+
+                if 'type' in item['mainsnak']['datavalue'] and item['mainsnak']['datavalue']['type'] == 'string':
+                    value = value_json
+                elif 'text' in value_json and 'language' in value_json:
+                    # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx 
+                    if '”' in value_to_check:
+                        value_to_check = value_to_check.replace('”', '"')
+                    value = f"{value_json['language']}:\"{value_json['text']}\""
+                elif 'entity-type' in value_json:
+                    value = value_json['id']
+                elif 'latitude' in value_json:
+                    value = f"{value_json['latitude']},{value_json['longitude']}"
+                elif 'time' in value_json:
+                    value = f"{value_json['time']}/{value_json['precision']}"
+                else:
+                    value = '???'
+                    print(item, ' - ', value_to_check)
+
+                if value == value_to_check:
                     has_claim = True
                     break
 
