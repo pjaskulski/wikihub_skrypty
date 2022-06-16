@@ -753,6 +753,10 @@ class WDHStatementItem:
     def statement_value(self, value: str):
         """ set statement_value """
         if value:
+            if isinstance(value, int):
+                value = str(value)
+            elif isinstance(value, float):
+                value = str(value)
             self._statement_value = value.strip()
         else:
             self._statement_value = ''
@@ -852,7 +856,7 @@ class WDHStatementItem:
                     tmp[qualifier_id] = value
 
                 self.qualifiers = tmp
-    
+
             # tu obsługa specyficznych typów właściwości: item/property wartość
             # wprowadzana jako deklaracją powinna być symbolem P lub Q
             prop_type = get_property_type(prop_id)
@@ -1285,6 +1289,7 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
         else:
             lista = claims[claim_to_check]
             for item in lista:
+                #print(item)
                 value_json = item['mainsnak']['datavalue']['value']
 
                 if 'type' in item['mainsnak']['datavalue'] and item['mainsnak']['datavalue']['type'] == 'string':
@@ -1300,8 +1305,12 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
                     value = f"{value_json['latitude']},{value_json['longitude']}"
                 elif 'time' in value_json:
                     value = f"{value_json['time']}/{value_json['precision']}"
+                elif 'amount' in value_json:
+                    value = value_json['amount']
+                    if value.startswith('+'):
+                        value = value[1:]
                 else:
-                    value = '???'
+                    value = '???' # jeszcze nie obsługiwany typ - do weryfikacji
                     print(item, ' - ', value_to_check)
 
                 if value == value_to_check:
