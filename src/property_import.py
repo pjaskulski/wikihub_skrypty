@@ -250,6 +250,14 @@ class WDHSpreadsheet:
                 if reference_property and reference_value:
                     s_item.references[reference_property] = reference_value
 
+            # nazwa arkusza z deklaracjami dla właściwości
+            s_item.sheet_name = self.sheets[1]
+
+            # jeżeli są globalne referencje
+            if s_item.sheet_name in GLOBAL_REFERENCE:
+                g_ref_property, g_ref_value = GLOBAL_REFERENCE[s_item.sheet_name]
+                s_item.additional_references[g_ref_property] = g_ref_value
+
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
             if s_item.label_en and s_item.statement_property and s_item.statement_value:
@@ -330,6 +338,11 @@ class WDHSpreadsheet:
                 if qualifier and qualifier_value:
                     s_item.qualifiers[qualifier] = qualifier_value
                 s_item.sheet_name = self.sheets[3]
+                
+                # jeżeli są globalne referencje
+                if s_item.sheet_name in GLOBAL_REFERENCE:
+                    g_ref_property, g_ref_value = GLOBAL_REFERENCE[s_item.sheet_name]
+                    s_item.additional_references[g_ref_property] = g_ref_value
 
                 s_list.append(s_item)
             # jeżeli nie ma wartości etykiety, właściwości i wartości deklaracji
@@ -492,6 +505,8 @@ class WDHStatementProperty:
         self.references = {}
         if reference_property and reference_value:
             self.references[reference_property.strip()] = reference_value.strip()
+        self.sheet_name = ''
+        self.additional_references = {}
 
     @property
     def label_en(self) -> str:
@@ -701,6 +716,7 @@ class WDHStatementItem:
             self.qualifiers[qualifier.strip()] = qualifier_value.strip()
         self.sheet_name = ''
         self.references = {}
+        self.additional_references = {}
 
     @property
     def label_en(self) -> str:
@@ -753,42 +769,46 @@ class WDHStatementItem:
 
         # jeżeli to alias?
         if self.statement_property in ('Apl', 'Aen', 'Ade', 'Aru', 'Aes', 'Afr', 'Alt', 'Alv', 'Aet', 
-                                         'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
-                                         'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
+                                       'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
+                                       'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
                 wd_item.write(login_instance, entity_type='item')
                 print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
 
-                # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości 
-                # 'stated as'
-                is_ok, prop_id = find_name_qid('stated as', 'property')
-                if not is_ok:
-                    print('ERROR:', 'brak właściwości -> stated as')
-                    return
+                # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
+                # 'stated as', ale tylko jeżeli są dla arkusza globalne referencje
+                if self.additional_references:
+                    is_ok, prop_id = find_name_qid('stated as', 'property')
+                    if not is_ok:
+                        print('ERROR:', 'brak właściwości -> stated as')
+                        return
 
-                # jeżeli są globalne referencje
-                if self.sheet_name in GLOBAL_REFERENCE:
-                    g_ref_property, g_ref_value = GLOBAL_REFERENCE[self.sheet_name]
-                    self.references[g_ref_property] = g_ref_value
+                    lang_id = self.statement_property[1:]
+                    p_value = f'{lang_id}:"{self.statement_value}"'
+                    
+                    # kontrola czy istnieje deklaracja o takiej wartości
+                    if has_statement(p_id, prop_id, value_to_check=p_value):
+                        print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
+                    else:
+                        # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
+                        st_data = create_statement_data(prop_id, p_value, self.references,
+                                                    None, add_ref_dict=self.additional_references,
+                                                    if_exists='APPEND')
+                        if st_data:
+                            try:
+                                data =[st_data]
+                                wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                                #wd_statement.init_data_load()
+                                #wd_statement.update(data)
+                                wd_statement.write(login_instance, entity_type='item')
 
-                lang_id = self.statement_property[1:]
-                p_value = f'{lang_id}:"{self.statement_value}"'
-                # if has_statement(p_id, prop_id):  # TODO - dodać też kontrolę wartości
-                #     print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
-
-                st_data = create_statement_data(prop_id, p_value, self.references,None)
-                if st_data:
-                    try:
-                        data =[st_data]
-                        wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-                        wd_statement.write(login_instance, entity_type='item')
-                        print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {p_value}')
-                    except (MWApiError, KeyError, ValueError):
-                        print(f'ERROR, {p_id}: {prop_id} -> {p_value}')
-                else:
-                    print(f'INVALID DATA, {p_id}: {prop_id} -> {p_value}')
+                                print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {p_value}')
+                            except (MWApiError, KeyError, ValueError):
+                                print(f'ERROR, {p_id}: {prop_id} -> {p_value}')
+                        else:
+                            print(f'INVALID DATA, {p_id}: {prop_id} -> {p_value}')
 
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
@@ -810,7 +830,7 @@ class WDHStatementItem:
         else:
             is_ok, prop_id = find_name_qid(self.statement_property, 'property')
             if not is_ok:
-                print('ERROR:', f'brak właściwości -> {self.statement_property}')
+                print('ERROR:', f'w instancji wikibase brak właściwości -> {self.statement_property}')
                 return
 
             if self.qualifiers:
@@ -819,18 +839,13 @@ class WDHStatementItem:
                 for q_key, value in self.qualifiers.items():
                     is_ok, qualifier_id = find_name_qid(q_key, 'property')
                     if not is_ok:
-                        print('ERROR:', f'brak właściwości -> {q_key}')
+                        print('ERROR:', f'w instancji wikibase brak właściwości -> {q_key}')
                         return
 
                     tmp[qualifier_id] = value
 
                 self.qualifiers = tmp
-
-            # jeżeli są globalne referencje
-            if self.sheet_name in GLOBAL_REFERENCE:
-                g_ref_property, g_ref_value = GLOBAL_REFERENCE[self.sheet_name]
-                self.references[g_ref_property] = g_ref_value
-
+    
             # tu obsługa specyficznych typów właściwości: item/property wartość
             # wprowadzana jako deklaracją powinna być symbolem P lub Q
             prop_type = get_property_type(prop_id)
@@ -867,11 +882,14 @@ class WDHStatementItem:
                 tmp[key] = q_value
 
             self.qualifiers = tmp
+            
+            # kontrola czy istnieje deklaracja o tej wartości
+            if has_statement(p_id, prop_id, value_to_check=p_value):
+                print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
 
-            if has_statement(p_id, prop_id):  # TODO - dodać też kontrolę wartości
-                print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}'.")
-
-            st_data = create_statement_data(prop_id, p_value, self.references, self.qualifiers)
+            st_data = create_statement_data(prop_id, p_value, self.references,
+                                            self.qualifiers, add_ref_dict=self.additional_references,
+                                            if_exists='APPEND')
             if st_data:
                 try:
                     data =[st_data]
@@ -993,7 +1011,8 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
 
 
 def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
-                                            is_qlf: bool = False, qlfs = None) ->Union[
+                                            is_qlf: bool = False, qlfs = None,
+                                            if_exists:str = 'REPLACE') ->Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -1047,7 +1066,7 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 prop_lang = 'en'
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
                                                      is_reference=is_ref, references=refs,
-                                                     is_qualifier=is_qlf, qualifiers=qlfs)
+                                                     is_qualifier=is_qlf, qualifiers=qlfs, if_exists='APPEND')
         elif property_type == 'quantity':
             statement = wbi_datatype.Quantity(quantity=value, prop_nr=property_nr,
                                               is_reference=is_ref, references=refs,
@@ -1095,15 +1114,16 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
     return statement
 
 
-def create_references(ref_dict: dict, additional_ref_dict: dict = None) ->list:
-    """ Funkcja tworzy referencje z przekazanago słownika referencji, opcjonalnie
+def create_references(ref_dict: dict, additional_ref_dict: dict = None, 
+                      if_exists: str = 'REPLACE') ->list:
+    """ Funkcja tworzy referencje z przekazanego słownika referencji, opcjonalnie
         może zostać przekazany drugi słownik referencji np. globalnych wówczas
         utworzny zostanie drugi blok referencji
     """
     if ref_dict:
         statements = []
         for key, value in ref_dict.items():
-            statement = create_statement(key, value, is_ref=True, refs=None)
+            statement = create_statement(key, value, is_ref=True, refs=None, if_exists=if_exists)
             if statement:
                 statements.append(statement)
         new_references = [ statements ]
@@ -1113,7 +1133,7 @@ def create_references(ref_dict: dict, additional_ref_dict: dict = None) ->list:
     if additional_ref_dict:
         statements = []
         for key, value in  additional_ref_dict.items():
-            statement = create_statement(key, value, is_ref=True, refs=None)
+            statement = create_statement(key, value, is_ref=True, refs=None, if_exists=if_exists)
             if statement:
                 statements.append(statement)
         
@@ -1125,12 +1145,12 @@ def create_references(ref_dict: dict, additional_ref_dict: dict = None) ->list:
     return new_references
 
 
-def create_qualifiers(qlf_dict: dict) ->list:
+def create_qualifiers(qlf_dict: dict, if_exists: str = 'REPLACE') ->list:
     """ Funkcja tworzy kwalifikatory
     """
     new_qualifiers = []
     for key, value in qlf_dict.items():
-        statement = create_statement(key, value, is_qlf=True, qlfs=None)
+        statement = create_statement(key, value, is_qlf=True, qlfs=None, if_exists=if_exists)
         if statement:
             new_qualifiers.append(statement)
 
@@ -1141,7 +1161,8 @@ def create_qualifiers(qlf_dict: dict) ->list:
 
 
 def create_statement_data(prop: str, value: str, reference_dict: dict,
-                                                qualifier_dict: dict, add_ref_dict: dict = None) -> Union[
+                          qualifier_dict: dict, add_ref_dict: dict = None,
+                          if_exists: str = 'REPLACE') -> Union[
                                                        wbi_datatype.String,
                                                        wbi_datatype.Property,
                                                        wbi_datatype.ItemID,
@@ -1155,8 +1176,9 @@ def create_statement_data(prop: str, value: str, reference_dict: dict,
     """
     Funkcja tworzy dane deklaracji z opcjonalnymy referencjami
     """
+    # referencje i kwalifikatory z domyślną wartością if_exists = 'REPLACE'
     references = None
-    if reference_dict:
+    if reference_dict or add_ref_dict:
         references = create_references(reference_dict, add_ref_dict)
 
     qualifiers = None
@@ -1164,7 +1186,7 @@ def create_statement_data(prop: str, value: str, reference_dict: dict,
         qualifiers = create_qualifiers(qualifier_dict)
 
     output_data = create_statement(prop, value, is_ref=False, refs=references,
-                                   is_qlf=False, qlfs=qualifiers)
+                                   is_qlf=False, qlfs=qualifiers, if_exists=if_exists)
 
     return output_data
 
@@ -1197,21 +1219,14 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     else:
         value = s_item.statement_value
 
-    if has_statement(p_id, prop_id): # TODO - dodać jeszcze kontrolę wartości
-        return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id}'.")
-
-    # jeżeli są globalne referencje
-    sheet_name = 'P_statements'
-    additional_references = None
-    if 'P_statements' in GLOBAL_REFERENCE:
-        g_ref_property, g_ref_value = GLOBAL_REFERENCE[sheet_name]
-        additional_references = {}
-        additional_references[g_ref_property] = g_ref_value
+    # kontrola czy istnieje deklaracja o takiej wartości
+    if has_statement(p_id, prop_id, value_to_check=value):
+        return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id} with value: {value}'.")
 
     st_data = create_statement_data(s_item.statement_property, value,
                                     s_item.references,
                                     qualifier_dict=None,
-                                    add_ref_dict=additional_references)
+                                    add_ref_dict=s_item.additional_references, if_exists='APPEND')
     if st_data:
         try:
             data =[st_data]
@@ -1254,8 +1269,12 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
         if not value_to_check:
             has_claim = True
         else:
-            if claims[claim_to_check] == value_to_check:
-                has_claim = True
+            lista = claims[claim_to_check]
+            for item in lista:
+                print(item['mainsnak']['datavalue']['value'], ' - ', value_to_check)
+                if claims[claim_to_check] == value_to_check:
+                    has_claim = True
+                    break
 
     return has_claim
 
