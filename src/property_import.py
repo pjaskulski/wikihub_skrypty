@@ -824,15 +824,20 @@ class WDHStatementItem:
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
 
-        # jeżeli to etykieta
+        # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
         elif self.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
                                          'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
                                          'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
-                wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
-                wd_item.write(login_instance, entity_type='item')
-                print(f'LABEL ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                lang = self.statement_property[1:]
+                current_label = wd_item.get_label(lang)
+                if self.statement_value == current_label:
+                    print(f"SKIP: element: '{p_id}' już posiada etykietę: '{self.statement_value}' dla języka: {lang}.")
+                else: 
+                    wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
+                    wd_item.write(login_instance, entity_type='item')
+                    print(f'LABEL ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
             
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
