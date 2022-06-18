@@ -659,47 +659,72 @@ class WDHItem:
         """ zapis elementu w instancji wikibase """
         search_item, search_id = element_search(self.label_en, 'item', 'en', 
                                                 description=self.description_en)
+        item_is_changed = False
         if search_item:
             print(f"Item: '{self.label_en}' already exists: {search_id}, update mode enabled.")
             wd_item = wbi_core.ItemEngine(item_id=search_id)
             mode = 'updated: '
+            # dla istniejących już elementów weryfikacja czy zmieniony opis
+            description_en = wd_item.get_description('en')
+            if description_en == self.description_en:
+                print(f'SKIP: element: {search_id} posiada już dla języka: "en" opis: {self.description_en}')
+            else:
+                wd_item.set_description(self.description_en, lang='en')
+                item_is_changed = True
+
+            description_pl = wd_item.get_description('pl')
+            if description_pl == self.description_pl:
+                print(f'SKIP: element: {search_id} posiada już dla języka: "pl" opis: {self.description_pl}')
+            else:
+                wd_item.set_description(self.description_pl, lang='pl')
+                item_is_changed = True
         else:
             wd_item = wbi_core.ItemEngine(new_item=True)
             mode = 'added: '
+            # tylko dla nowych jest ustawiania en i pl etykieta oraz opisy
+            wd_item.set_label(self.label_en, lang='en')
+            wd_item.set_description(self.description_en, lang='en')
+            wd_item.set_label(self.label_pl,lang='pl')
+            wd_item.set_description(self.description_pl, lang='pl')
 
-        wd_item.set_label(self.label_en, lang='en')
-        wd_item.set_description(self.description_en, lang='en')
-        wd_item.set_label(self.label_pl,lang='pl')
-        wd_item.set_description(self.description_pl, lang='pl')
         wiki_dane = None
         if self.wiki_id:
+            skip_wiki_id = False
             if (wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == ''):
                 wikibase_prop.get_wiki_properties()
-            url = f'https://www.wikidata.org/wiki/{self.wiki_id}'
-            references = [
-                [
-                wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
-                ]
-            ]
-            wiki_dane = wbi_datatype.ExternalID(value=self.wiki_id, prop_nr=wikibase_prop.wiki_id,
-                references=references)
-
-        # zapis w Wikibase
-        try:
-            new_id = wd_item.write(login_instance, entity_type='item')
             if search_item:
-                new_id = search_id
+                if has_statement(search_id, wikibase_prop.wiki_id, self.wiki_id):
+                    print(f'SKIP: element {search_id} posiada deklarację: {wikibase_prop.wiki_id} o wartości: {self.wiki_id}')
+                    skip_wiki_id = True
+            
+            if not skip_wiki_id:
+                item_is_changed = True
+                url = f'https://www.wikidata.org/wiki/{self.wiki_id}'
+                references = [
+                    [
+                    wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
+                    ]
+                ]
+                wiki_dane = wbi_datatype.ExternalID(value=self.wiki_id, prop_nr=wikibase_prop.wiki_id,
+                    references=references)
 
-            # deklaracje dla elementu
-            data = []
-            if wiki_dane:
-                data.append(wiki_dane)
-                wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
-                wd_statement.write(login_instance, entity_type='item')
+        # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
+        if not search_item or item_is_changed:
+            try:
+                new_id = wd_item.write(login_instance, entity_type='item')
+                if search_item:
+                    new_id = search_id
 
-            print(mode + new_id)
-        except (MWApiError, KeyError):
-            print('ERROR: ', self.label_en)
+                # deklaracje dla elementu
+                data = []
+                if wiki_dane:
+                    data.append(wiki_dane)
+                    wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
+                    wd_statement.write(login_instance, entity_type='item')
+
+                print(mode + new_id)
+            except (MWApiError, KeyError):
+                print('ERROR: ', self.label_en)
 
 
 class WDHStatementItem:
@@ -932,17 +957,28 @@ def add_property(p_dane: WDHProperty) -> tuple:
         print(f"Property: '{p_dane.label_en}' already exists: {search_id}, update mode.")
         wd_item = wbi_core.ItemEngine(item_id=search_id)
         mode = 'updated: '
+        description_en = wd_item.get_description('en')
+        if description_en == p_dane.description_en:
+            print(f'SKIP: właściwość: {search_id} posiada już opis w języku: "en" o wartości: {description_en}')
+        else:
+            wd_item.set_description(p_dane.description_en, lang='en')
+        
+        description_pl = wd_item.get_description('pl')
+        if description_pl == p_dane.description_pl:
+            print(f'SKIP: właściwość: {search_id} posiada już opis w języku: "pl" o wartości: {description_pl}')
+        else:
+            wd_item.set_description(p_dane.description_pl, lang='pl')
     else:
         wd_item = wbi_core.ItemEngine(new_item=True)
         mode = 'added: '
-
-    # etykiety i opisy
-    wd_item.set_label(p_dane.label_en, lang='en')
-    wd_item.set_description(p_dane.description_en, lang='en')
-    if p_dane.label_pl:
-        wd_item.set_label(p_dane.label_pl,lang='pl')
-    if p_dane.description_pl:
-        wd_item.set_description(p_dane.description_pl, lang='pl')
+        # etykiety i opisy
+        wd_item.set_label(p_dane.label_en, lang='en')
+        wd_item.set_description(p_dane.description_en, lang='en')
+        if p_dane.label_pl:
+            wd_item.set_label(p_dane.label_pl,lang='pl')
+        if p_dane.description_pl:
+            wd_item.set_description(p_dane.description_pl, lang='pl')
+    
 
     # Wikidata ID i Wikidata URL
     wiki_dane = None
@@ -950,23 +986,29 @@ def add_property(p_dane: WDHProperty) -> tuple:
         if wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == '':
             wikibase_prop.get_wiki_properties()
 
-        url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
-        references = [
-            [
-                wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
+        if search_property and has_statement(search_id, wikibase_prop.wiki_id, p_dane.wiki_id):
+            print(f'SKIP: właściwość: {search_id} posiada już deklarację: {wikibase_prop.wiki_id} o wartości: {p_dane.wiki_id}')
+        else:
+            url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
+            references = [
+                [
+                    wbi_datatype.Url(value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True)
+                ]
             ]
-        ]
-        wiki_dane = wbi_datatype.ExternalID(value=p_dane.wiki_id, prop_nr=wikibase_prop.wiki_id,
-            references=references)
+            wiki_dane = wbi_datatype.ExternalID(value=p_dane.wiki_id, prop_nr=wikibase_prop.wiki_id,
+                references=references)
 
     # odwrotność właściwości
     inverse_dane = None
     if p_dane.inverse_property:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
-        search_inverse, inv_pid = element_search(p_dane.inverse_property, 'property', 'en')
-        if search_inverse and wikibase_prop.inverse != '':
-            inverse_dane = wbi_datatype.Property(value=inv_pid, prop_nr=wikibase_prop.inverse)
+        if search_property and has_statement(search_id, wikibase_prop.inverse, p_dane.inverse_property):
+            print(f'SKIP: właściwość: {search_id} posiada już deklarację: {wikibase_prop.inverse} o wartości: {p_dane.inverse_property}')
+        else:
+            search_inverse, inv_pid = element_search(p_dane.inverse_property, 'property', 'en')
+            if search_inverse and wikibase_prop.inverse != '':
+                inverse_dane = wbi_datatype.Property(value=inv_pid, prop_nr=wikibase_prop.inverse)
 
     # typy danych dla property: 'string', 'wikibase-item', 'wikibase-property',
     # 'monolingualtext', 'external-id', 'quantity', 'time', 'geo-shape', 'url',
