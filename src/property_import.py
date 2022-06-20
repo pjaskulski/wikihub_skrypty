@@ -22,6 +22,8 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
+# parametr globalny czy zapisywać dane do wikibase
+WIKIBASE_WRITE = False
 
 
 # --- klasy ---
@@ -711,7 +713,11 @@ class WDHItem:
         # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
         if not search_item or item_is_changed:
             try:
-                new_id = wd_item.write(login_instance, entity_type='item')
+                if WIKIBASE_WRITE:
+                    new_id = wd_item.write(login_instance, entity_type='item')
+                else:
+                    new_id = 'TEST'
+
                 if search_item:
                     new_id = search_id
 
@@ -720,7 +726,8 @@ class WDHItem:
                 if wiki_dane:
                     data.append(wiki_dane)
                     wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
-                    wd_statement.write(login_instance, entity_type='item')
+                    if WIKIBASE_WRITE:
+                        wd_statement.write(login_instance, entity_type='item')
 
                 print(mode + new_id)
             except (MWApiError, KeyError):
@@ -810,7 +817,8 @@ class WDHStatementItem:
                     skip_alias = True
                 else:
                     wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
-                    wd_item.write(login_instance, entity_type='item')
+                    if WIKIBASE_WRITE:
+                        wd_item.write(login_instance, entity_type='item')
                     print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
 
                 # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
@@ -838,7 +846,8 @@ class WDHStatementItem:
                                 wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                                 #wd_statement.init_data_load()
                                 #wd_statement.update(data)
-                                wd_statement.write(login_instance, entity_type='item')
+                                if WIKIBASE_WRITE:
+                                    wd_statement.write(login_instance, entity_type='item')
 
                                 print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {p_value}')
                             except (MWApiError, KeyError, ValueError):
@@ -861,7 +870,8 @@ class WDHStatementItem:
                     print(f"SKIP: element: '{p_id}' już posiada etykietę: '{self.statement_value}' dla języka: {lang}.")
                 else: 
                     wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
-                    wd_item.write(login_instance, entity_type='item')
+                    if WIKIBASE_WRITE:
+                        wd_item.write(login_instance, entity_type='item')
                     print(f'LABEL ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
             
             except (MWApiError, KeyError, ValueError):
@@ -935,9 +945,10 @@ class WDHStatementItem:
                     try:
                         data =[st_data]
                         wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-                        wd_statement.write(login_instance, entity_type='item')
+                        if WIKIBASE_WRITE:
+                            wd_statement.write(login_instance, entity_type='item')
                         print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
-                    except (MWApiError, KeyError, ValueError):
+                    except (MWApiError, KeyError, Valsearch_propertyueError):
                         print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
                 else:
                     print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
@@ -1016,7 +1027,11 @@ def add_property(p_dane: WDHProperty) -> tuple:
     options = {'property_datatype':p_dane.datatype}
 
     try:
-        p_new_id = wd_item.write(login_instance, entity_type='property', **options)
+        if WIKIBASE_WRITE:
+            p_new_id = wd_item.write(login_instance, entity_type='property', **options)
+        else:
+            p_new_id = 'TEST'
+
         if search_property:
             p_new_id = search_id
 
@@ -1029,7 +1044,8 @@ def add_property(p_dane: WDHProperty) -> tuple:
 
         if len(data) > 0:
             wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
-            wd_statement.write(login_instance, entity_type='property')
+            if WIKIBASE_WRITE:
+                wd_statement.write(login_instance, entity_type='property')
 
         # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy
         # dodać odwrotność: nową właściwość jako jej inverse_property
@@ -1296,7 +1312,8 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         try:
             data =[st_data]
             wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-            wd_statement.write(login_instance, entity_type='property')
+            if WIKIBASE_WRITE:
+                wd_statement.write(login_instance, entity_type='property')
             add_result = (True, f'STATEMENT ADDED, {p_id}: {prop_id} -> {s_item.statement_value}')
         except (MWApiError, KeyError, ValueError):
             add_result = (False, f'ERROR, {p_id}: {prop_id} -> {s_item.statement_value}')
