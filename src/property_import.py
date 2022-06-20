@@ -22,8 +22,9 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
+
 # parametr globalny czy zapisywać dane do wikibase
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 # --- klasy ---
@@ -876,6 +877,25 @@ class WDHStatementItem:
             
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+        
+        # jeżeli to opis (description)
+        elif self.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
+                                         'Dnl', 'Dit', 'Dla', 'Dhu', 'Dpt', 'Duk', 'Dcs',
+                                         'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi'):
+            try:
+                wd_item = wbi_core.ItemEngine(item_id=p_id)
+                lang = self.statement_property[1:]
+                current_desc = wd_item.get_description(lang)
+                if self.statement_value == current_desc:
+                    print(f"SKIP: element: '{p_id}' już posiada opis: '{self.statement_value}' dla języka: {lang}.")
+                else:
+                    wd_item.set_description(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
+                    if WIKIBASE_WRITE:
+                        wd_item.write(login_instance, entity_type='item')
+                    print(f'DESCRIPTION ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+            
+            except (MWApiError, KeyError, ValueError):
+                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
 
         # jeżeli to deklaracja?
         else:
@@ -948,7 +968,7 @@ class WDHStatementItem:
                         if WIKIBASE_WRITE:
                             wd_statement.write(login_instance, entity_type='item')
                         print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
-                    except (MWApiError, KeyError, Valsearch_propertyueError):
+                    except (MWApiError, KeyError, ValueError):
                         print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
                 else:
                     print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
@@ -1278,47 +1298,109 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     Parametry:
         s_item - obiekt z deklaracją
     """
+    # weryfikacja czy istnieje właściwość do której chcemy dodać deklarację
     is_ok, p_id = find_name_qid(s_item.label_en, 'property')
     if not is_ok:
         return (False, p_id)
 
-    is_ok, prop_id = find_name_qid(s_item.statement_property, 'property')
-    if not is_ok:
-        return (False, prop_id)
-
-    # tu obsługa specyficznych typów właściwości: item/property wartość
-    # wprowadzana jako deklaracją powinna być symbolem P lub Q
-    prop_type = get_property_type(prop_id)
-    if prop_type == 'wikibase-item':
-        is_ok, value = find_name_qid(s_item.statement_value, 'item')
-        if not is_ok:
-            return (False, value)
-    elif prop_type == 'wikibase-property':
-        is_ok, value = find_name_qid(s_item.statement_value, 'property')
-        if not is_ok:
-            return (False, value)
-    else:
-        value = s_item.statement_value
-
-    # kontrola czy istnieje deklaracja o takiej wartości
-    if has_statement(p_id, prop_id, value_to_check=value):
-        return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id} with value: {value}'.")
-
-    st_data = create_statement_data(s_item.statement_property, value,
-                                    s_item.references,
-                                    qualifier_dict=None,
-                                    add_ref_dict=s_item.additional_references, if_exists='APPEND')
-    if st_data:
+     # jeżeli to alias?
+    if s_item.statement_property in ('Apl', 'Aen', 'Ade', 'Aru', 'Aes', 'Afr', 'Alt', 'Alv', 'Aet',
+                                    'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
+                                    'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
         try:
-            data =[st_data]
-            wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-            if WIKIBASE_WRITE:
-                wd_statement.write(login_instance, entity_type='property')
-            add_result = (True, f'STATEMENT ADDED, {p_id}: {prop_id} -> {s_item.statement_value}')
-        except (MWApiError, KeyError, ValueError):
-            add_result = (False, f'ERROR, {p_id}: {prop_id} -> {s_item.statement_value}')
+            wd_item = wbi_core.ItemEngine(item_id=p_id)
+            lang = s_item.statement_property[1:]
+            aliasy = wd_item.get_aliases(lang=lang)
+            if s_item.statement_value in aliasy:
+                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada alias: '{s_item.statement_value}' dla języka: {lang}.")
+            else:
+                wd_item.set_aliases(s_item.statement_value, lang=s_item.statement_property[-2:])
+                if WIKIBASE_WRITE:
+                    wd_item.write(login_instance, entity_type='property')
+                add_result = (True, f'ALIAS ADDED, właściwość: {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
+
+        except (MWApiError, KeyError, ValueError) as error_alias:
+            add_result = (False, f'ERROR: item {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_alias.error_msg}')
+     
+    # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
+    elif s_item.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
+                                       'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
+                                       'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
+        try:
+            wd_item = wbi_core.ItemEngine(item_id=p_id)
+            lang = s_item.statement_property[1:]
+            current_label = wd_item.get_label(lang)
+            if s_item.statement_value == current_label:
+                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada etykietę: '{s_item.statement_value}' dla języka: {lang}.")
+            else:
+                wd_item.set_label(s_item.statement_value, lang=s_item.statement_property[-2:], if_exists='REPLACE')
+                if WIKIBASE_WRITE:
+                    wd_item.write(login_instance, entity_type='property')
+                add_result = (True, f'LABEL ADDED/MODIFIED, właściwość {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
+        
+        except (MWApiError, KeyError, ValueError) as error_label:
+            add_result = (False, f'ERROR: item {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_label.error_msg}')
+    
+    # jeżeli to opis (description)
+    elif s_item.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
+                                       'Dnl', 'Dit', 'Dla', 'Dhu', 'Dpt', 'Duk', 'Dcs',
+                                       'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi'):
+        try:
+            wd_item = wbi_core.ItemEngine(item_id=p_id)
+            lang = s_item.statement_property[1:]
+            current_desc = wd_item.get_description(lang)
+            if s_item.statement_value == current_desc:
+                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada opis: '{s_item.statement_value}' dla języka: {lang}.")
+            else:
+                wd_item.set_description(s_item.statement_value, lang=s_item.statement_property[-2:], if_exists='REPLACE')
+                if WIKIBASE_WRITE:
+                    wd_item.write(login_instance, entity_type='property')
+                add_result = (True, f'DESCRIPTION ADDED/MODIFIED, item {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
+        
+        except (MWApiError, KeyError, ValueError) as error_desc:
+            add_result = (False, f'ERROR: właściwość {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_desc.error_msg}')
+
+    # jeżeli to deklaracja (statement) dla właściwości
     else:
-        add_result = (False, f'INVALID DATA, {p_id}: {prop_id} -> {s_item.statement_value}')
+
+        #weryfikacja czy istnieje właściwość która ma być deklaracją
+        is_ok, prop_id = find_name_qid(s_item.statement_property, 'property')
+        if not is_ok:
+            return (False, prop_id)
+
+        # tu obsługa specyficznych typów właściwości: item/property wartość
+        # wprowadzana jako deklaracją powinna być symbolem P lub Q
+        prop_type = get_property_type(prop_id)
+        if prop_type == 'wikibase-item':
+            is_ok, value = find_name_qid(s_item.statement_value, 'item')
+            if not is_ok:
+                return (False, value)
+        elif prop_type == 'wikibase-property':
+            is_ok, value = find_name_qid(s_item.statement_value, 'property')
+            if not is_ok:
+                return (False, value)
+        else:
+            value = s_item.statement_value
+
+        # kontrola czy istnieje deklaracja o takiej wartości
+        if has_statement(p_id, prop_id, value_to_check=value):
+            return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id} with value: {value}'.")
+
+        st_data = create_statement_data(s_item.statement_property, value,
+                                        s_item.references,
+                                        qualifier_dict=None,
+                                        add_ref_dict=s_item.additional_references, if_exists='APPEND')
+        if st_data:
+            try:
+                data =[st_data]
+                wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
+                if WIKIBASE_WRITE:
+                    wd_statement.write(login_instance, entity_type='property')
+                add_result = (True, f'STATEMENT ADDED, {p_id}: {prop_id} -> {s_item.statement_value}')
+            except (MWApiError, KeyError, ValueError) as error_statement:
+                add_result = (False, f'ERROR, {p_id}: {prop_id} -> {s_item.statement_value}, błąd: {error_statement.error_msg}')
+        else:
+            add_result = (False, f'INVALID DATA, {p_id}: {prop_id} -> {s_item.statement_value}')
 
     return add_result
 
