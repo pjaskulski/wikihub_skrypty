@@ -31,18 +31,23 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         element_search('subclass of', 'property', 'en')
         lub
         element_search('Maria Bielińska', 'item', 'en', description='historyk')
+        jeżeli podano argument strict=True to zwróci NOT FOUND także gdy znaleziona
+        zostanie częściowo dopasowana właściwość lub element
 
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
     description = ''
     aliases = False
+    strict = False
     if kwargs:
         if 'description' in kwargs:
             description = kwargs['description']
         elif 'aliases' in kwargs:
             aliases = kwargs['aliases']
+        elif 'strict' in kwargs:
+            strict = kwargs['strict']
 
-    results = search_entities(search_string, language=lang, 
+    results = search_entities(search_string, language=lang,
                               search_type=element_type, max_results=50)
 
     if len(results) == 0:
@@ -72,6 +77,9 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                                     return True, results[0]
                         else:
                             return True, results[0]
+            # jeżeli szukamy dokładnie takiej etykiety to zawsze ma zwracać NOT FOUND
+            elif strict:
+                return False, "NOT FOUND"
 
         else:
             print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')

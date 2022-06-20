@@ -24,7 +24,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 GLOBAL_REFERENCE = {}
 
 # parametr globalny czy zapisywać dane do wikibase
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 # --- klasy ---
@@ -670,14 +670,14 @@ class WDHItem:
             # dla istniejących już elementów weryfikacja czy zmieniony opis
             description_en = wd_item.get_description('en')
             if description_en == self.description_en:
-                print(f'SKIP: element: {search_id} posiada już dla języka: "en" opis: {self.description_en}')
+                print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "en" opis: {self.description_en}')
             else:
                 wd_item.set_description(self.description_en, lang='en')
                 item_is_changed = True
 
             description_pl = wd_item.get_description('pl')
             if description_pl == self.description_pl:
-                print(f'SKIP: element: {search_id} posiada już dla języka: "pl" opis: {self.description_pl}')
+                print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "pl" opis: {self.description_pl}')
             else:
                 wd_item.set_description(self.description_pl, lang='pl')
                 item_is_changed = True
@@ -697,7 +697,7 @@ class WDHItem:
                 wikibase_prop.get_wiki_properties()
             if search_item:
                 if has_statement(search_id, wikibase_prop.wiki_id, self.wiki_id):
-                    print(f'SKIP: element {search_id} posiada deklarację: {wikibase_prop.wiki_id} o wartości: {self.wiki_id}')
+                    print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {wikibase_prop.wiki_id} o wartości: {self.wiki_id}')
                     skip_wiki_id = True
             
             if not skip_wiki_id:
@@ -730,7 +730,7 @@ class WDHItem:
                     if WIKIBASE_WRITE:
                         wd_statement.write(login_instance, entity_type='item')
 
-                print(mode + new_id)
+                print(mode + new_id + f' ({self.label_en})')
             except (MWApiError, KeyError):
                 print('ERROR: ', self.label_en)
 
@@ -814,20 +814,20 @@ class WDHStatementItem:
                 aliasy = wd_item.get_aliases(lang=lang)
                 skip_alias = False
                 if self.statement_value in aliasy:
-                    print(f"SKIP: element: '{p_id}' już posiada alias: '{self.statement_value}' dla języka: {lang}.")
+                    print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada alias: '{self.statement_value}' dla języka: {lang}.")
                     skip_alias = True
                 else:
                     wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
                     if WIKIBASE_WRITE:
                         wd_item.write(login_instance, entity_type='item')
-                    print(f'ALIAS ADDED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                    print(f'ALIAS ADDED, item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
 
                 # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
                 # 'stated as', ale tylko jeżeli są dla arkusza globalne referencje
                 if not skip_alias and self.additional_references:
                     is_ok, prop_id = find_name_qid('stated as', 'property')
                     if not is_ok:
-                        print('ERROR:', 'brak właściwości -> stated as')
+                        print('ERROR:', 'w instancji Wikibase brak właściwości -> stated as')
                         return
 
                     lang_id = self.statement_property[1:]
@@ -835,7 +835,7 @@ class WDHStatementItem:
                     
                     # kontrola czy istnieje deklaracja o takiej wartości
                     if has_statement(p_id, prop_id, value_to_check=p_value):
-                        print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
+                        print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
                         st_data = create_statement_data(prop_id, p_value, self.references,
@@ -850,14 +850,14 @@ class WDHStatementItem:
                                 if WIKIBASE_WRITE:
                                     wd_statement.write(login_instance, entity_type='item')
 
-                                print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {p_value}')
+                                print(f'STATEMENT ADDED, {p_id} ({self.label_en}): {prop_id} -> {p_value}')
                             except (MWApiError, KeyError, ValueError):
-                                print(f'ERROR, {p_id}: {prop_id} -> {p_value}')
+                                print(f'ERROR, {p_id} ({self.label_en}): {prop_id} -> {p_value}')
                         else:
-                            print(f'INVALID DATA, {p_id}: {prop_id} -> {p_value}')
+                            print(f'INVALID DATA, {p_id} ({self.label_en}): {prop_id} -> {p_value}')
 
             except (MWApiError, KeyError, ValueError):
-                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+                print(f'ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
 
         # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
         elif self.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
@@ -868,15 +868,15 @@ class WDHStatementItem:
                 lang = self.statement_property[1:]
                 current_label = wd_item.get_label(lang)
                 if self.statement_value == current_label:
-                    print(f"SKIP: element: '{p_id}' już posiada etykietę: '{self.statement_value}' dla języka: {lang}.")
+                    print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada etykietę: '{self.statement_value}' dla języka: {lang}.")
                 else: 
                     wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
                     if WIKIBASE_WRITE:
                         wd_item.write(login_instance, entity_type='item')
-                    print(f'LABEL ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                    print(f'LABEL ADDED/MODIFIED, item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
             
             except (MWApiError, KeyError, ValueError):
-                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+                print(f'ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
         
         # jeżeli to opis (description)
         elif self.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
@@ -887,15 +887,15 @@ class WDHStatementItem:
                 lang = self.statement_property[1:]
                 current_desc = wd_item.get_description(lang)
                 if self.statement_value == current_desc:
-                    print(f"SKIP: element: '{p_id}' już posiada opis: '{self.statement_value}' dla języka: {lang}.")
+                    print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada opis: '{self.statement_value}' dla języka: {lang}.")
                 else:
                     wd_item.set_description(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
                     if WIKIBASE_WRITE:
                         wd_item.write(login_instance, entity_type='item')
-                    print(f'DESCRIPTION ADDED/MODIFIED, item {p_id}: {self.statement_property} -> {self.statement_value}')
+                    print(f'DESCRIPTION ADDED/MODIFIED, item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
             
             except (MWApiError, KeyError, ValueError):
-                print(f'ERROR: item {p_id} {self.statement_property} -> {self.statement_value}')
+                print(f'ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
 
         # jeżeli to deklaracja?
         else:
@@ -910,7 +910,7 @@ class WDHStatementItem:
                 for q_key, value in self.qualifiers.items():
                     is_ok, qualifier_id = find_name_qid(q_key, 'property')
                     if not is_ok:
-                        print('ERROR:', f'w instancji wikibase brak właściwości -> {q_key}')
+                        print('ERROR:', f'w instancji Wikibase brak właściwości -> {q_key}')
                         return
 
                     tmp[qualifier_id] = value
@@ -923,12 +923,12 @@ class WDHStatementItem:
             if prop_type == 'wikibase-item':
                 is_ok, p_value = find_name_qid(self.statement_value, 'item')
                 if not is_ok:
-                    print('ERROR:', f'brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}')
+                    print('ERROR:', f'w instancji Wikibase brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}')
                     return
             elif prop_type == 'wikibase-property':
                 is_ok, p_value = find_name_qid(self.statement_value, 'property')
                 if not is_ok:
-                    print('ERROR:', f'brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}')
+                    print('ERROR:', f'w instancji Wikibase brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}')
                     return
             else:
                 p_value = self.statement_value
@@ -940,7 +940,7 @@ class WDHStatementItem:
                 if qualifier_type == 'wikibase-item':
                     is_ok, q_value = find_name_qid(value, 'item')
                     if not is_ok:
-                        print('ERROR:', f'brak elementu -> {value} będącego wartością kwalifikatora -> {key}')
+                        print('ERROR:', f'w instancji Wikibase brak elementu -> {value} będącego wartością kwalifikatora -> {key}')
                         return
                 elif qualifier_type == 'wikibase-property':
                     is_ok, q_value = find_name_qid(value, 'property')
@@ -956,7 +956,7 @@ class WDHStatementItem:
             
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
-                print(f"SKIP: element: '{p_id}' już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
+                print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
             else:
                 st_data = create_statement_data(prop_id, p_value, self.references,
                                                 self.qualifiers, add_ref_dict=self.additional_references,
@@ -967,11 +967,11 @@ class WDHStatementItem:
                         wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                         if WIKIBASE_WRITE:
                             wd_statement.write(login_instance, entity_type='item')
-                        print(f'STATEMENT ADDED, {p_id}: {prop_id} -> {self.statement_value}')
+                        print(f'STATEMENT ADDED, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value}')
                     except (MWApiError, KeyError, ValueError):
-                        print(f'ERROR, {p_id}: {prop_id} -> {self.statement_value}')
+                        print(f'ERROR, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value}')
                 else:
-                    print(f'INVALID DATA, {p_id}: {prop_id} -> {self.statement_value}')
+                    print(f'INVALID DATA, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value}')
 
 
 # --- funkcje ---
@@ -990,16 +990,17 @@ def add_property(p_dane: WDHProperty) -> tuple:
         mode = 'updated: '
         description_en = wd_item.get_description('en')
         if description_en == p_dane.description_en:
-            print(f'SKIP: właściwość: {search_id} posiada już opis w języku: "en" o wartości: {description_en}')
+            print(f'SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już opis w języku: "en" o wartości: {description_en}')
         else:
             wd_item.set_description(p_dane.description_en, lang='en')
         
         description_pl = wd_item.get_description('pl')
         if description_pl == p_dane.description_pl:
-            print(f'SKIP: właściwość: {search_id} posiada już opis w języku: "pl" o wartości: {description_pl}')
+            print(f'SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już opis w języku: "pl" o wartości: {description_pl}')
         else:
             wd_item.set_description(p_dane.description_pl, lang='pl')
     else:
+        print('New property')
         wd_item = wbi_core.ItemEngine(new_item=True)
         mode = 'added: '
         # etykiety i opisy
@@ -1010,7 +1011,6 @@ def add_property(p_dane: WDHProperty) -> tuple:
         if p_dane.description_pl:
             wd_item.set_description(p_dane.description_pl, lang='pl')
     
-
     # Wikidata ID i Wikidata URL
     wiki_dane = None
     if p_dane.wiki_id:
@@ -1018,7 +1018,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
             wikibase_prop.get_wiki_properties()
 
         if search_property and has_statement(search_id, wikibase_prop.wiki_id, p_dane.wiki_id):
-            print(f'SKIP: właściwość: {search_id} posiada już deklarację: {wikibase_prop.wiki_id} o wartości: {p_dane.wiki_id}')
+            print(f'SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już deklarację: {wikibase_prop.wiki_id} o wartości: {p_dane.wiki_id}')
         else:
             url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
             references = [
@@ -1035,7 +1035,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
         if wikibase_prop.inverse == '':
             wikibase_prop.get_wiki_properties()
         if search_property and has_statement(search_id, wikibase_prop.inverse, p_dane.inverse_property):
-            print(f'SKIP: właściwość: {search_id} posiada już deklarację: {wikibase_prop.inverse} o wartości: {p_dane.inverse_property}')
+            print(f'SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już deklarację: {wikibase_prop.inverse} o wartości: {p_dane.inverse_property}')
         else:
             search_inverse, inv_pid = element_search(p_dane.inverse_property, 'property', 'en')
             if search_inverse and wikibase_prop.inverse != '':
@@ -1063,30 +1063,31 @@ def add_property(p_dane: WDHProperty) -> tuple:
             data.append(inverse_dane)
 
         if len(data) > 0:
-            wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
             if WIKIBASE_WRITE:
+                wd_statement = wbi_core.ItemEngine(item_id=p_new_id, data=data, debug=False)
                 wd_statement.write(login_instance, entity_type='property')
 
         # jeżeli dodano właściwość inverse_property do dla docelowej właściwości należy
         # dodać odwrotność: nową właściwość jako jej inverse_property
         if inverse_dane:
-            inv_statement = WDHStatementProperty(inv_pid, wikibase_prop.inverse, p_new_id)
-            add_res, add_info = add_property_statement(inv_statement)
-            if not add_res:
-                print(f'{add_info}')
+            if WIKIBASE_WRITE:
+                inv_statement = WDHStatementProperty(inv_pid, wikibase_prop.inverse, p_new_id)
+                add_res, add_info = add_property_statement(inv_statement)
+                if not add_res:
+                    print(f'{add_info}')
 
-        add_result = (True, mode + p_new_id)
+        add_result = (True, mode + ' qid:' + p_new_id + f' ({p_dane.label_en})')
 
-    except (MWApiError, KeyError):
-        add_result = (False, 'ERROR')
+    except (MWApiError, KeyError) as error_property:
+        add_result = (False, f'ERROR: {error_property.error_msg}')
 
     return add_result
 
 
-def find_name_qid(name: str, elem_type: str) -> tuple:
+def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości/elementu
        jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang) równej argumentowi
-       i zwraca jej id
+       (jeżeli strict=True to dokładnie równej) i zwraca jej id
     """
     output = (True, name)               # zakładamy, że w name jest id (np. P47)
                                         # ale jeżeli nie, to szukamy w wikibase
@@ -1097,7 +1098,7 @@ def find_name_qid(name: str, elem_type: str) -> tuple:
 
     match = re.search(pattern, name)
     if not match:
-        output = element_search(name, elem_type, 'en')
+        output = element_search(name, elem_type, 'en', strict=strict)
         if not output[0]:
             output =  (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
 
@@ -1299,7 +1300,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         s_item - obiekt z deklaracją
     """
     # weryfikacja czy istnieje właściwość do której chcemy dodać deklarację
-    is_ok, p_id = find_name_qid(s_item.label_en, 'property')
+    is_ok, p_id = find_name_qid(s_item.label_en, 'property', strict=True)
     if not is_ok:
         return (False, p_id)
 
@@ -1312,15 +1313,15 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
             lang = s_item.statement_property[1:]
             aliasy = wd_item.get_aliases(lang=lang)
             if s_item.statement_value in aliasy:
-                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada alias: '{s_item.statement_value}' dla języka: {lang}.")
+                add_result = (False, f"SKIP: właściwość: '{p_id} ({s_item.label_en})' już posiada alias: '{s_item.statement_value}' dla języka: {lang}.")
             else:
                 wd_item.set_aliases(s_item.statement_value, lang=s_item.statement_property[-2:])
                 if WIKIBASE_WRITE:
                     wd_item.write(login_instance, entity_type='property')
-                add_result = (True, f'ALIAS ADDED, właściwość: {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
+                add_result = (True, f'ALIAS ADDED, właściwość: {p_id} ({s_item.label_en}): {s_item.statement_property} -> {s_item.statement_value}')
 
         except (MWApiError, KeyError, ValueError) as error_alias:
-            add_result = (False, f'ERROR: item {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_alias.error_msg}')
+            add_result = (False, f'ERROR: item {p_id} ({s_item.label_en}) {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_alias.error_msg}')
      
     # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
     elif s_item.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
@@ -1331,15 +1332,15 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
             lang = s_item.statement_property[1:]
             current_label = wd_item.get_label(lang)
             if s_item.statement_value == current_label:
-                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada etykietę: '{s_item.statement_value}' dla języka: {lang}.")
+                add_result = (False, f"SKIP: właściwość: '{p_id} ({s_item.label_en})' już posiada etykietę: '{s_item.statement_value}' dla języka: {lang}.")
             else:
                 wd_item.set_label(s_item.statement_value, lang=s_item.statement_property[-2:], if_exists='REPLACE')
                 if WIKIBASE_WRITE:
                     wd_item.write(login_instance, entity_type='property')
-                add_result = (True, f'LABEL ADDED/MODIFIED, właściwość {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
+                add_result = (True, f'LABEL ADDED/MODIFIED, właściwość {p_id} ({s_item.label_en}): {s_item.statement_property} -> {s_item.statement_value}')
         
         except (MWApiError, KeyError, ValueError) as error_label:
-            add_result = (False, f'ERROR: item {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_label.error_msg}')
+            add_result = (False, f'ERROR: item {p_id} ({s_item.label_en}) {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_label.error_msg}')
     
     # jeżeli to opis (description)
     elif s_item.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
@@ -1350,7 +1351,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
             lang = s_item.statement_property[1:]
             current_desc = wd_item.get_description(lang)
             if s_item.statement_value == current_desc:
-                add_result = (False, f"SKIP: właściwość: '{p_id}' już posiada opis: '{s_item.statement_value}' dla języka: {lang}.")
+                add_result = (False, f"SKIP: właściwość: '{p_id}' ({s_item.label_en}) już posiada opis: '{s_item.statement_value}' dla języka: {lang}.")
             else:
                 wd_item.set_description(s_item.statement_value, lang=s_item.statement_property[-2:], if_exists='REPLACE')
                 if WIKIBASE_WRITE:
@@ -1358,13 +1359,13 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
                 add_result = (True, f'DESCRIPTION ADDED/MODIFIED, item {p_id}: {s_item.statement_property} -> {s_item.statement_value}')
         
         except (MWApiError, KeyError, ValueError) as error_desc:
-            add_result = (False, f'ERROR: właściwość {p_id} {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_desc.error_msg}')
+            add_result = (False, f'ERROR: właściwość {p_id} ({s_item.label_en}) {s_item.statement_property} -> {s_item.statement_value}, błąd: {error_desc.error_msg}')
 
     # jeżeli to deklaracja (statement) dla właściwości
     else:
 
         #weryfikacja czy istnieje właściwość która ma być deklaracją
-        is_ok, prop_id = find_name_qid(s_item.statement_property, 'property')
+        is_ok, prop_id = find_name_qid(s_item.statement_property, 'property', strict=True)
         if not is_ok:
             return (False, prop_id)
 
@@ -1376,7 +1377,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
             if not is_ok:
                 return (False, value)
         elif prop_type == 'wikibase-property':
-            is_ok, value = find_name_qid(s_item.statement_value, 'property')
+            is_ok, value = find_name_qid(s_item.statement_value, 'property', strict=True)
             if not is_ok:
                 return (False, value)
         else:
@@ -1384,7 +1385,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
 
         # kontrola czy istnieje deklaracja o takiej wartości
         if has_statement(p_id, prop_id, value_to_check=value):
-            return (False, f"SKIP: property: '{p_id}' already has a statement: '{prop_id} with value: {value}'.")
+            return (False, f"SKIP: właściwość: '{p_id}' ({s_item.label_en}) already has a statement: '{prop_id} with value: {value}'.")
 
         st_data = create_statement_data(s_item.statement_property, value,
                                         s_item.references,
@@ -1393,8 +1394,8 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         if st_data:
             try:
                 data =[st_data]
-                wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                 if WIKIBASE_WRITE:
+                    wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
                     wd_statement.write(login_instance, entity_type='property')
                 add_result = (True, f'STATEMENT ADDED, {p_id}: {prop_id} -> {s_item.statement_value}')
             except (MWApiError, KeyError, ValueError) as error_statement:
@@ -1499,22 +1500,25 @@ if __name__ == "__main__":
     # właściwośći
     dane = plik_xlsx.get_property_list()
     for wb_property in dane:
+        print(f"PROPERTY: {wb_property.label_en}")
         result, info = add_property(wb_property)
-        if result:
-            print(f'Property {info}')
+        print(result, f'Property {info}')
 
     # dodatkowe deklaracje dla właściwości
     dane = plik_xlsx.get_statement_list()
     for stm in dane:
+        print(f"PROPERTY: {stm.label_en}, STATEMENT: {stm.statement_property}")
         result, info = add_property_statement(stm)
-        print(f'{info}')
+        print(result, f'{info}')
 
     # elementy 'strukturalne' ('definicyjne')
     dane = plik_xlsx.get_item_list()
     for wb_item in dane:
+        print(f"ITEM: {wb_item.label_en}")
         wb_item.write_to_wikibase()
 
     # dodatkowe deklaracje dla elementów strukturalnych/definicyjnych
     dane = plik_xlsx.get_item_statement_list()
     for stm in dane:
+        print(f"ITEM: {stm.label_en}, STATEMENT: {stm.statement_property}")
         stm.write_to_wikibase()
