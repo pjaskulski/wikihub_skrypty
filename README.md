@@ -7,6 +7,7 @@ Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancj
 - example_property.add.py: dodawanie nowej właściwości
 - example_search.py: przykład wyszukiwania
 - example_statement_add.py: dodawanie deklaracji do istniejącej właściwości
+- example_statement_add_value.py: dodawanie kolejnej wartości do istniejącej deklaracji
 - example_statement_edit.py: edycja istniejącej deklaracji w istniejącej właściwości
 - example_statement_delete.py: usuwanie deklaracji z elementu (item)
 - example_item_delete.py: usuwanie elementu
