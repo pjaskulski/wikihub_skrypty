@@ -660,8 +660,15 @@ class WDHItem:
 
     def write_to_wikibase(self):
         """ zapis elementu w instancji wikibase """
-        search_item, search_id = element_search(self.label_en, 'item', 'en', 
-                                                description=self.description_en)
+        # jeżeli jest etykieta 'en'
+        if self.label_en:
+            search_item, search_id = element_search(self.label_en, 'item', 'en',
+                                                    description=self.description_en)
+        # jeżeli brak etykiety 'en' ale jest 'pl'
+        elif self.label_pl:
+            search_item, search_id = element_search(self.label_pl, 'item', 'pl',
+                                                    description=self.description_pl)
+
         item_is_changed = False
         if search_item:
             print(f"Item: '{self.label_en}' already exists: {search_id}, update mode enabled.")
@@ -726,8 +733,8 @@ class WDHItem:
                 data = []
                 if wiki_dane:
                     data.append(wiki_dane)
-                    wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
                     if WIKIBASE_WRITE:
+                        wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
                         wd_statement.write(login_instance, entity_type='item')
 
                 print(mode + new_id + f' ({self.label_en})')
