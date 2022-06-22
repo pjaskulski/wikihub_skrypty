@@ -24,7 +24,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 GLOBAL_REFERENCE = {}
 
 # parametr globalny czy zapisywać dane do wikibase
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 # --- klasy ---
@@ -1160,15 +1160,23 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
         elif property_type == 'url':
             statement = wbi_datatype.Url(value=value, prop_nr=property_nr,
                                          is_reference=is_ref, references=refs,
-                                         is_qualifier=is_qlf, qualifiers=qlfs, 
+                                         is_qualifier=is_qlf, qualifiers=qlfs,
                                          if_exists=if_exists)
         elif property_type == 'monolingualtext':
             # zakładając że wartość monolingualtext jest zapisana w formie:
             # pl:"To jest tekst w języku polskim", a jeżeli brak przedrostka z kodem
             # języka to przyjmujemy 'en'
             if value[2] == ':':
-                prop_lang = value[:2]
-                value = value[4:-1] # bez cudzysłowów
+                # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
+                if '”' in value:
+                    value = value.replace('”', '"')
+                prop_lang = value[:2] # zakładamy na razie 2 znakowe kody jęzków
+                if value.startswith(f'{prop_lang}:"'):
+                    value = value[4:-1] # bez cudzysłowów
+                elif value.startswith(f'{prop_lang}: "'):
+                    value = value[5:-1] # bez cudzysłowów
+                else:
+                    print(f'ERROR: błędna zawartość dla wartości typu monoligualtext ({prop}).')
             else:
                 prop_lang = 'en'
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
@@ -1449,9 +1457,12 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
                 if 'type' in item['mainsnak']['datavalue'] and item['mainsnak']['datavalue']['type'] == 'string':
                     value = value_json
                 elif 'text' in value_json and 'language' in value_json:
-                    # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx 
+                    # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
                     if '”' in value_to_check:
                         value_to_check = value_to_check.replace('”', '"')
+                    # jeżeli zbędna spacja w wartości monoligualtext
+                    if value_to_check[2] == ':' and ': "' in value_to_check:
+                        value_to_check = value_to_check.replace(': "', ':"')
                     value = f"{value_json['language']}:\"{value_json['text']}\""
                 elif 'entity-type' in value_json:
                     value = value_json['id']
