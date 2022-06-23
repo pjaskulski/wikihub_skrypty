@@ -22,9 +22,12 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
+# słowniki dodawanych/modyfikowanych właściwości i elementów
+GLOBAL_PROPERTY = {}
+GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 # --- klasy ---
@@ -293,9 +296,9 @@ class WDHSpreadsheet:
                 elif key == 'label_pl':
                     i_item.label_pl = col_value
 
-            # tylko jeżeli etykieta i opis w języku angielskim oraz polskim są wypełnione
-            # dane właściwości są dodawane do listy
-            if i_item.label_en and i_item.description_en and i_item.description_pl and i_item.label_pl:
+            # tylko jeżeli etykieta i opis w języku angielskim lub etykiety angielska i polska
+            # są wypełnione dane właściwości są dodawane do listy
+            if (i_item.label_en and i_item.description_en) or (i_item.label_en and i_item.label_pl):
                 extend_cols = ['Wiki_id']
                 for col in extend_cols:
                     key = col.lower()
@@ -675,27 +678,31 @@ class WDHItem:
             wd_item = wbi_core.ItemEngine(item_id=search_id)
             mode = 'updated: '
             # dla istniejących już elementów weryfikacja czy zmieniony opis
-            description_en = wd_item.get_description('en')
-            if description_en == self.description_en:
-                print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "en" opis: {self.description_en}')
-            else:
-                wd_item.set_description(self.description_en, lang='en')
-                item_is_changed = True
+            if self.description_en:
+                description_en = wd_item.get_description('en')
+                if description_en == self.description_en:
+                    print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "en" opis: {self.description_en}')
+                else:
+                    wd_item.set_description(self.description_en, lang='en')
+                    item_is_changed = True
 
-            description_pl = wd_item.get_description('pl')
-            if description_pl == self.description_pl:
-                print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "pl" opis: {self.description_pl}')
-            else:
-                wd_item.set_description(self.description_pl, lang='pl')
-                item_is_changed = True
+            if self.description_pl:
+                description_pl = wd_item.get_description('pl')
+                if description_pl == self.description_pl:
+                    print(f'SKIP: element: {search_id} ({self.label_en}) posiada już dla języka: "pl" opis: {self.description_pl}')
+                else:
+                    wd_item.set_description(self.description_pl, lang='pl')
+                    item_is_changed = True
         else:
             wd_item = wbi_core.ItemEngine(new_item=True)
             mode = 'added: '
             # tylko dla nowych jest ustawiania en i pl etykieta oraz opisy
             wd_item.set_label(self.label_en, lang='en')
-            wd_item.set_description(self.description_en, lang='en')
+            if self.description_en:
+                wd_item.set_description(self.description_en, lang='en')
             wd_item.set_label(self.label_pl,lang='pl')
-            wd_item.set_description(self.description_pl, lang='pl')
+            if self.description_pl:
+                wd_item.set_description(self.description_pl, lang='pl')
 
         wiki_dane = None
         if self.wiki_id:
@@ -729,6 +736,12 @@ class WDHItem:
                 if search_item:
                     new_id = search_id
 
+                # zapis id nowego/modyfikowaneg item
+                if self.label_en:
+                    GLOBAL_ITEM[self.label_en] = new_id
+                else:
+                    GLOBAL_ITEM[self.label_pl] = new_id
+
                 # deklaracje dla elementu
                 data = []
                 if wiki_dane:
@@ -740,6 +753,12 @@ class WDHItem:
                 print(mode + new_id + f' ({self.label_en})')
             except (MWApiError, KeyError):
                 print('ERROR: ', self.label_en)
+        # jeżeli nie nowy element i nie ma zmian do zapisu
+        else:
+            if self.label_en:
+                GLOBAL_ITEM[self.label_en] = search_id
+            else:
+                GLOBAL_ITEM[self.label_pl] = search_id
 
 
 class WDHStatementItem:
@@ -960,6 +979,11 @@ class WDHStatementItem:
                 tmp[key] = q_value
 
             self.qualifiers = tmp
+
+            # jeżeli właściwość deklaracji jest zewnętrznym identyfiktorem to nie dodajemy referencji
+            # z globalnych referencji
+            if prop_type == 'external-id':
+                self.additional_references = None
             
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
@@ -1061,6 +1085,9 @@ def add_property(p_dane: WDHProperty) -> tuple:
 
         if search_property:
             p_new_id = search_id
+
+        # zapis id nowej lub modyfikowanej właściwości
+        GLOBAL_PROPERTY[p_dane.label_en] = p_new_id
 
         # deklaracje dla właściwości
         data = []
@@ -1402,6 +1429,11 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         if has_statement(p_id, prop_id, value_to_check=value):
             return (False, f"SKIP: właściwość: '{p_id}' ({s_item.label_en}) already has a statement: '{prop_id} with value: {value}'.")
 
+        # jeżeli właściwość jest zewnętrznym identyfiktorem to nie dodajemy referencji
+        # z globalnych referencji
+        if prop_type == 'external-id':
+            s_item.additional_references = None
+
         st_data = create_statement_data(s_item.statement_property, value,
                                         s_item.references,
                                         qualifier_dict=None,
@@ -1540,3 +1572,12 @@ if __name__ == "__main__":
     for stm in dane:
         print(f"ITEM: {stm.label_en}, STATEMENT: {stm.statement_property}")
         stm.write_to_wikibase()
+
+    # zapis list przetwarzanych właściwości i elementów
+    with open('property_list.log', 'w', encoding='utf-8') as f:
+        for property_label, property_qid in GLOBAL_PROPERTY.items():
+            f.write(f"{property_label} = {property_qid}\n")
+
+    with open('item_list.log', 'w', encoding='utf-8') as f:
+        for item_label, item_qid in GLOBAL_ITEM.items():
+            f.write(f"{item_label} = {item_qid}\n")
