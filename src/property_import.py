@@ -27,7 +27,7 @@ GLOBAL_PROPERTY = {}
 GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 # --- klasy ---
@@ -210,9 +210,9 @@ class WDHSpreadsheet:
                 elif key == 'label_pl':
                     p_item.label_pl = col_value
 
-            # tylko jeżeli etykieta i opis w języku angielskim oraz typ danych są wypełnione
-            # dane właściwości są dodawane do listy
-            if p_item.label_en and p_item.description_en and p_item.datatype and p_item.label_pl:
+            # tylko jeżeli: etykieta i opis w języku angielskim lub etykiety pl i ang - oraz
+            # typ danych są wypełnione dane właściwości są dodawane do listy
+            if ((p_item.label_en and p_item.description_en) or (p_item.label_en and p_item.label_pl)) and p_item.datatype :
                 extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
                 for col in extend_cols:
                     key = col.lower()
@@ -247,10 +247,12 @@ class WDHSpreadsheet:
                 elif key == 'value':
                     if not isinstance(col_value, str):
                         col_value = str(col_value)
-                    s_item.statement_value = col_value                    
+                    s_item.statement_value = col_value
                 elif key == 'reference_property':
                     reference_property = col_value
                 elif key == 'reference_value':
+                    if not isinstance(col_value, str):
+                        col_value = str(col_value)
                     reference_value = col_value
 
                 if reference_property and reference_value:
@@ -296,9 +298,9 @@ class WDHSpreadsheet:
                 elif key == 'label_pl':
                     i_item.label_pl = col_value
 
-            # tylko jeżeli etykieta i opis w języku angielskim lub etykiety angielska i polska
+            # tylko jeżeli etykieta i opis w języku angielskim lub etykieta polska
             # są wypełnione dane właściwości są dodawane do listy
-            if (i_item.label_en and i_item.description_en) or (i_item.label_en and i_item.label_pl):
+            if (i_item.label_en and i_item.description_en) or (i_item.label_pl):
                 extend_cols = ['Wiki_id']
                 for col in extend_cols:
                     key = col.lower()
@@ -329,10 +331,14 @@ class WDHSpreadsheet:
                     statement_property = col_value
                 elif key == 'value':
                     statement_value = col_value
+                    if not isinstance(statement_value, str):
+                        statement_value = str(statement_value)
                 elif key == 'qualifier':
                     qualifier = col_value
                 elif key == 'qualifier_value':
                     qualifier_value = col_value
+                    if not isinstance(qualifier_value, str):
+                        qualifier_value = str(qualifier_value)
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
@@ -738,9 +744,9 @@ class WDHItem:
 
                 # zapis id nowego/modyfikowaneg item
                 if self.label_en:
-                    GLOBAL_ITEM[self.label_en] = new_id
+                    GLOBAL_ITEM[self.label_en+'/'+self.label_pl] = new_id
                 else:
-                    GLOBAL_ITEM[self.label_pl] = new_id
+                    GLOBAL_ITEM['-/'+self.label_pl] = new_id
 
                 # deklaracje dla elementu
                 data = []
@@ -756,9 +762,9 @@ class WDHItem:
         # jeżeli nie nowy element i nie ma zmian do zapisu
         else:
             if self.label_en:
-                GLOBAL_ITEM[self.label_en] = search_id
+                GLOBAL_ITEM[self.label_en+'/'+self.label_pl] = search_id
             else:
-                GLOBAL_ITEM[self.label_pl] = search_id
+                GLOBAL_ITEM['-/'+self.label_pl] = search_id
 
 
 class WDHStatementItem:
@@ -815,6 +821,8 @@ class WDHStatementItem:
             if isinstance(value, int):
                 value = str(value)
             elif isinstance(value, float):
+                value = str(value)
+            elif not isinstance(value, str):
                 value = str(value)
             self._statement_value = value.strip()
         else:
@@ -984,6 +992,7 @@ class WDHStatementItem:
             # z globalnych referencji
             if prop_type == 'external-id':
                 self.additional_references = None
+                print(f'Pominięto referencję globalną dla deklaracji: {p_id}->{prop_id} typu external-id.')
             
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
@@ -1087,7 +1096,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
             p_new_id = search_id
 
         # zapis id nowej lub modyfikowanej właściwości
-        GLOBAL_PROPERTY[p_dane.label_en] = p_new_id
+        GLOBAL_PROPERTY[p_dane.label_en+'/'+p_dane.label_pl] = p_new_id
 
         # deklaracje dla właściwości
         data = []
@@ -1433,6 +1442,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
         # z globalnych referencji
         if prop_type == 'external-id':
             s_item.additional_references = None
+            print(f'Pominięto referencję globalną dla deklaracji: {p_id}->{prop_id} typu external-id.')
 
         st_data = create_statement_data(s_item.statement_property, value,
                                         s_item.references,
@@ -1557,7 +1567,7 @@ if __name__ == "__main__":
     # dodatkowe deklaracje dla właściwości
     dane = plik_xlsx.get_statement_list()
     for stm in dane:
-        print(f"PROPERTY: {stm.label_en}, STATEMENT: {stm.statement_property}")
+        print(f"PROPERTY: {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}")
         result, info = add_property_statement(stm)
         print(result, f'{info}')
 
@@ -1570,14 +1580,22 @@ if __name__ == "__main__":
     # dodatkowe deklaracje dla elementów strukturalnych/definicyjnych
     dane = plik_xlsx.get_item_statement_list()
     for stm in dane:
-        print(f"ITEM: {stm.label_en}, STATEMENT: {stm.statement_property}")
+        print(f"ITEM: {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}")
         stm.write_to_wikibase()
 
     # zapis list przetwarzanych właściwości i elementów
-    with open('property_list.log', 'w', encoding='utf-8') as f:
+    with open('property_list.html', 'w', encoding='utf-8') as f:
+        f.write('<html>\n<head>\n<meta charset="UTF-8">\n<title>Lista właściwości</title>\n</head>\n<body>\n<h2>Lista dodanych/uaktualnionych właściwości</h2>\n<p>\n')
+        numer = 1
         for property_label, property_qid in GLOBAL_PROPERTY.items():
-            f.write(f"{property_label} = {property_qid}\n")
+            f.write(f'{numer}. {property_label} = <a href="https://prunus-208.man.poznan.pl/wiki/Property:{property_qid}">{property_qid}</a><br>\n')
+            numer += 1
+        f.write('</body></html>\n')
 
-    with open('item_list.log', 'w', encoding='utf-8') as f:
+    with open('item_list.html', 'w', encoding='utf-8') as f:
+        f.write('<html>\n<head>\n<meta charset="UTF-8">\n<title>Lista elementów</title>\n</head>\n<body>\n<h2>Lista dodanych/uaktualnionych elementów</h2>\n<p>\n')
+        numer = 1
         for item_label, item_qid in GLOBAL_ITEM.items():
-            f.write(f"{item_label} = {item_qid}\n")
+            f.write(f'{numer}. {item_label} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{item_qid}">{item_qid}</a><br>\n')
+            numer += 1
+        f.write('</p></body></html>\n')

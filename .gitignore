@@ -131,3 +131,5 @@ dmypy.json
 arkusz_import.xlsx
 .vscode/
 *.marc
+P_Q_Geo.xlsx
+test_importu*.txt
