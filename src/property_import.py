@@ -893,8 +893,8 @@ class WDHStatementItem:
             except (MWApiError, KeyError, ValueError):
                 print(f'ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
 
-        # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
-        elif self.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
+        # jeżeli to etykieta
+        elif self.statement_property in ('Lpl', 'Len', 'Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
                                          'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
                                          'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
             try:
