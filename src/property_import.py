@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+import json
 from pathlib import Path
 from typing import Union
 from openpyxl import load_workbook
@@ -13,7 +14,7 @@ from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
 from wikidariahtools import element_search
-
+from wikidariahtools import get_claim_id
 
 # adresy dla API Wikibase
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -26,7 +27,8 @@ GLOBAL_REFERENCE = {}
 GLOBAL_PROPERTY = {}
 GLOBAL_ITEM = {}
 
-# parametr globalny czy zapisywać dane do wikibase
+# parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych 
+# właściwości i elementów zwraca QID = TEST
 WIKIBASE_WRITE = True
 
 
@@ -846,10 +848,8 @@ class WDHStatementItem:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 lang = self.statement_property[1:]
                 aliasy = wd_item.get_aliases(lang=lang)
-                skip_alias = False
                 if self.statement_value in aliasy:
                     print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada alias: '{self.statement_value}' dla języka: {lang}.")
-                    skip_alias = True
                 else:
                     wd_item.set_aliases(self.statement_value, lang=self.statement_property[-2:])
                     if WIKIBASE_WRITE:
@@ -858,7 +858,7 @@ class WDHStatementItem:
 
                 # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
                 # 'stated as', ale tylko jeżeli są dla arkusza globalne referencje
-                if not skip_alias and self.additional_references:
+                if self.additional_references:
                     is_ok, prop_id = find_name_qid('stated as', 'property')
                     if not is_ok:
                         print('ERROR:', 'w instancji Wikibase brak właściwości -> stated as')
@@ -870,6 +870,31 @@ class WDHStatementItem:
                     # kontrola czy istnieje deklaracja o takiej wartości
                     if has_statement(p_id, prop_id, value_to_check=p_value):
                         print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
+                        # weryfikacja czy ma referencje z referencji globalnych
+                        for i, value in enumerate(wd_item.statements):
+                            statement_value = wd_item.statements[i].get_value()
+                            statement_prop_nr = wd_item.statements[i].get_prop_nr()
+                            statement_type = wd_item.statements[i].data_type
+                            if statement_type == 'monolingualtext':
+                                statement_value = statement_value[1]+':"'+statement_value[0]+'"'
+
+                            if statement_prop_nr == prop_id and statement_value == p_value:
+                                wd_item.statements[i].get_hash()
+                                tmp_references = wd_item.statements[i].get_references()
+                                for add_ref_prop, add_ref_value in self.additional_references.items():
+                                    is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
+                                    find_ref = False
+                                    for t_reference_blok in tmp_references:
+                                        if t_reference_blok[0].get_prop_nr() == add_ref_qid and t_reference_blok[0].get_value() == add_ref_value:
+                                            find_ref = True
+                                            break
+
+                                    if not find_ref:
+                                        print('Nie zaleziono referencji: ', add_ref_qid, 'o wartości: ', add_ref_value)
+                                        clm_id = wd_item.statements[i].get_id()
+                                        add_reference(login_instance, clm_id, add_ref_qid, add_ref_value)
+
+
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
                         st_data = create_statement_data(prop_id, p_value, self.references,
@@ -1476,6 +1501,42 @@ def get_property_type(p_id: str) -> str:
         data_type = search_results['entities'][p_id]['datatype']
 
     return data_type
+
+
+def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> str:
+    """ dodaje odnośnik do deklaracji
+    """
+    # token
+    params = {"action": "query",
+              "meta":"tokens"
+        }
+
+    try:
+        results = mediawiki_api_call_helper(data=params, login=login_data, mediawiki_api_url=None,
+                                               user_agent=None, allow_anonymous=False)
+        token = results['query']['tokens']['csrftoken']
+    except MWApiError as wbsetreference_error:
+        print('Error:', wbsetreference_error)
+        return
+
+    snak_type = "value"
+    snak = {prop_nr: [{"snaktype": snak_type, "property": prop_nr, "datavalue": {"type": "string", "value": prop_value}}]}
+    snak_encoded = json.dumps(snak)
+    print(snak_encoded)
+
+    params = {"action": "wbsetreference",
+              "statement": claim_id,
+              "snaks": snak_encoded,
+              "token": token,
+              'bot': True
+            }
+
+    try:
+        results = mediawiki_api_call_helper(data=params, login=login_data, mediawiki_api_url=None,
+                                               user_agent=None, allow_anonymous=False)
+        print("RESULTS:", results)
+    except MWApiError as wbsetreference_error:
+        print('Error:', wbsetreference_error)
 
 
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''):
