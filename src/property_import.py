@@ -857,7 +857,8 @@ class WDHStatementItem:
                     print(f'ALIAS ADDED, item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}')
 
                 # aliasy dla elementów powinny od razu stawać się także deklaracjami właściwości
-                # 'stated as', ale tylko jeżeli są dla arkusza globalne referencje
+                # 'stated as', ale tylko jeżeli są zdefiniowane dla arkusza globalne referencje
+                # w arkuszu Globals
                 if self.additional_references:
                     is_ok, prop_id = find_name_qid('stated as', 'property')
                     if not is_ok:
@@ -871,29 +872,21 @@ class WDHStatementItem:
                     if has_statement(p_id, prop_id, value_to_check=p_value):
                         print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
                         # weryfikacja czy ma referencje z referencji globalnych
-                        for i, value in enumerate(wd_item.statements):
-                            statement_value = wd_item.statements[i].get_value()
-                            statement_prop_nr = wd_item.statements[i].get_prop_nr()
-                            statement_type = wd_item.statements[i].data_type
-                            if statement_type == 'monolingualtext':
-                                statement_value = statement_value[1]+':"'+statement_value[0]+'"'
+                        for add_ref_prop, add_ref_value in self.additional_references.items():
+                            is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
+                            test_ref_exists = verify_reference(wd_item, prop_id, p_value, add_ref_qid, 
+                                                               add_ref_value)
 
-                            if statement_prop_nr == prop_id and statement_value == p_value:
-                                wd_item.statements[i].get_hash()
-                                tmp_references = wd_item.statements[i].get_references()
-                                for add_ref_prop, add_ref_value in self.additional_references.items():
-                                    is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
-                                    find_ref = False
-                                    for t_reference_blok in tmp_references:
-                                        if t_reference_blok[0].get_prop_nr() == add_ref_qid and t_reference_blok[0].get_value() == add_ref_value:
-                                            find_ref = True
-                                            break
-
-                                    if not find_ref:
-                                        print('Nie zaleziono referencji: ', add_ref_qid, 'o wartości: ', add_ref_value)
-                                        clm_id = wd_item.statements[i].get_id()
-                                        add_reference(login_instance, clm_id, add_ref_qid, add_ref_value)
-
+                            # jeźeli brak to próba dodania referencji globalnej
+                            if not test_ref_exists:
+                                print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
+                                      'o wartości: ', add_ref_value)
+                                clm_id = find_claim_id(wd_item, prop_id, p_value)
+                                if clm_id:
+                                    if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
+                                        print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
+                                else:
+                                    print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
 
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
@@ -1503,9 +1496,11 @@ def get_property_type(p_id: str) -> str:
     return data_type
 
 
-def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> str:
+def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> bool:
     """ dodaje odnośnik do deklaracji
     """
+    add_result = False
+
     # token
     params = {"action": "query",
               "meta":"tokens"
@@ -1517,12 +1512,11 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> s
         token = results['query']['tokens']['csrftoken']
     except MWApiError as wbsetreference_error:
         print('Error:', wbsetreference_error)
-        return
+        return False
 
     snak_type = "value"
     snak = {prop_nr: [{"snaktype": snak_type, "property": prop_nr, "datavalue": {"type": "string", "value": prop_value}}]}
     snak_encoded = json.dumps(snak)
-    print(snak_encoded)
 
     params = {"action": "wbsetreference",
               "statement": claim_id,
@@ -1534,9 +1528,57 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> s
     try:
         results = mediawiki_api_call_helper(data=params, login=login_data, mediawiki_api_url=None,
                                                user_agent=None, allow_anonymous=False)
-        print("RESULTS:", results)
+        if results['success'] == 1:
+            add_result = True
     except MWApiError as wbsetreference_error:
         print('Error:', wbsetreference_error)
+
+    return add_result
+
+
+def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
+    """
+    zwraca guid deklaracji
+    """
+
+    result_id = ''
+    for statement in wd_item_test.statements:
+        statement_value = statement.get_value()
+        statement_prop_nr = statement.get_prop_nr()
+        statement_type = statement.data_type
+        if statement_type == 'monolingualtext':
+            statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+
+        # czy znaleziono poszukiwaną deklarację
+        if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
+            result_id = statement.get_id()
+            break
+
+    return result_id
+
+
+def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
+                     g_ref_qid:str, g_ref_value:str):
+    """ weryfikacja czy globalna referencja jest przypisana do deklaracji
+    """
+    ref_exists = False
+    # pętla po deklaracjach elementu
+    for statement in wd_item_test.statements:
+        statement_value = statement.get_value()
+        statement_prop_nr = statement.get_prop_nr()
+        statement_type = statement.data_type
+        if statement_type == 'monolingualtext':
+            statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+
+        # czy znaleziono poszukiwaną deklarację
+        if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
+            tmp_references = statement.get_references()
+            for t_ref_blok in tmp_references:
+                if t_ref_blok[0].get_prop_nr() == g_ref_qid and t_ref_blok[0].get_value() == g_ref_value:
+                    ref_exists = True
+                    break
+
+    return ref_exists
 
 
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''):
