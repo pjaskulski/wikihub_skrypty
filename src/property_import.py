@@ -14,7 +14,7 @@ from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
 from wikidariahtools import element_search
-from wikidariahtools import get_claim_id
+
 
 # adresy dla API Wikibase
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -335,12 +335,16 @@ class WDHSpreadsheet:
                     statement_value = col_value
                     if not isinstance(statement_value, str):
                         statement_value = str(statement_value)
+                    # jeżeli to multilingual text to weryfikacja cudzysłowów
+                    statement_value = monolingual_text_fix(statement_value)
                 elif key == 'qualifier':
                     qualifier = col_value
                 elif key == 'qualifier_value':
                     qualifier_value = col_value
                     if not isinstance(qualifier_value, str):
                         qualifier_value = str(qualifier_value)
+                    # jeżeli to multilingual text to weryfikacja cudzysłowów
+                    qualifier_value = monolingual_text_fix(qualifier_value)
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
@@ -872,21 +876,22 @@ class WDHStatementItem:
                     if has_statement(p_id, prop_id, value_to_check=p_value):
                         print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
                         # weryfikacja czy ma referencje z referencji globalnych
-                        for add_ref_prop, add_ref_value in self.additional_references.items():
-                            is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
-                            test_ref_exists = verify_reference(wd_item, prop_id, p_value, add_ref_qid, 
-                                                               add_ref_value)
+                        if self.additional_references:
+                            for add_ref_prop, add_ref_value in self.additional_references.items():
+                                is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
+                                test_ref_exists = verify_reference(wd_item, prop_id, p_value, add_ref_qid, 
+                                                                add_ref_value)
 
-                            # jeźeli brak to próba dodania referencji globalnej
-                            if not test_ref_exists:
-                                print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
-                                      'o wartości: ', add_ref_value)
-                                clm_id = find_claim_id(wd_item, prop_id, p_value)
-                                if clm_id:
-                                    if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
-                                        print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
-                                else:
-                                    print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
+                                # jeźeli brak to próba dodania referencji globalnej
+                                if not test_ref_exists:
+                                    print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
+                                        'o wartości: ', add_ref_value)
+                                    clm_id = find_claim_id(wd_item, prop_id, p_value)
+                                    if clm_id:
+                                        if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
+                                            print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
+                                    else:
+                                        print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
 
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
@@ -1015,6 +1020,26 @@ class WDHStatementItem:
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
                 print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}.")
+                
+                # weryfikacja czy ma referencje z referencji globalnych
+                wd_item = wbi_core.ItemEngine(item_id=p_id)
+                if self.additional_references:
+                    for add_ref_prop, add_ref_value in self.additional_references.items():
+                        is_ok, add_ref_qid = find_name_qid(add_ref_prop, 'property')
+                        test_ref_exists = verify_reference(wd_item, prop_id, p_value, add_ref_qid,
+                                                            add_ref_value)
+                        # jeźeli brak to próba dodania referencji globalnej
+                        if not test_ref_exists:
+                            print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})',
+                                    'o wartości: ', add_ref_value, f' w deklaracji {prop_id} dla elementu {p_id}')
+                            clm_id = find_claim_id(wd_item, prop_id, p_value)
+                            if clm_id:
+                                if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
+                                    print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
+                            else:
+                                print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
+
+
             else:
                 st_data = create_statement_data(prop_id, p_value, self.references,
                                                 self.qualifiers, add_ref_dict=self.additional_references,
@@ -1538,8 +1563,14 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
 
 def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
     """
-    zwraca guid deklaracji
+    zwraca guid deklaracji lub pusty string
     """
+    if not isinstance(stat_prop_value, str):
+        stat_prop_value = str(stat_prop_value)
+
+    # jeżeli wartość typu monolingualtext ale ze zbędną dodatkową spacją
+    if stat_prop_value[2:5] == ': "':
+        stat_prop_value = stat_prop_value[:2] + ':"' + stat_prop_value[5:]
 
     result_id = ''
     for statement in wd_item_test.statements:
@@ -1548,6 +1579,19 @@ def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
         statement_type = statement.data_type
         if statement_type == 'monolingualtext':
             statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+        elif statement_type == "quantity":
+            if isinstance(statement_value, tuple):
+                statement_value = statement_value[0].replace('+', '').replace('-','')
+            else:
+                statement_value = str(statement_value)
+        elif statement_type == "globe-coordinate":
+            if isinstance(statement_value, tuple):
+                statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
+            else:
+                statement_value = str(statement_value)
+        else:
+            if not isinstance(statement_value, str):
+                statement_value = str(statement_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1562,6 +1606,9 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
     """ weryfikacja czy globalna referencja jest przypisana do deklaracji
     """
     ref_exists = False
+    if not isinstance(stat_prop_value, str):
+        stat_prop_value = str(stat_prop_value)
+
     # pętla po deklaracjach elementu
     for statement in wd_item_test.statements:
         statement_value = statement.get_value()
@@ -1569,6 +1616,19 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
         statement_type = statement.data_type
         if statement_type == 'monolingualtext':
             statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+        elif statement_type == "quantity":
+            if isinstance(statement_value, tuple):
+                statement_value = statement_value[0].replace('+', '').replace('-','')
+            else:
+                statement_value = str(statement_value)
+        elif statement_type == "globe-coordinate":
+            if isinstance(statement_value, tuple):
+                statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
+            else:
+                statement_value = str(statement_value)
+        else:
+            if not isinstance(statement_value, str):
+                statement_value = str(statement_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1579,6 +1639,19 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
                     break
 
     return ref_exists
+
+
+def monolingual_text_fix(text_value: str) ->str:
+    """ korekta wartości tesktowej jeżeli to wygląda na monolingual text """
+    if len(text_value) > 3:
+        if text_value[2] == ':' and '”' in text_value:
+            # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
+            text_value = text_value.replace('”', '"')
+        # jeżeli wartość typu monolingualtext ale ze zbędną dodatkową spacją
+        if text_value[2:5] == ': "':
+            text_value = text_value[:2] + ':"' + text_value[5:]
+    
+    return text_value
 
 
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''):
