@@ -886,12 +886,13 @@ class WDHStatementItem:
                                 if not test_ref_exists:
                                     print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
                                         'o wartości: ', add_ref_value)
-                                    clm_id = find_claim_id(wd_item, prop_id, p_value)
-                                    if clm_id:
-                                        if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
-                                            print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
-                                    else:
-                                        print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
+                                    if WIKIBASE_WRITE:
+                                        clm_id = find_claim_id(wd_item, prop_id, p_value)
+                                        if clm_id:
+                                            if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
+                                                print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
+                                        else:
+                                            print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
 
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
@@ -926,7 +927,7 @@ class WDHStatementItem:
                 current_label = wd_item.get_label(lang)
                 if self.statement_value == current_label:
                     print(f"SKIP: element: '{p_id}' ({self.label_en}) już posiada etykietę: '{self.statement_value}' dla języka: {lang}.")
-                else: 
+                else:
                     wd_item.set_label(self.statement_value, lang=self.statement_property[-2:], if_exists='REPLACE')
                     if WIKIBASE_WRITE:
                         wd_item.write(login_instance, entity_type='item')
@@ -1032,13 +1033,27 @@ class WDHStatementItem:
                         if not test_ref_exists:
                             print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})',
                                     'o wartości: ', add_ref_value, f' w deklaracji {prop_id} dla elementu {p_id}')
-                            clm_id = find_claim_id(wd_item, prop_id, p_value)
-                            if clm_id:
-                                if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
-                                    print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
-                            else:
-                                print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
+                            if WIKIBASE_WRITE:
+                                clm_id = find_claim_id(wd_item, prop_id, p_value)
+                                if clm_id:
+                                    if add_reference(login_instance, clm_id, add_ref_qid, add_ref_value):
+                                        print(f'REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}')
+                                else:
+                                    print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
 
+                # weryfikacja czy deklaracja ma wszystkie kwalifikatory, a jeżeli nie to
+                # uzupełnianie kwalifikatorów
+                if self.qualifiers:
+                    q_list = get_qualifiers(wd_item, prop_id, p_value)
+                    for qualifier_key, qualifier_value in self.qualifiers.items():
+                        qw_exists = check_if_qw_exists(q_list, qualifier_key, qualifier_value)
+                        if not qw_exists:
+                            if WIKIBASE_WRITE:
+                                clm_id = find_claim_id(wd_item, prop_id, p_value)
+                                if clm_id:
+                                    add_qualifier(login_instance, clm_id, qualifier_key, qualifier_value)
+                                else:
+                                    print(f'ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}')
 
             else:
                 st_data = create_statement_data(prop_id, p_value, self.references,
@@ -1521,6 +1536,68 @@ def get_property_type(p_id: str) -> str:
     return data_type
 
 
+def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> bool:
+    """ dodaje kwalifikator do deklaracji, obcnie obsługuje tylko 'value',
+        obsługa 'somevalue' do zrobienia
+    """
+    add_result = False
+    prop_type = get_property_type(prop_nr)
+
+    # token
+    params = {"action": "query",
+              "meta":"tokens"
+        }
+
+    try:
+        results = mediawiki_api_call_helper(data=params, login=login_data, mediawiki_api_url=None,
+                                               user_agent=None, allow_anonymous=False)
+        token = results['query']['tokens']['csrftoken']
+    except MWApiError as wbsetqualifier_error:
+        print('Error:', wbsetqualifier_error)
+        return False
+
+    snak_type = "value"
+
+    if prop_type == "monolingualtext":
+        snak = {'text': prop_value[4:-1], 'language': prop_value[:2]}
+    elif prop_type == "quantity":
+        if not prop_value.startswith('-'): # liczba dodatnia/ujemne
+            prop_value = '+' + prop_value
+        snak = {'amount': prop_value, 'unit': '1'}
+    elif prop_type == "string":
+        snak = {'value': prop_value}
+    elif prop_type == "wikibase-item":
+        numeric_id = int(prop_value[1:])
+        snak = {'entity-type': 'item', 'numeric-id': numeric_id, 'id': prop_value}
+    elif prop_type == "globe-coordinate":
+        tmp_value = prop_value.split(',')
+        latitude = float(tmp_value[0])
+        longitude = float(tmp_value[1])
+        snak = {'latitude': latitude, 'longitude': longitude, 
+                'precision': 0.01, 'globe': 'http://www.wikidata.org/entity/Q2'}
+
+    snak_encoded = json.dumps(snak)
+
+    params = {"action": "wbsetqualifier",
+              "claim": claim_id,
+              "snaktype": snak_type,
+              "property": prop_nr,
+              "value": snak_encoded,
+              "token": token,
+              'bot': True
+            }
+
+    try:
+        results = mediawiki_api_call_helper(data=params, login=login_data, mediawiki_api_url=None,
+                                               user_agent=None, allow_anonymous=False)
+        if results['success'] == 1:
+            add_result = True
+    except MWApiError as wbsetqualifier_error:
+        print('Error:', wbsetqualifier_error)
+
+    return add_result
+
+
 def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> bool:
     """ dodaje odnośnik do deklaracji
     """
@@ -1577,21 +1654,23 @@ def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
         statement_value = statement.get_value()
         statement_prop_nr = statement.get_prop_nr()
         statement_type = statement.data_type
-        if statement_type == 'monolingualtext':
-            statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
-        elif statement_type == "quantity":
-            if isinstance(statement_value, tuple):
-                statement_value = statement_value[0].replace('+', '').replace('-','')
-            else:
-                statement_value = str(statement_value)
-        elif statement_type == "globe-coordinate":
-            if isinstance(statement_value, tuple):
-                statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
-            else:
-                statement_value = str(statement_value)
-        else:
-            if not isinstance(statement_value, str):
-                statement_value = str(statement_value)
+        statement_value = statement_value_fix(statement_value, statement_type)
+
+        # if statement_type == 'monolingualtext':
+        #     statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+        # elif statement_type == "quantity":
+        #     if isinstance(statement_value, tuple):
+        #         statement_value = statement_value[0].replace('+', '').replace('-','')
+        #     else:
+        #         statement_value = str(statement_value)
+        # elif statement_type == "globe-coordinate":
+        #     if isinstance(statement_value, tuple):
+        #         statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
+        #     else:
+        #         statement_value = str(statement_value)
+        # else:
+        #     if not isinstance(statement_value, str):
+        #         statement_value = str(statement_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1614,21 +1693,22 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
         statement_value = statement.get_value()
         statement_prop_nr = statement.get_prop_nr()
         statement_type = statement.data_type
-        if statement_type == 'monolingualtext':
-            statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
-        elif statement_type == "quantity":
-            if isinstance(statement_value, tuple):
-                statement_value = statement_value[0].replace('+', '').replace('-','')
-            else:
-                statement_value = str(statement_value)
-        elif statement_type == "globe-coordinate":
-            if isinstance(statement_value, tuple):
-                statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
-            else:
-                statement_value = str(statement_value)
-        else:
-            if not isinstance(statement_value, str):
-                statement_value = str(statement_value)
+        statement_value = statement_value_fix(statement_value, statement_type)
+        # if statement_type == 'monolingualtext':
+        #     statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
+        # elif statement_type == "quantity":
+        #     if isinstance(statement_value, tuple):
+        #         statement_value = statement_value[0].replace('+', '').replace('-','')
+        #     else:
+        #         statement_value = str(statement_value)
+        # elif statement_type == "globe-coordinate":
+        #     if isinstance(statement_value, tuple):
+        #         statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
+        #     else:
+        #         statement_value = str(statement_value)
+        # else:
+        #     if not isinstance(statement_value, str):
+        #         statement_value = str(statement_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1652,6 +1732,81 @@ def monolingual_text_fix(text_value: str) ->str:
             text_value = text_value[:2] + ':"' + text_value[5:]
     
     return text_value
+
+
+def statement_value_fix(s_value, s_type) ->str:
+    """ poprawia wartość pobraną z deklaracji właściwości
+    """
+    if s_type == 'monolingualtext':
+        s_value = s_value[1] + ':"' + s_value[0] + '"'
+    elif s_type == "quantity":
+        if isinstance(s_value, tuple):
+            s_value = s_value[0].replace('+', '').replace('-','')
+        else:
+            s_value = str(s_value)
+    elif s_type == "globe-coordinate":
+        if isinstance(s_value, tuple):
+            s_value = str(s_value[0]) + ',' + str(s_value[1])
+        else:
+            s_value = str(s_value)
+    else:
+        if not isinstance(s_value, str):
+            s_value = str(s_value)
+    
+    return s_value
+
+
+def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
+    """ zwraca słownik z kwalifikatorami dla deklaracji
+    """
+    qualifiers = []
+
+    for statement in element.statements:
+        statement_value = statement.get_value()
+        statement_type = statement.data_type
+        statement_value = statement_value_fix(statement_value, statement_type)
+
+        if statement.get_prop_nr() == prop_id and statement_value == prop_value:
+            tmp_json = statement.get_json_representation()
+            if 'qualifiers' in tmp_json:
+                lista = tmp_json['qualifiers'].keys()
+                for q_key in lista:
+                    q_item = tmp_json['qualifiers'][q_key][0]
+                    #print(q_item)
+                    qualifier_property = q_item['property']
+                    qualifier_type = q_item['datavalue']['type']
+                    if qualifier_type == 'string':
+                        qualifier_value = q_item['datavalue']['value']
+                    elif qualifier_type == 'monolingualtext':
+                        tmp = q_item['datavalue']['value']
+                        qualifier_value = tmp['language'] + ':"' + tmp['text'] + '"'
+                    elif qualifier_type == 'quantity':
+                        tmp = q_item['datavalue']['value']
+                        qualifier_value = tmp['amount'].replace('+','')
+                    elif qualifier_type == 'wikibase-entityid':
+                        qualifier_value = q_item['datavalue']['value']['id']
+                    elif qualifier_type == 'globecoordinate':
+                        tmp = q_item['datavalue']['value']
+                        qualifier_value = str(tmp['latitude']) + ',' + str(tmp['longitude'])
+
+                    qualifiers.append((qualifier_property, qualifier_value))
+
+    return qualifiers
+
+
+def check_if_qw_exists(q_list, qualifier_property, qualifier_value) -> bool:
+    """ Funkcja weryfikuje czy podany kwalifikator - property i value jest
+        w przekazanej liście kwalifikatorów bieżącej deklaracji
+    """
+    print(q_list)
+    print(qualifier_property, qualifier_value)
+    qw_result = False
+    for t_prop, t_value in q_list:
+        if t_prop == qualifier_property and t_value == qualifier_value:
+            qw_result = True
+            break
+
+    return qw_result
 
 
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''):
