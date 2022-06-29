@@ -310,11 +310,19 @@ class WDHSpreadsheet:
                     col_value = row[self.item_columns[col]].value
                     if key == 'wiki_id':
                         i_item.wiki_id = col_value
-                    elif key == 'StartsAt':
+                    elif key == 'startsat':
+                        if col_value is None:
+                            col_value = ''
+                        if not isinstance(col_value, str):
+                            col_value = str(col_value)
                         i_item.starts_at = col_value
-                    elif key == 'EndsAt':
+                    elif key == 'endsat':
+                        if col_value is None:
+                            col_value = ''
+                        if not isinstance(col_value, str):
+                            col_value = str(col_value)
                         i_item.ends_at = col_value
-                    elif key == 'Instance of':
+                    elif key == 'instance of':
                         i_item.instance_of = col_value
 
                 i_list.append(i_item)
@@ -821,6 +829,77 @@ class WDHItem:
                 wiki_dane = wbi_datatype.ExternalID(value=self.wiki_id, prop_nr=wikibase_prop.wiki_id,
                     references=references)
 
+        # obsługa opcjonalnych kolumn StatsAt, EndsAt, Instance of
+        wiki_starts = wiki_ends = wiki_instance = None
+
+        # StartsAt
+        if self.starts_at:
+            skip_starts_at = False
+            res, start_qid = find_name_qid('starts at', 'property')
+            if res:
+                if search_id:
+                    if has_statement(search_id, start_qid, self.starts_at):
+                        print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {start_qid} o wartości: {self.starts_at}')
+                        skip_starts_at = True
+                
+                if not skip_starts_at:
+                    tmp = self.starts_at.split("/")
+                    if len(tmp) == 2:
+                        time_value = tmp[0]
+                        precision = int(tmp[1])
+                        wiki_starts = wbi_datatype.Time(time_value, prop_nr=start_qid,
+                                                precision=precision, is_reference=False,
+                                                references=None, is_qualifier=False,
+                                                qualifiers=None)
+                        item_is_changed = True
+
+            else:
+                print("ERROR: nie znaleziono właściwości 'starts at' w instancji Wkibase.")
+
+        # EndsAt
+        if self.ends_at:
+            skip_ends_at = False
+            res, end_qid = find_name_qid('ends at', 'property')
+            if res:
+                if search_id:
+                    if has_statement(search_id, end_qid, self.ends_at):
+                        print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {end_qid} o wartości: {self.ends_at}')
+                        skip_ends_at = True
+
+                if not skip_ends_at:
+                    tmp = self.ends_at.split("/")
+                    if len(tmp) == 2:
+                        time_value = tmp[0]
+                        precision = int(tmp[1])
+                        wiki_ends = wbi_datatype.Time(time_value, prop_nr=end_qid,
+                                                precision=precision, is_reference=False,
+                                                references=None, is_qualifier=False,
+                                                qualifiers=None)
+                        item_is_changed = True
+
+            else:
+                print("ERROR: nie znaleziono właściwości 'ends at' w instancji Wkibase.")
+        
+        # Instance of
+        if self.instance_of:
+            skip_instance = False
+            res, instance_qid = find_name_qid('instance of', 'property')
+            if res:
+                if search_id:
+                    if has_statement(search_id, instance_qid, self.instance_of):
+                        print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {instance_qid} o wartości: {self.instance_of}')
+                        skip_instance = True
+
+                if not skip_instance:
+                    res, instance_value = find_name_qid(self.instance_of, 'item')
+                    wiki_instance = wbi_datatype.ItemID(value=instance_value, prop_nr=instance_qid,
+                                                    is_reference=False, references=None,
+                                                    is_qualifier=False, qualifiers=None)
+                    item_is_changed = True
+
+            else:
+                print("ERROR: nie znaleziono właściwości 'instance of' w instancji Wkibase.")
+
         # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
         if not search_item or item_is_changed:
             try:
@@ -842,9 +921,16 @@ class WDHItem:
                 data = []
                 if wiki_dane:
                     data.append(wiki_dane)
-                    if WIKIBASE_WRITE:
-                        wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
-                        wd_statement.write(login_instance, entity_type='item')
+                if wiki_starts:
+                    data.append(wiki_starts)
+                if wiki_ends:
+                    data.append(wiki_ends)
+                if wiki_instance:
+                    data.append(wiki_instance)
+                
+                if data and WIKIBASE_WRITE:
+                    wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
+                    wd_statement.write(login_instance, entity_type='item')
 
                 print(mode + new_id + f' ({self.label_en})')
             except (MWApiError, KeyError):
@@ -1321,7 +1407,7 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
             if res:
                 statement = wbi_datatype.ItemID(value=value_id, prop_nr=property_nr,
                                                 is_reference=is_ref, references=refs,
-                                                is_qualifier=is_qlf, qualifiers=qlfs, 
+                                                is_qualifier=is_qlf, qualifiers=qlfs,
                                                 if_exists=if_exists)
         elif property_type == 'wikibase-property':
             res, value_id = find_name_qid(value, 'property')
