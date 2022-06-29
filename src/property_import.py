@@ -121,6 +121,7 @@ class WDHSpreadsheet:
         # arkusz elementów
         self.i_list = self.workbook[self.sheets[2]]
         self.item_columns = self.get_col_names(self.i_list)
+        # możliwe są także opcjonalne kolumny StartsAt, EndsAt, Instance of
         i_list_expected = ['Label_en', 'Label_pl', 'Description_en', 'Description_pl', 'Wiki_id']
         res, inf = self.test_columns(self.item_columns, i_list_expected)
         if not res:
@@ -231,7 +232,7 @@ class WDHSpreadsheet:
         return p_list
 
     def get_statement_list(self) -> list:
-        """ zwraca listę obiektów deklaracji do dodania
+        """ zwraca listę obiektów deklaracji dla właściwości do dodania
         """
         s_list = []
         for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
@@ -303,12 +304,18 @@ class WDHSpreadsheet:
             # tylko jeżeli etykieta i opis w języku angielskim lub etykieta polska
             # są wypełnione dane właściwości są dodawane do listy
             if (i_item.label_en and i_item.description_en) or (i_item.label_pl):
-                extend_cols = ['Wiki_id']
+                extend_cols = ['Wiki_id','StartsAt','EndsAt', 'Instance of']
                 for col in extend_cols:
                     key = col.lower()
                     col_value = row[self.item_columns[col]].value
                     if key == 'wiki_id':
                         i_item.wiki_id = col_value
+                    elif key == 'StartsAt':
+                        i_item.starts_at = col_value
+                    elif key == 'EndsAt':
+                        i_item.ends_at = col_value
+                    elif key == 'Instance of':
+                        i_item.instance_of = col_value
 
                 i_list.append(i_item)
 
@@ -607,6 +614,9 @@ class WDHItem:
         self.label_pl = label_pl
         self.description_pl = description_pl
         self.wiki_id = wiki_id
+        self.starts_at = ''
+        self.ends_at = ''
+        self.instance_of = ''
 
     @property
     def label_en(self) -> str:
@@ -673,6 +683,77 @@ class WDHItem:
         else:
             self._wiki_id = ''
 
+    @property
+    def starts_at(self) -> str:
+        """ get StartsAt """
+        return self._starts_at
+
+    @starts_at.setter
+    def starts_at(self, value: str):
+        """ set starts_at
+            format: +1501-00-00T00:00:00Z/9
+        """
+        pattern = r"\+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\/\d{1,2}"
+        if value:
+            value = value.strip()
+            if len(value) == 4: # 1564
+                self._starts_at = f'+{value}-00-00T00:00:00Z/9'
+            elif len(value) == 7: # 1564-10
+                self._starts_at = f'+{value}-00T00:00:00Z/10'
+            elif len(value) == 10: # 1564-10-11
+                self._starts_at = f'+{value}T00:00:00Z/11'
+            else:
+                match = re.search(pattern, value)
+                if match:
+                    self._starts_at = value
+                else:
+                    self._starts_at = ''
+                    print(f'ERROR: nieznany format daty: {value}')
+        else:
+            self._starts_at = ''
+
+    @property
+    def ends_at(self) -> str:
+        """ get EndsAt """
+        return self._ends_at
+
+    @ends_at.setter
+    def ends_at(self, value: str):
+        """ set ends_at
+            format: +1501-00-00T00:00:00Z/9
+        """
+        pattern = r"\+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\/\d{1,2}"
+        if value:
+            value = value.strip()
+            if len(value) == 4: # 1564
+                self._ends_at = f'+{value}-00-00T00:00:00Z/9'
+            elif len(value) == 7: # 1564-10
+                self._ends_at = f'+{value}-00T00:00:00Z/10'
+            elif len(value) == 10: # 1564-10-11
+                self._ends_at = f'+{value}T00:00:00Z/11'
+            else:
+                match = re.search(pattern, value)
+                if match:
+                    self._ends_at = value
+                else:
+                    self._ends_at = ''
+                    print(f'ERROR: nieznany format daty: {value}')
+        else:
+            self._ends_at = ''
+
+    @property
+    def instance_of(self) -> str:
+        """ get instance_of """
+        return self._instance_of
+
+    @instance_of.setter
+    def instance_of(self, value: str):
+        """ set instance_of """
+        if value:
+            self._instance_of = value.strip()
+        else:
+            self._instance_of = ''
+
     def write_to_wikibase(self):
         """ zapis elementu w instancji wikibase """
         # jeżeli jest etykieta 'en'
@@ -685,6 +766,7 @@ class WDHItem:
                                                     description=self.description_pl)
 
         item_is_changed = False
+        # jeżeli znaleziono w wikibase
         if search_item:
             print(f"Item: '{self.label_en}' already exists: {search_id}, update mode enabled.")
             wd_item = wbi_core.ItemEngine(item_id=search_id)
@@ -705,6 +787,8 @@ class WDHItem:
                 else:
                     wd_item.set_description(self.description_pl, lang='pl')
                     item_is_changed = True
+        
+        # jeżeli nie znaleziono w wikibase
         else:
             wd_item = wbi_core.ItemEngine(new_item=True)
             mode = 'added: '
