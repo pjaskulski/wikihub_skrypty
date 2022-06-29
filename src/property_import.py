@@ -1771,25 +1771,24 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
             if 'qualifiers' in tmp_json:
                 lista = tmp_json['qualifiers'].keys()
                 for q_key in lista:
-                    q_item = tmp_json['qualifiers'][q_key][0]
-                    #print(q_item)
-                    qualifier_property = q_item['property']
-                    qualifier_type = q_item['datavalue']['type']
-                    if qualifier_type == 'string':
-                        qualifier_value = q_item['datavalue']['value']
-                    elif qualifier_type == 'monolingualtext':
-                        tmp = q_item['datavalue']['value']
-                        qualifier_value = tmp['language'] + ':"' + tmp['text'] + '"'
-                    elif qualifier_type == 'quantity':
-                        tmp = q_item['datavalue']['value']
-                        qualifier_value = tmp['amount'].replace('+','')
-                    elif qualifier_type == 'wikibase-entityid':
-                        qualifier_value = q_item['datavalue']['value']['id']
-                    elif qualifier_type == 'globecoordinate':
-                        tmp = q_item['datavalue']['value']
-                        qualifier_value = str(tmp['latitude']) + ',' + str(tmp['longitude'])
+                    for q_item in tmp_json['qualifiers'][q_key]:
+                        qualifier_property = q_item['property']
+                        qualifier_type = q_item['datavalue']['type']
+                        if qualifier_type == 'string':
+                            qualifier_value = q_item['datavalue']['value']
+                        elif qualifier_type == 'monolingualtext':
+                            tmp = q_item['datavalue']['value']
+                            qualifier_value = tmp['language'] + ':"' + tmp['text'] + '"'
+                        elif qualifier_type == 'quantity':
+                            tmp = q_item['datavalue']['value']
+                            qualifier_value = tmp['amount'].replace('+','')
+                        elif qualifier_type == 'wikibase-entityid':
+                            qualifier_value = q_item['datavalue']['value']['id']
+                        elif qualifier_type == 'globecoordinate':
+                            tmp = q_item['datavalue']['value']
+                            qualifier_value = str(tmp['latitude']) + ',' + str(tmp['longitude'])
 
-                    qualifiers.append((qualifier_property, qualifier_value))
+                        qualifiers.append((qualifier_property, qualifier_value))
 
     return qualifiers
 
@@ -1798,8 +1797,6 @@ def check_if_qw_exists(q_list, qualifier_property, qualifier_value) -> bool:
     """ Funkcja weryfikuje czy podany kwalifikator - property i value jest
         w przekazanej liście kwalifikatorów bieżącej deklaracji
     """
-    print(q_list)
-    print(qualifier_property, qualifier_value)
     qw_result = False
     for t_prop, t_value in q_list:
         if t_prop == qualifier_property and t_value == qualifier_value:
