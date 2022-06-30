@@ -21,7 +21,8 @@ Skrypt wspomagający tworzenie właściwości (property) i elementów (item) w W
 
 Skrypt obsługuje także możliwość dodawania elementów i deklaracji dla nich, z tym że chodzi raczej o tzw. elementy strukturalne/definicyjne  w rodzaju 'human settlement' będące częścią modeli danych dla osób, bibliografii, danych geo a nie będących konkretnymi bytami w rodzaju 'Kraków' czy 'Jan Zamojski'. W przykładowym pliku test.xlsx w folderze /data znajdują się arkusze **Q_list** i **Q_statments**.  
 
-Celem prac nad tym skryptem nie jest stworzenie uniwersalnego systemu do importowania danych do Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp.  
+Celem prac nad tym skryptem nie jest stworzenie uniwersalnego systemu do importowania danych do Wikibase z poziomu Excela, tylko prostego narzędzia ułatwiającego tworzenie struktury właściwości według zaprojektowanego modelu danych dotyczącego np. postaci historycznych, bilbiografii, historycznej struktury osadniczej itp. Ponieważ jednak skrypt umożliwia dodawanie elementów Q wraz z deklaracjami (statement) technicznie możliwe jest dodawanie  za jego pomocą krótkich serii danych
+(nie definicyjnych).
 
 Dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) strukturalnych/definicyjnych, tu jednak przyjęto wyjątek - elementy posiadające identyfikator purl mogą mnieć nieunikalne etykiety. 
 
@@ -81,6 +82,8 @@ Dla właściwości o type danych 'globe-coordinate' należy wprowadzić wartoś�
 
 Dla właściwości o typie danych 'time' (https://www.wikidata.org/wiki/Help:Data_type#Time) należy wprowadzić wartość w standardzie ISO 8601 z określeniem precyzji daty po znaku / (0-14, zgodnie z opisem: https://www.wikidata.org/wiki/Special:ListDatatypes#time) np. 
 '+1900-00-00T00:00:00Z/9' dla roku 1900. Skrypt zaakceptuje także krótszą formę daty np.: w formie 4 znakowego roku: 1525, w formie zwykłej daty 1525-04-11, także z samym miesiącem 1525-10, te krótsze formy skrypt automatycznie przekształca w zapis z precyzją.
+
+Dla właściości typu 'wikibase-item' ('item') należy wprowadzić symbol Qxxx elementu (jeżeli jest znany) angielską etykietę elementu, lub identyfikator purl, który szukany element ma przypisany w formie deklaracji 'purl identifier'.
 
 Przykład zawartości arkusza:
 ```
