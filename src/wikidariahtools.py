@@ -4,6 +4,7 @@ import re
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikibaseintegrator.wbi_functions import search_entities
+from wikibaseintegrator.wbi_functions import execute_sparql_query
 
 
 def element_exists(element_id: str) -> bool:
@@ -280,3 +281,20 @@ def get_claim_id(qid: str, claim_property: str, claim_value: str) -> list:
 
     except (MWApiError, KeyError, ValueError):
         return None
+
+
+def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
+    """ wyszukiwanie elementu na podstawie identyfikatora purl """
+    query = f'SELECT ?item WHERE {{ ?item wdt:{purl_prop_id} "{purl_value}". }} LIMIT 5'
+
+    results = execute_sparql_query(query)
+    output = []
+    for result in results["results"]["bindings"]:
+        output.append(result["item"]["value"])
+
+    # wynik to lista adresów http://prunus-208.man.poznan.pl/entity/Q357
+    if len(output) == 1:
+        search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
+        return True, search_result
+
+    return False, f'ERROR: niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'

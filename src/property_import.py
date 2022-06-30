@@ -13,7 +13,7 @@ from wikibaseintegrator import wbi_login, wbi_datatype
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
-from wikidariahtools import element_search
+from wikidariahtools import element_search, search_by_purl
 
 
 # adresy dla API Wikibase
@@ -1362,11 +1362,24 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     elif elem_type == 'item':
         pattern = r'^Q\d{1,9}$'
 
+    # http://purl.org/ontohgis#administrative_system_1
+    purl_pattern = r'https?:\/\/purl\.org\/'
+
     match = re.search(pattern, name)
     if not match:
-        output = element_search(name, elem_type, 'en', strict=strict)
-        if not output[0]:
-            output =  (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
+        match = re.search(purl_pattern, name)
+        # wyszukiwnie elementu z deklaracją 'purl identifier' o wartości równej
+        # zmiennej name
+        if match:
+            f_result, purl_qid = find_name_qid('purl identifier', 'property')
+            output = search_by_purl(purl_qid, name)
+            if not output[0]:
+                output = (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
+        # zwykłe wyszukiwanie
+        else:
+            output = element_search(name, elem_type, 'en', strict=strict)
+            if not output[0]:
+                output = (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
 
     return output
 

@@ -7,7 +7,7 @@ from wikibaseintegrator.wbi_functions import execute_sparql_query, mediawiki_api
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 # do odczytywania danych z naszej wikibase nie trzeba się logować
 #from wikibaseintegrator import wbi_login
-from wikidariahtools import element_exists, element_search
+from wikidariahtools import element_exists, element_search, search_by_purl
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -93,3 +93,5 @@ if __name__ == "__main__":
                                                user_agent=None, allow_anonymous=True)
     data_type = search_results['entities']['P47']['datatype']
     print(data_type)
+
+    search_by_purl('part of a village', 'P197', 'http://purl.org/ontohgis#settlement_unit_63')
