@@ -103,7 +103,7 @@ class WDHSpreadsheet:
         # arkusz właściwości
         self.p_list = self.workbook[self.sheets[0]]
         self.property_columns = self.get_col_names(self.p_list)
-        p_list_expected = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+        p_list_expected = ['Label_en', 'Description_en', 'Datatype', 'Label_pl']
         res, inf = self.test_columns(self.property_columns, p_list_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[0]}. The expected columns ({inf}) are missing.')
@@ -112,7 +112,7 @@ class WDHSpreadsheet:
         # arkusz deklaracji dla właściwości
         self.p_statements = self.workbook[self.sheets[1]]
         self.statement_columns = self.get_col_names(self.p_statements)
-        p_statements_expected = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
+        p_statements_expected = ['Label_en', 'P', 'Value', 'Reference_property', 'Reference_value']
         res, inf = self.test_columns(self.statement_columns, p_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[1]}. The expected columns ({inf}) are missing.')
@@ -140,7 +140,7 @@ class WDHSpreadsheet:
         # arkusz globalnych referencji dla poszczególnych arkuszy
         self.globals = self.workbook[self.sheets[4]]
         self.globals_columns = self.get_col_names(self.globals)
-        globals_expected = ['Sheet', 'reference_property', 'reference_value']
+        globals_expected = ['Sheet', 'Reference_property', 'Reference_value']
         res, inf = self.test_columns(self.globals_columns, globals_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[4]}. The expected columns ({inf}) are missing.')
@@ -198,7 +198,7 @@ class WDHSpreadsheet:
         """
         p_list = []
         for row in self.p_list.iter_rows(2, self.p_list.max_row):
-            basic_cols = ['Label_en', 'Description_en', 'datatype', 'Label_pl']
+            basic_cols = ['Label_en', 'Description_en', 'Datatype', 'Label_pl']
             p_item = {}
             p_item = WDHProperty()
             for col in basic_cols:
@@ -216,7 +216,7 @@ class WDHSpreadsheet:
             # tylko jeżeli: etykieta i opis w języku angielskim lub etykiety pl i ang - oraz
             # typ danych są wypełnione dane właściwości są dodawane do listy
             if ((p_item.label_en and p_item.description_en) or (p_item.label_en and p_item.label_pl)) and p_item.datatype :
-                extend_cols = ['Description_pl', 'Wiki_id', 'inverse_property']
+                extend_cols = ['Description_pl', 'Wiki_id', 'Inverse_property']
                 for col in extend_cols:
                     key = col.lower()
                     col_value = row[self.property_columns[col]].value
@@ -236,7 +236,7 @@ class WDHSpreadsheet:
         """
         s_list = []
         for row in self.p_statements.iter_rows(2, self.p_statements.max_row):
-            basic_cols = ['Label_en', 'P', 'value', 'reference_property', 'reference_value']
+            basic_cols = ['Label_en', 'P', 'Value', 'Reference_property', 'Reference_value']
             s_item = WDHStatementProperty()
             reference_property = reference_value = ''
             for col in basic_cols:
@@ -393,8 +393,8 @@ class WDHSpreadsheet:
 
         for row in self.globals.iter_rows(2, self.globals.max_row):
             g_sheet = row[self.globals_columns['Sheet']].value
-            g_property = row[self.globals_columns['reference_property']].value
-            g_value = row[self.globals_columns['reference_value']].value
+            g_property = row[self.globals_columns['Reference_property']].value
+            g_value = row[self.globals_columns['Reference_value']].value
             GLOBAL_REFERENCE[g_sheet] = (g_property, g_value)
 
 
@@ -533,8 +533,6 @@ class WDHStatementProperty:
         self.label_en = label_en
         self.statement_property = statement_property
         self.statement_value = statement_value
-        #self.reference_property = reference_property
-        #self.reference_value = reference_value
         self.references = {}
         if reference_property and reference_value:
             self.references[reference_property.strip()] = reference_value.strip()
@@ -609,7 +607,6 @@ class WDHStatementProperty:
     def write_to_wikibase(self):
         """ zapis deklaracji w instancji wikibase """
         pass
-
 
 
 class WDHItem:
@@ -927,7 +924,7 @@ class WDHItem:
                     data.append(wiki_ends)
                 if wiki_instance:
                     data.append(wiki_instance)
-                
+
                 if data and WIKIBASE_WRITE:
                     wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
                     wd_statement.write(login_instance, entity_type='item')
@@ -1073,8 +1070,6 @@ class WDHStatementItem:
                             try:
                                 data =[st_data]
                                 wd_statement = wbi_core.ItemEngine(item_id=p_id, data=data, debug=False)
-                                #wd_statement.init_data_load()
-                                #wd_statement.update(data)
                                 if WIKIBASE_WRITE:
                                     wd_statement.write(login_instance, entity_type='item')
 
@@ -1826,22 +1821,6 @@ def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
         statement_type = statement.data_type
         statement_value = statement_value_fix(statement_value, statement_type)
 
-        # if statement_type == 'monolingualtext':
-        #     statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
-        # elif statement_type == "quantity":
-        #     if isinstance(statement_value, tuple):
-        #         statement_value = statement_value[0].replace('+', '').replace('-','')
-        #     else:
-        #         statement_value = str(statement_value)
-        # elif statement_type == "globe-coordinate":
-        #     if isinstance(statement_value, tuple):
-        #         statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
-        #     else:
-        #         statement_value = str(statement_value)
-        # else:
-        #     if not isinstance(statement_value, str):
-        #         statement_value = str(statement_value)
-
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
             result_id = statement.get_id()
@@ -1864,21 +1843,6 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
         statement_prop_nr = statement.get_prop_nr()
         statement_type = statement.data_type
         statement_value = statement_value_fix(statement_value, statement_type)
-        # if statement_type == 'monolingualtext':
-        #     statement_value = statement_value[1] + ':"' + statement_value[0] + '"'
-        # elif statement_type == "quantity":
-        #     if isinstance(statement_value, tuple):
-        #         statement_value = statement_value[0].replace('+', '').replace('-','')
-        #     else:
-        #         statement_value = str(statement_value)
-        # elif statement_type == "globe-coordinate":
-        #     if isinstance(statement_value, tuple):
-        #         statement_value = str(statement_value[0]) + ',' + str(statement_value[1])
-        #     else:
-        #         statement_value = str(statement_value)
-        # else:
-        #     if not isinstance(statement_value, str):
-        #         statement_value = str(statement_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
