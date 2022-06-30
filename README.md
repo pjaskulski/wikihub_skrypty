@@ -132,6 +132,7 @@ Piątym arkuszem pliku XLSX powinien być arkusz **Globals** zawierający defini
 - 'Sheet' - nazwa arkusza np. 'Q_statements', dla którego będzie obowiązywała definicja referencji
 - 'Reference property' - np. 'P186'
 - 'Reference value' - np. 'Wielka Encyklopedia'
+
 Wypełnienie arkusza jest opcjonalne (musi jednak istniejć i posiadać zdefiniowane kolumny). Jeżeli 
 zostanie wypełniony to dla wskazanego arkusza, np. podczas importu deklaracji dla elementów Q, do wszystkich deklaracji zostanie podpięta referencja opisana w kolumnach 'Rerefence property', 'Reference value'. Nie dotyczy to jednak deklaracji właściwości typu external-id np. 'purl identifier' (które same w sobie są referencją). 
 
