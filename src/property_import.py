@@ -834,7 +834,7 @@ class WDHItem:
             skip_starts_at = False
             res, start_qid = find_name_qid('starts at', 'property')
             if res:
-                if search_id:
+                if search_item:
                     if has_statement(search_id, start_qid, self.starts_at):
                         print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {start_qid} o wartości: {self.starts_at}')
                         skip_starts_at = True
@@ -849,6 +849,7 @@ class WDHItem:
                                                 references=None, is_qualifier=False,
                                                 qualifiers=None)
                         item_is_changed = True
+                        print(f"DODANO deklarację: 'starts at' ({start_qid}) o wartości: {self.starts_at}")
 
             else:
                 print("ERROR: nie znaleziono właściwości 'starts at' w instancji Wkibase.")
@@ -858,7 +859,7 @@ class WDHItem:
             skip_ends_at = False
             res, end_qid = find_name_qid('ends at', 'property')
             if res:
-                if search_id:
+                if search_item:
                     if has_statement(search_id, end_qid, self.ends_at):
                         print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {end_qid} o wartości: {self.ends_at}')
                         skip_ends_at = True
@@ -873,6 +874,7 @@ class WDHItem:
                                                 references=None, is_qualifier=False,
                                                 qualifiers=None)
                         item_is_changed = True
+                        print(f"DODANO deklarację: 'ends at' ({end_qid}) o wartości: {self.ends_at}")
 
             else:
                 print("ERROR: nie znaleziono właściwości 'ends at' w instancji Wkibase.")
@@ -882,17 +884,21 @@ class WDHItem:
             skip_instance = False
             res, instance_qid = find_name_qid('instance of', 'property')
             if res:
-                if search_id:
+                if search_item:
                     if has_statement(search_id, instance_qid, self.instance_of):
                         print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {instance_qid} o wartości: {self.instance_of}')
                         skip_instance = True
 
                 if not skip_instance:
                     res, instance_value = find_name_qid(self.instance_of, 'item')
-                    wiki_instance = wbi_datatype.ItemID(value=instance_value, prop_nr=instance_qid,
-                                                    is_reference=False, references=None,
-                                                    is_qualifier=False, qualifiers=None)
-                    item_is_changed = True
+                    if res:
+                        wiki_instance = wbi_datatype.ItemID(value=instance_value, prop_nr=instance_qid,
+                                                        is_reference=False, references=None,
+                                                        is_qualifier=False, qualifiers=None)
+                        item_is_changed = True
+                        print(f"DODANO deklarację: 'instance of' ({instance_qid}) o wartości: {self.instance_of}")
+                    else:
+                        print(f'ERROR: nie znaleziono symbolu Q dla wartości deklaracji: {instance_value}')
 
             else:
                 print("ERROR: nie znaleziono właściwości 'instance of' w instancji Wkibase.")
@@ -1362,19 +1368,22 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     elif elem_type == 'item':
         pattern = r'^Q\d{1,9}$'
 
-    # http://purl.org/ontohgis#administrative_system_1
-    purl_pattern = r'https?:\/\/purl\.org\/'
-
     match = re.search(pattern, name)
     if not match:
+        # http://purl.org/ontohgis#administrative_system_1
+        purl_pattern = r'https?:\/\/purl\.org\/'
+
         match = re.search(purl_pattern, name)
-        # wyszukiwnie elementu z deklaracją 'purl identifier' o wartości równej
+        # wyszukiwanie elementu z deklaracją 'purl identifier' o wartości równej
         # zmiennej name
         if match:
             f_result, purl_qid = find_name_qid('purl identifier', 'property')
-            output = search_by_purl(purl_qid, name)
-            if not output[0]:
-                output = (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
+            if f_result:
+                output = search_by_purl(purl_qid, name)
+                if not output[0]:
+                    output = (False, f'INVALID DATA, {elem_type}: {name}, {output[1]}')
+            else:
+                output = (False, f'ERROR: {purl_qid}')
         # zwykłe wyszukiwanie
         else:
             output = element_search(name, elem_type, 'en', strict=strict)

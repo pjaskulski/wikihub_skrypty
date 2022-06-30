@@ -297,4 +297,4 @@ def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
         search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
         return True, search_result
 
-    return False, f'ERROR: niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
+    return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
