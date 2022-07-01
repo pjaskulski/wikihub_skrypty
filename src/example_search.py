@@ -18,6 +18,8 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
 
+def test():
+    print('TEST')
 
 if __name__ == "__main__":
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
@@ -94,4 +96,6 @@ if __name__ == "__main__":
     data_type = search_results['entities']['P47']['datatype']
     print(data_type)
 
-    search_by_purl('part of a village', 'P197', 'http://purl.org/ontohgis#settlement_unit_63')
+    wynik = search_by_purl('P197', 'http://purl.org/ontohgis#object_95')
+    print(wynik)
+

@@ -49,7 +49,7 @@ class BasicProp:
             if search_result:
                 self.wiki_id = pid
         if self.wiki_url == '':
-            search_result, pid = element_search('Wikidata URL', 'property', 'en')
+            search_result, pid = element_search('reference URL', 'property', 'en')
             if search_result:
                 self.wiki_url = pid
         if self.inverse == '':
@@ -882,26 +882,25 @@ class WDHItem:
         # Instance of
         if self.instance_of:
             skip_instance = False
-            res, instance_qid = find_name_qid('instance of', 'property')
+            res, instance_value = find_name_qid(self.instance_of, 'item')
             if res:
-                if search_item:
-                    if has_statement(search_id, instance_qid, self.instance_of):
-                        print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {instance_qid} o wartości: {self.instance_of}')
-                        skip_instance = True
+                res, instance_qid = find_name_qid('instance of', 'property')
+                if res:
+                    if search_item:
+                        if has_statement(search_id, instance_qid, instance_value):
+                            print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {instance_qid} o wartości: {self.instance_of}')
+                            skip_instance = True
 
-                if not skip_instance:
-                    res, instance_value = find_name_qid(self.instance_of, 'item')
-                    if res:
+                    if not skip_instance:
                         wiki_instance = wbi_datatype.ItemID(value=instance_value, prop_nr=instance_qid,
                                                         is_reference=False, references=None,
                                                         is_qualifier=False, qualifiers=None)
                         item_is_changed = True
-                        print(f"DODANO deklarację: 'instance of' ({instance_qid}) o wartości: {self.instance_of}")
-                    else:
-                        print(f'ERROR: nie znaleziono symbolu Q dla wartości deklaracji: {instance_value}')
-
+                        print(f"DODANO deklarację: 'instance of' ({instance_qid}) o wartości: {instance_value}")
+                else:
+                    print("ERROR: nie znaleziono właściwości 'instance of' w instancji Wkibase.")
             else:
-                print("ERROR: nie znaleziono właściwości 'instance of' w instancji Wkibase.")
+                print(f'ERROR: nie znaleziono symbolu Q dla wartości deklaracji instance_of: {instance_value}')
 
         # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
         if not search_item or item_is_changed:
@@ -1280,7 +1279,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
         if p_dane.description_pl:
             wd_item.set_description(p_dane.description_pl, lang='pl')
     
-    # Wikidata ID i Wikidata URL
+    # Wikidata ID i Wikidata URL (reference URL)
     wiki_dane = None
     if p_dane.wiki_id:
         if wikibase_prop.wiki_id == '' or wikibase_prop.wiki_url == '':
