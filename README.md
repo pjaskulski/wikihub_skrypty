@@ -19,13 +19,13 @@ przez Bibliotekę Narodową), szybkość dodawana elementów na testowanej insta
 
 ### Jak wprowadzać modele danych do arkuszy XLSX.
 
-Model danych Wikibase składa się z właściwości (property) i elementów (item) opisujących wybrany fragment rzeczywistości np. osoby, miejscowości, publikacje. Aby ułatwić wprowadzanie i uzupełnianie modelu opracowany został mechanizm składający się ze skryptu w języku Python i pliku XLSX o określonej zawartości. Skrypt obśługuje import danych z pliku XLSX do wskazanej instancji Wikibase. Plik XLSX zawiera 5 arkuszy w których zapisane powinny być listy: właściwości, dodatkowych cech (deklaracji - statements) właściwości, elementów i dodatkowych cech (deklaracji - statements) elementów. Piąty arkusz zawiera tzw. definicje globalne, ułatwiające wprowadzanie powtarzających się referencji. 
+Model danych Wikibase składa się z właściwości (property) i elementów (item) opisujących wybrany fragment rzeczywistości np. osoby, miejscowości, publikacje. Aby ułatwić wprowadzanie i uzupełnianie modelu opracowany został mechanizm składający się ze skryptu w języku Python i pliku XLSX o określonej zawartości. Skrypt obsługuje import danych z pliku XLSX do wskazanej instancji Wikibase. Plik XLSX zawiera 5 arkuszy w których zapisane powinny być listy: właściwości, dodatkowych cech (deklaracji - statements) właściwości, elementów i dodatkowych cech (deklaracji - statements) elementów. Piąty arkusz zawiera tzw. definicje globalne, ułatwiające wprowadzanie powtarzających się referencji. 
 
 Lista właściwości danego modelu znajduje się w arkuszu **P_list**. Każda właściwość może być opisana
-przez wartości kilku kolumn, najważniejsze z nich to: Label_en (angielska etykieta właściwości), Label_pl (etykieta polska), Datatype (typ danych np. 'string', 'time', 'item'), oraz kolumny z opisami właściwości: Description_en (agielski opis), Description_pl (polski opis). Dodatkowo można (opcjonalnie) wypełnić kolumny Wiki_id (z identyfikatorem Q z wikidata.org, wówczas automatycznie utworzona zostanie deklaracja wskazująca na odpowiednik właściwości w wikidata.org) oraz Inverse_property (odwrotność bieżącej właściwości w formie identyfikatora Q lub angielskiej etykiety tamtej właściwości). Wypełnienie odwrotności właściwości spowoduje utworzenie takiej deklaracji
-dla dodawanej właściwości, dodatkowo odwrotność w drugą stronę zostanie dodana do tamtej docelowej deklaracji.
+przez wartości kilku kolumn, najważniejsze z nich to: Label_en (angielska etykieta właściwości), Label_pl (etykieta polska), Datatype (typ danych np. 'string', 'time', 'item'), oraz kolumny z opisami właściwości: Description_en (agielski opis), Description_pl (polski opis). Dodatkowo można (opcjonalnie) wypełnić kolumny Wiki_id (z identyfikatorem Q z wikidata.org, wówczas automatycznie utworzona zostanie deklaracja wskazująca na odpowiednik właściwości w wikidata.org) oraz Inverse_property (odwrotność bieżącej właściwości w formie identyfikatora Q lub angielskiej etykiety tamtej właściwości). Wypełnienie tej ostatniej kolumny spowoduje utworzenie takiej deklaracji
+dla dodawanej właściwości (właściwość P1 -> jest odwrotnością -> P2), automatycznie zostanie dodana odwrotność w drugą stronę (P2 -> jest odwrotnością -> P1).
 
-Uwaga: aby nowa właściwość była uwzględniona przez skrypt przewtwarzający należy wypełnić kolumnę Datatype, oraz parę: Label_en i Description_pl, lub parę Label_en i Label_pl, w innym przypadku wiersz arkusza zostanie uznany za niepełny i pominięty.
+Uwaga: aby nowa właściwość była w ogóle uwzględniona przez skrypt przewtwarzający należy wypełnić kolumnę Datatype, oraz parę: Label_en i Description_pl, lub parę Label_en i Label_pl, w innym przypadku wiersz arkusza zostanie uznany za niepełny i pominięty.
 
 Wypełnienie tylko tego arkusza już pozwala na przeprowadzenie importu do Wikibase. Powstaną wówczas (o ile ich nie dodano wcześniej) proste definicje właściwości z wypełnionym nagłówkiem (etykiety i opisy), typem danych i opcjonalnie 2 deklaracjami ('Wikidata ID' i 'inverse property').
 
@@ -38,6 +38,17 @@ Tak jak w przypadku właściwości, jeżeli chcemy wprowadzić dodatkowe informa
 W przypadku importu modelu danych częstą sytuacją będzie przypisywanie tej samej referencji do deklaracji dopisywanych do elementów, gdyż źródłem modelu jest jedna publikacja, jedna ontologia. Aby to ułatwić można uzupełnić piąty arkusz pliku XLSX o nazwie **Globals**, gdzie można zdefiniować referencje globalne dla arkuszy. Arkusz posiada trzy kolumny: 'Sheet' - na nazwę arkusza dla którego będzie obowiązywała referencja globalna, 'Reference_property' na właściwość referencji (wartość kolumny w formie identyfikatora Q lub angielskiej etykiety), 'Referencje_value' - na wartość referencji (zwykle będzie to element lub adres url).
 
 Uwaga: dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) strukturalnych/definicyjnych, tu jednak przyjęto wyjątek - elementy posiadające identyfikator purl mogą mnieć nieunikalne etykiety.
+
+### Uzupełnianie danych
+
+Machanizm tworzenia modeli można używać także do ich uzupełniania, podczas przetwarzania zawartości arkuszy skrypt weryfikuje czy dana właściwość już istnieje (cechą identyfikacyjną jest angielska etykieta), jeżeli tak to przechodzi w tryb uaktualniania sprawdzając czy różni się opis w języku angielskim lub polskim (między arkuszem a zawartością Wikibase). Jeżeli tak - wprowadza nową ich wartość, podobnie weryfikowana jest zawartość kolumn Wiki_id i Inverse_property, jeżeli nie ma takich zapisów w Wikibase - zostaną dodane. 
+
+Tryb aktualizacji działa także w arkuszu deklaracji dla właściwości (P_statements), każdy wiersz arkusza podlega weryfikacji czy zdefiniowana deklaracja (lub wartość aliasu, etykiety lub opisu) już istnieje (czy właściwość ma deklarację o takiej wartości jak w arkuszu). Jeżeli tak - zapis do Wikibase jest pomijany.
+
+Jeżeli w instancji Wikibase istniała już deklaracja np. właściwości 'Instance of' lecz o innej wartości, skrypt doda nową wartość do istniejącego zapisu. Jeżeli istniał juz alias dla danego języka, zostanie on nadpisany, podobnie w przypadku opisów. Jeżeli w arkuszu dopisano referencję do deklaracji a w instancji Wikibase deklaracja nie posiada takiej referencji zostanie ona dopisana. 
+
+Analogicznie skrypt działa w przypadku elementów, dane są uaktualniane i uzupełniane, jeżeli w arkuszu deklaracji dla elementów dopisano nowe kwalifikatory, skrypt doda je do istniejących.
+Skrypt nie usuwa natomiast istniejących danych: deklaracji, referencji, kwalifikatrów.
 
 ### Szczegółowy opis działania
 
