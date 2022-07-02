@@ -21,9 +21,13 @@ przez Bibliotekę Narodową), szybkość dodawana elementów na testowanej insta
 
 Model danych Wikibase składa się z właściwości (property) i elementów (item) opisujących wybrany fragment rzeczywistości np. osoby, miejscowości, publikacje. Aby ułatwić wprowadzanie i uzupełnianie modelu opracowany został mechanizm składający się ze skryptu w języku Python i pliku XLSX o określonej zawartości. Skrypt obsługuje import danych z pliku XLSX do wskazanej instancji Wikibase. Plik XLSX zawiera 5 arkuszy w których zapisane powinny być listy: właściwości, dodatkowych cech (deklaracji - statements) właściwości, elementów i dodatkowych cech (deklaracji - statements) elementów. Piąty arkusz zawiera tzw. definicje globalne, ułatwiające wprowadzanie powtarzających się referencji. 
 
+![Lista arkuszy](/doc/lista_arkuszy_w_pliku_xlsx.png)
+
 Lista właściwości danego modelu znajduje się w arkuszu **P_list**. Każda właściwość może być opisana
 przez wartości kilku kolumn, najważniejsze z nich to: Label_en (angielska etykieta właściwości), Label_pl (etykieta polska), Datatype (typ danych np. 'string', 'time', 'item'), oraz kolumny z opisami właściwości: Description_en (agielski opis), Description_pl (polski opis). Dodatkowo można (opcjonalnie) wypełnić kolumny Wiki_id (z identyfikatorem Q z wikidata.org, wówczas automatycznie utworzona zostanie deklaracja wskazująca na odpowiednik właściwości w wikidata.org) oraz Inverse_property (odwrotność bieżącej właściwości w formie identyfikatora Q lub angielskiej etykiety tamtej właściwości). Wypełnienie tej ostatniej kolumny spowoduje utworzenie takiej deklaracji
 dla dodawanej właściwości (właściwość P1 -> jest odwrotnością -> P2), automatycznie zostanie dodana odwrotność w drugą stronę (P2 -> jest odwrotnością -> P1).
+
+![Arkusz P_list](/doc/arkusz_wlasciwosci_P_list.png)
 
 Uwaga: aby nowa właściwość była w ogóle uwzględniona przez skrypt przewtwarzający należy wypełnić kolumnę Datatype, oraz parę: Label_en i Description_pl, lub parę Label_en i Label_pl, w innym przypadku wiersz arkusza zostanie uznany za niepełny i pominięty.
 
@@ -31,11 +35,19 @@ Wypełnienie tylko tego arkusza już pozwala na przeprowadzenie importu do Wikib
 
 Jeżeli chcemy wprowadzić więcej informacji dla naszych właściwości, można skorzystać z drugiego arkusza o nazwie **P_statements**. Ma on trzy podstawowe kolumny: 'Label_en', 'P', 'Value', które pozwalają na zapis dowolnej deklaracji dla właściwości, można również zapisać w nich aliasy, opisy i etykiety w różnych językach. Kolumna 'Label_en' powinna zawierać wartość jednoznacznie identyfikującą właściwość do której chcemy zapisać deklarację, może to być angielska etykieta właściwości, może to być identyfikator P właściwości (jeżeli już jest w wikibase). Kolumna 'P' powinna zawierać właściwość którą chcemy dodać jako deklarację, znów może to być jej angielska etykieta np. 'instance of', ale może to być symbol istniejącej już właściwości w Wikibase np. P47. Jeżeli chcemy dopisać do właściwości alias, opis czy etykietę w języku innym niż polski czy angielski, w tej kolunie umieszczamy kod takiej informacji np. 'A' i kod języka np. 'de', czyli razem: 'Ade' co oznacza alias w języku niemieckim. Analogicznie 'Lde' oznacza etykietę w języku niemieckim, a 'Dde' - opis w języku niemieckim. Wartość nowej deklaracji jest zapisywana w kolumnie 'Value', format zawartość tej kolumny zależy od typu danych deklaracji (opis formatów dla różnych typów danych jest poniżej w sekcji szczegółowych informacji).
 
+![Arkusz P_statements](/doc/arkusz_deklaracji_dla_wlasciwosci_P_statements.png)
+
 Lista elementów danego modelu znajduje się w arkuszu **Q_list**. Każdy element może być opisany przez wartość kilku kolumn, podstawowe: Label_en i Label_pl oznaczają etykietę w języku angielskim i polskim, Description_en i Description_pl analogicznie - opisy ang i pl. Opcjonalne kolumny: Wiki_id - identyfikator odpowiednika elementu w wikidata.org, StartsAt i EndsAt wyznaczają ramy czasowe dla opisywanego elementu np. element Księstwo Warszawskie może mieć przypisane wartości StartsAt=1807 i EndsAt=1815, kolumna Instance of może wskazywać element którego instacją jest bieżący element np. Bolesław Prus może mieć deklarację Instance of = human. Wartość w kolumnie Instance of może być angielską etykietą elementu, identyfikatorem Q jeżeli jest już w wikibase lub identyfikatorem Purl, jeżeli docelowy element posiada identyfikator Purl.
+
+![Arkusz Q_list](/doc/arkusz_elementów_Q_list.png)
 
 Tak jak w przypadku właściwości, jeżeli chcemy wprowadzić dodatkowe informacje dla elementu, można skorzystać z czwartego arkusza o nazwie **Q_statements**. W nim znajdują się kolumny 'Label_en', 'P', 'Value' które pozwalają na zapis dowolnej deklaracji dla elementu, w identyczny sposób jak to było wyżej opisywane dla arkusza 'P_statements' dla właściwości. Dla elementów można ponadto uzupełnić dodatkowe kolumny: Qualifier i Qualifier_value z danymi kwalifikatorów dla bieżącej deklaracji. W pierwszej z nich powinien znaleźć się identyfikator Q lub angielska etykieta właściwości kwalifikatora, w drugiej jego wartość. Można przypisać wiele kwalifikatorów do deklaracji, jeżeli w arkuszu kolejne wiersze nie będa miały wypełnionych kolumn 'Label_en', 'P', 'Value', ale będą wypełnione kolumny kwalifikatorów to skrypt importujący przyjmie że są to kolejne kwalifikatory do tej samej deklaracji.
 
+![Arkusz Q_statements](/doc/arkusz_deklaracji_dla_elementow_Q_statements.png)
+
 W przypadku importu modelu danych częstą sytuacją będzie przypisywanie tej samej referencji do deklaracji dopisywanych do elementów, gdyż źródłem modelu jest jedna publikacja, jedna ontologia. Aby to ułatwić można uzupełnić piąty arkusz pliku XLSX o nazwie **Globals**, gdzie można zdefiniować referencje globalne dla arkuszy. Arkusz posiada trzy kolumny: 'Sheet' - na nazwę arkusza dla którego będzie obowiązywała referencja globalna, 'Reference_property' na właściwość referencji (wartość kolumny w formie identyfikatora Q lub angielskiej etykiety), 'Referencje_value' - na wartość referencji (zwykle będzie to element lub adres url).
+
+![Arkusz Globals](/doc/arkusz_Globals.png)
 
 Uwaga: dla maksymalnego uproszczenia przyjęto, że w przypadku właściwości (property) ich angielskie etykiety są w danej instancji Wikibase unikalne, podobnie w przypadu tzw. elementów (item) strukturalnych/definicyjnych, tu jednak przyjęto wyjątek - elementy posiadające identyfikator purl mogą mnieć nieunikalne etykiety.
 
