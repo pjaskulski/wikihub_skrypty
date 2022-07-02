@@ -60,7 +60,38 @@ Tryb aktualizacji działa także w arkuszu deklaracji dla właściwości (P_stat
 Jeżeli w instancji Wikibase istniała już deklaracja np. właściwości 'Instance of' lecz o innej wartości, skrypt doda nową wartość do istniejącego zapisu. Jeżeli istniał juz alias dla danego języka, zostanie on nadpisany, podobnie w przypadku opisów. Jeżeli w arkuszu dopisano referencję do deklaracji a w instancji Wikibase deklaracja nie posiada takiej referencji zostanie ona dopisana. 
 
 Analogicznie skrypt działa w przypadku elementów, dane są uaktualniane i uzupełniane, jeżeli w arkuszu deklaracji dla elementów dopisano nowe kwalifikatory, skrypt doda je do istniejących.
-Skrypt nie usuwa natomiast istniejących danych: deklaracji, referencji, kwalifikatrów.
+Skrypt nie usuwa natomiast istniejących danych: deklaracji, referencji, kwalifikatorów.
+
+### Kontrola danych
+
+Skrypt podczas przetwarzania pliku kontroluje istnienie wymaganych arkuszy o określonych wyżej nazwach, podobnie kontrolowana jest zawartość arkusza, lista obowiązkowych kolumn o określonych nazwach (wielkość liter ma znaczenie). Podczas przetwarzania wierszy arkusza, skrypt pomija puste wiersze, oraz te w których nie wypełniono wymaganych kolumn. Dane z wierszy arkusza są weryfikowane z zawartością instancji Wikibase, dane które już są w Wikibase są pomijane, skrypt wyświetla stosowną informację. Weryfikowana jest możliwość dodania danych, np, deklaracja do elementu którego jeszcze nie ma w Wikibase, czy deklaracja właściwości jeszcze nie dodanej do Wikibase, wywoła odpowiedni komunikat, skrypt pominie dany wiersz i będzie kontynuował przetwarzanie kolejnych. Wszyskie komunikaty są wypisywane na ekran terminala, można wyjście skryptu przekierować do pliku w celu późniejszej analizy. Po poprawieniu i uzupełnieniu arkusza można przetwarzanie uruchomić ponownie.
+
+Fragment logów przetwarzania arkusza XLSX:
+
+```
+PROPERTY: Wikidata ID
+Property: 'Wikidata ID' already exists: P50, update mode.
+SKIP: właściwość: P50 (Wikidata ID) posiada już opis w języku: "en" o wartości: Wikidata entity ID
+SKIP: właściwość: P50 (Wikidata ID) posiada już opis w języku: "pl" o wartości: Identyfikator w Wikidata
+PROPERTY: located in the administrative territorial entity, STATEMENT: subproperty of, VALUE: part of
+SKIP: właściwość: 'P127' (located in the administrative territorial entity) already has a statement: 'P208 with value: P212'.
+PROPERTY: located in the administrative territorial entity, STATEMENT: subproperty of, VALUE: located in
+SKIP: właściwość: 'P127' (located in the administrative territorial entity) already has a statement: 'P208 with value: P219'.
+ITEM: 'village' already exists: Q79095, update mode enabled.
+SKIP: element: Q79095 (village) posiada już dla języka: "en" opis: Village is a locality composed of a group of buildings, mostly of residential and economic character, but sometimes, also industrial ones (i.e. ironworks, mill) as well as a belonging land, inhabited by people involved particularly in agricultural and construction activities or in farming industry (i.e. blacksmith or mill work), and not having city rights nor a status of a city or a town. Some villages in Early Middle Ages had a right to organise a fair and a market.
+SKIP: element Q79095 (village) posiada deklarację: P50 o wartości: Q532
+ITEM: part of a village, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#settlement_unit_63
+Pominięto referencję globalną dla deklaracji: Q79347->P197 typu external-id.
+SKIP: element: 'Q79347' (part of a village) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#settlement_unit_63.
+ITEM: city/town, STATEMENT: described by source, VALUE: Irsigler, Die Stadt im Mittelalter
+ERROR: w instancji Wikibase brak elementu -> Irsigler, Die Stadt im Mittelalter będącego wartością -> described by source
+ITEM: colony, STATEMENT: described by source, VALUE: Słownik języka polskiego (Trzaska)
+STATEMENT ADDED, Q79353 (colony): P218 -> Słownik języka polskiego (Trzaska)
+ITEM: forest settlement of a village, STATEMENT: subclass of, VALUE: disctrict
+ERROR: w instancji Wikibase brak elementu -> disctrict będącego wartością -> subclass of
+ITEM: forest settlement of a village, STATEMENT: instance of, VALUE: settlement
+SKIP: element: 'Q79358' (forest settlement of a village) już posiada deklarację: 'P47' o wartości: Q79350.
+```
 
 ### Szczegółowy opis działania
 
