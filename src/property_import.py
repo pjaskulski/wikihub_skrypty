@@ -27,9 +27,9 @@ GLOBAL_REFERENCE = {}
 GLOBAL_PROPERTY = {}
 GLOBAL_ITEM = {}
 
-# parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych 
+# parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 # --- klasy ---
@@ -307,23 +307,24 @@ class WDHSpreadsheet:
                 extend_cols = ['Wiki_id','StartsAt','EndsAt', 'Instance of']
                 for col in extend_cols:
                     key = col.lower()
-                    col_value = row[self.item_columns[col]].value
-                    if key == 'wiki_id':
-                        i_item.wiki_id = col_value
-                    elif key == 'startsat':
-                        if col_value is None:
-                            col_value = ''
-                        if not isinstance(col_value, str):
-                            col_value = str(col_value)
-                        i_item.starts_at = col_value
-                    elif key == 'endsat':
-                        if col_value is None:
-                            col_value = ''
-                        if not isinstance(col_value, str):
-                            col_value = str(col_value)
-                        i_item.ends_at = col_value
-                    elif key == 'instance of':
-                        i_item.instance_of = col_value
+                    if col in self.item_columns:
+                        col_value = row[self.item_columns[col]].value
+                        if key == 'wiki_id':
+                            i_item.wiki_id = col_value
+                        elif key == 'startsat':
+                            if col_value is None:
+                                col_value = ''
+                            if not isinstance(col_value, str):
+                                col_value = str(col_value)
+                            i_item.starts_at = col_value
+                        elif key == 'endsat':
+                            if col_value is None:
+                                col_value = ''
+                            if not isinstance(col_value, str):
+                                col_value = str(col_value)
+                            i_item.ends_at = col_value
+                        elif key == 'instance of':
+                            i_item.instance_of = col_value
 
                 i_list.append(i_item)
 
@@ -882,7 +883,7 @@ class WDHItem:
         # Instance of
         if self.instance_of:
             skip_instance = False
-            res, instance_value = find_name_qid(self.instance_of, 'item')
+            res, instance_value = find_name_qid(self.instance_of, 'item', strict=True)
             if res:
                 res, instance_qid = find_name_qid('instance of', 'property')
                 if res:
@@ -1056,7 +1057,7 @@ class WDHStatementItem:
 
                                 # jeźeli brak to próba dodania referencji globalnej
                                 if not test_ref_exists:
-                                    print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
+                                    print('Nie znaleziono referencji: ', add_ref_qid, f'({add_ref_prop})', 
                                         'o wartości: ', add_ref_value)
                                     if WIKIBASE_WRITE:
                                         clm_id = find_claim_id(wd_item, prop_id, p_value)
@@ -1201,7 +1202,7 @@ class WDHStatementItem:
                                                             add_ref_value)
                         # jeźeli brak to próba dodania referencji globalnej
                         if not test_ref_exists:
-                            print('Nie zaleziono referencji: ', add_ref_qid, f'({add_ref_prop})',
+                            print('Nie znaleziono referencji: ', add_ref_qid, f'({add_ref_prop})',
                                     'o wartości: ', add_ref_value, f' w deklaracji {prop_id} dla elementu {p_id}')
                             if WIKIBASE_WRITE:
                                 clm_id = find_claim_id(wd_item, prop_id, p_value)
