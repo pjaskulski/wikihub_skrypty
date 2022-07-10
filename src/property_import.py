@@ -89,7 +89,7 @@ class WDHSpreadsheet:
     def open(self):
         """ odczyt pliku i weryfikacja poprawności """
         try:
-            self.workbook = load_workbook(self.path)
+            self.workbook = load_workbook(self.path, data_only=True) # czytanie wartości a nie formuł (?)
         except IOError:
             print(f"ERROR. Can't open and process file: {self.path}")
             sys.exit(1)
