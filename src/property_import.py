@@ -112,7 +112,7 @@ class WDHSpreadsheet:
         # arkusz deklaracji dla właściwości
         self.p_statements = self.workbook[self.sheets[1]]
         self.statement_columns = self.get_col_names(self.p_statements)
-        p_statements_expected = ['Label_en', 'P', 'Value', 'Reference_property', 'Reference_value']
+        p_statements_expected = ['Label_en', 'P', 'Value']
         res, inf = self.test_columns(self.statement_columns, p_statements_expected)
         if not res:
             print(f'ERROR. Worksheet {self.sheets[1]}. The expected columns ({inf}) are missing.')
@@ -240,26 +240,28 @@ class WDHSpreadsheet:
             s_item = WDHStatementProperty()
             reference_property = reference_value = ''
             for col in basic_cols:
-                key = col.lower()
-                col_value = row[self.statement_columns[col]].value
+                # tylko jeżeli kolumna z listy jest w pliku
+                if col in self.statement_columns:
+                    key = col.lower()
+                    col_value = row[self.statement_columns[col]].value
 
-                if key == 'label_en':
-                    s_item.label_en = col_value
-                elif key == 'p':
-                    s_item.statement_property = col_value
-                elif key == 'value':
-                    if not isinstance(col_value, str):
-                        col_value = str(col_value)
-                    s_item.statement_value = col_value
-                elif key == 'reference_property':
-                    reference_property = col_value
-                elif key == 'reference_value':
-                    if not isinstance(col_value, str):
-                        col_value = str(col_value)
-                    reference_value = col_value
+                    if key == 'label_en':
+                        s_item.label_en = col_value
+                    elif key == 'p':
+                        s_item.statement_property = col_value
+                    elif key == 'value':
+                        if not isinstance(col_value, str):
+                            col_value = str(col_value)
+                        s_item.statement_value = col_value
+                    elif key == 'reference_property':
+                        reference_property = col_value
+                    elif key == 'reference_value':
+                        if not isinstance(col_value, str):
+                            col_value = str(col_value)
+                        reference_value = col_value
 
-                if reference_property and reference_value:
-                    s_item.references[reference_property] = reference_value
+                    if reference_property and reference_value:
+                        s_item.references[reference_property] = reference_value
 
             # nazwa arkusza z deklaracjami dla właściwości
             s_item.sheet_name = self.sheets[1]
@@ -396,6 +398,8 @@ class WDHSpreadsheet:
             g_sheet = row[self.globals_columns['Sheet']].value
             g_property = row[self.globals_columns['Reference_property']].value
             g_value = row[self.globals_columns['Reference_value']].value
+            if g_value.startswith("http") and g_value.endswith("/"):
+                g_value = g_value[:-1]
             GLOBAL_REFERENCE[g_sheet] = (g_property, g_value)
 
 
@@ -936,8 +940,8 @@ class WDHItem:
                     wd_statement.write(login_instance, entity_type='item')
 
                 print(mode + new_id + f' ({self.label_en})')
-            except (MWApiError, KeyError):
-                print('ERROR: ', self.label_en)
+            except (MWApiError, KeyError) as error_add_element:
+                print('ERROR: ', self.label_en, '(', error_add_element.error_msg, ')')
         # jeżeli nie nowy element i nie ma zmian do zapisu
         else:
             if self.label_en:
@@ -1216,6 +1220,7 @@ class WDHStatementItem:
                 # uzupełnianie kwalifikatorów
                 if self.qualifiers:
                     q_list = get_qualifiers(wd_item, prop_id, p_value)
+                    #print(q_list)
                     for qualifier_key, qualifier_value in self.qualifiers.items():
                         qw_exists = check_if_qw_exists(q_list, qualifier_key, qualifier_value)
                         if not qw_exists:
@@ -1771,7 +1776,7 @@ def get_property_type(p_id: str) -> str:
 
 
 def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> bool:
-    """ dodaje kwalifikator do deklaracji, obcnie obsługuje tylko 'value',
+    """ dodaje kwalifikator do deklaracji, obecnie obsługuje tylko 'value',
         obsługa 'somevalue' do zrobienia
     """
     add_result = False
@@ -1803,6 +1808,12 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
     elif prop_type == "wikibase-item":
         numeric_id = int(prop_value[1:])
         snak = {'entity-type': 'item', 'numeric-id': numeric_id, 'id': prop_value}
+    elif prop_type == "time":
+        print(prop_value)
+        tmp_value = prop_value.split("/")
+        time_value = tmp_value[0]
+        time_precision = int(tmp_value[1])
+        snak = {'time': time_value, 'precision': time_precision, 'before': 0, 'after': 0, 'timezone': 0, 'calendarmodel': 'http://www.wikidata.org/entity/Q1985727'}
     elif prop_type == "globe-coordinate":
         tmp_value = prop_value.split(',')
         latitude = float(tmp_value[0])
@@ -1882,13 +1893,20 @@ def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
     # jeżeli wartość typu monolingualtext ale ze zbędną dodatkową spacją
     if stat_prop_value[2:5] == ': "':
         stat_prop_value = stat_prop_value[:2] + ':"' + stat_prop_value[5:]
+    
+    # jeżeli nieznana lub brak wartości
+    if stat_prop_value == "somevalue" or stat_prop_value == "novalue":
+        #print(stat_prop_value)
+        stat_prop_value = None
 
     result_id = ''
     for statement in wd_item_test.statements:
+        #print(statement)
         statement_value = statement.get_value()
         statement_prop_nr = statement.get_prop_nr()
         statement_type = statement.data_type
         statement_value = statement_value_fix(statement_value, statement_type)
+        #print(stat_prop_qid, statement_value, stat_prop_value)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1903,7 +1921,10 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
     """ weryfikacja czy globalna referencja jest przypisana do deklaracji
     """
     ref_exists = False
-    if not isinstance(stat_prop_value, str):
+
+    if stat_prop_value in ('somevalue', 'novalue'):
+        stat_prop_value = None
+    elif not isinstance(stat_prop_value, str):
         stat_prop_value = str(stat_prop_value)
 
     # pętla po deklaracjach elementu
@@ -1917,6 +1938,8 @@ def verify_reference(wd_item_test, stat_prop_qid:str, stat_prop_value:str,
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
             tmp_references = statement.get_references()
             for t_ref_blok in tmp_references:
+                #print(t_ref_blok[0].get_prop_nr(), ' - ', g_ref_qid)
+                #print(t_ref_blok[0].get_value(), ' - ', g_ref_value)
                 if t_ref_blok[0].get_prop_nr() == g_ref_qid and t_ref_blok[0].get_value() == g_ref_value:
                     ref_exists = True
                     break
@@ -1940,6 +1963,9 @@ def monolingual_text_fix(text_value: str) ->str:
 def statement_value_fix(s_value, s_type) ->str:
     """ poprawia wartość pobraną z deklaracji właściwości
     """
+    if s_value is None:
+        return s_value
+
     if s_type == 'monolingualtext':
         s_value = s_value[1] + ':"' + s_value[0] + '"'
     elif s_type == "quantity":
@@ -1964,6 +1990,9 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
     """
     qualifiers = []
 
+    if prop_value in ('somevalue', 'novalue'):
+        prop_value = None
+
     for statement in element.statements:
         statement_value = statement.get_value()
         statement_type = statement.data_type
@@ -1975,6 +2004,7 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
                 lista = tmp_json['qualifiers'].keys()
                 for q_key in lista:
                     for q_item in tmp_json['qualifiers'][q_key]:
+                        print(q_item)
                         qualifier_property = q_item['property']
                         qualifier_type = q_item['datavalue']['type']
                         if qualifier_type == 'string':
@@ -1987,6 +2017,8 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
                             qualifier_value = tmp['amount'].replace('+','')
                         elif qualifier_type == 'wikibase-entityid':
                             qualifier_value = q_item['datavalue']['value']['id']
+                        elif qualifier_type == 'time':
+                            qualifier_value = q_item['datavalue']['value']['time']
                         elif qualifier_type == 'globecoordinate':
                             tmp = q_item['datavalue']['value']
                             qualifier_value = str(tmp['latitude']) + ',' + str(tmp['longitude'])
@@ -2002,6 +2034,7 @@ def check_if_qw_exists(q_list, qualifier_property, qualifier_value) -> bool:
     """
     qw_result = False
     for t_prop, t_value in q_list:
+        #print(t_prop, t_value, ' = ', qualifier_property, qualifier_value)
         if t_prop == qualifier_property and t_value == qualifier_value:
             qw_result = True
             break
@@ -2025,31 +2058,34 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str=''
             lista = claims[claim_to_check]
             for item in lista:
                 #print(item)
-                value_json = item['mainsnak']['datavalue']['value']
-
-                if 'type' in item['mainsnak']['datavalue'] and item['mainsnak']['datavalue']['type'] == 'string':
-                    value = value_json
-                elif 'text' in value_json and 'language' in value_json:
-                    # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
-                    if '”' in value_to_check:
-                        value_to_check = value_to_check.replace('”', '"')
-                    # jeżeli zbędna spacja w wartości monoligualtext
-                    if value_to_check[2] == ':' and ': "' in value_to_check:
-                        value_to_check = value_to_check.replace(': "', ':"')
-                    value = f"{value_json['language']}:\"{value_json['text']}\""
-                elif 'entity-type' in value_json:
-                    value = value_json['id']
-                elif 'latitude' in value_json:
-                    value = f"{value_json['latitude']},{value_json['longitude']}"
-                elif 'time' in value_json:
-                    value = f"{value_json['time']}/{value_json['precision']}"
-                elif 'amount' in value_json:
-                    value = value_json['amount']
-                    if value.startswith('+'):
-                        value = value[1:]
+                if value_to_check in ('somevalue', 'novalue'):
+                    value = item['mainsnak']['snaktype']
                 else:
-                    value = '???' # jeszcze nie obsługiwany typ - do weryfikacji
-                    print(item, ' - ', value_to_check)
+                    value_json = item['mainsnak']['datavalue']['value']
+
+                    if 'type' in item['mainsnak']['datavalue'] and item['mainsnak']['datavalue']['type'] == 'string':
+                        value = value_json
+                    elif 'text' in value_json and 'language' in value_json:
+                        # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
+                        if '”' in value_to_check:
+                            value_to_check = value_to_check.replace('”', '"')
+                        # jeżeli zbędna spacja w wartości monoligualtext
+                        if value_to_check[2] == ':' and ': "' in value_to_check:
+                            value_to_check = value_to_check.replace(': "', ':"')
+                        value = f"{value_json['language']}:\"{value_json['text']}\""
+                    elif 'entity-type' in value_json:
+                        value = value_json['id']
+                    elif 'latitude' in value_json:
+                        value = f"{value_json['latitude']},{value_json['longitude']}"
+                    elif 'time' in value_json:
+                        value = f"{value_json['time']}/{value_json['precision']}"
+                    elif 'amount' in value_json:
+                        value = value_json['amount']
+                        if value.startswith('+'):
+                            value = value[1:]
+                    else:
+                        value = '???' # jeszcze nie obsługiwany typ - do weryfikacji
+                        print(item, ' - ', value_to_check)
 
                 if value == value_to_check:
                     has_claim = True

@@ -48,6 +48,10 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         elif 'strict' in kwargs:
             strict = kwargs['strict']
 
+    # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
+    if len(search_string) > 240:
+        search_string = search_string[:241]
+
     results = search_entities(search_string, language=lang,
                               search_type=element_type, max_results=50)
 
@@ -85,7 +89,8 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         else:
             print(f'ERROR, nie znaleziono ["labels"][{lang}] w strukturze odpowiedzi Wikibase.')
 
-        return False, f"AMBIGIOUS ID FOUND {results}"
+        #return False, f"AMBIGIOUS ID FOUND {results}"
+        return True, results[0]
 
     exact_id = ''
     for qid in results:
