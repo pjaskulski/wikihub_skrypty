@@ -29,7 +29,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 # --- klasy ---
@@ -1009,7 +1009,7 @@ class WDHStatementItem:
 
     def write_to_wikibase(self):
         """ zapis deklaracji dla elementu w instancji wikibase
-            także zapis aliasu dla elementu - zależnie od wartości
+            także zapis aliasu, opisu, dodatkowej etykiety dla elementu - zależnie od wartości
             self.statement_property
         """
         is_ok, p_id = find_name_qid(self.label_en, 'item')
@@ -1020,7 +1020,7 @@ class WDHStatementItem:
         # jeżeli to alias?
         if self.statement_property in ('Apl', 'Aen', 'Ade', 'Aru', 'Aes', 'Afr', 'Alt', 'Alv', 'Aet', 
                                        'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
-                                       'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
+                                       'Ask', 'Asl', 'Aro', 'Asv', 'Afi', 'Ahe'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 lang = self.statement_property[1:]
@@ -1091,7 +1091,7 @@ class WDHStatementItem:
         # jeżeli to etykieta
         elif self.statement_property in ('Lpl', 'Len', 'Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
                                          'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
-                                         'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
+                                         'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi', 'Lhe'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 lang = self.statement_property[1:]
@@ -1110,7 +1110,7 @@ class WDHStatementItem:
         # jeżeli to opis (description)
         elif self.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
                                          'Dnl', 'Dit', 'Dla', 'Dhu', 'Dpt', 'Duk', 'Dcs',
-                                         'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi'):
+                                         'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi', 'Dhe'):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 lang = self.statement_property[1:]
@@ -1363,6 +1363,11 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     """
     output = (True, name)               # zakładamy, że w name jest id (np. P47)
                                         # ale jeżeli nie, to szukamy w wikibase
+
+    # jeżeli szukana wartość name = 'somevalue' lub 'novalue' to zwraca True i wartość
+    if name == 'somevalue' or name == 'novalue':
+        return (True, name)
+
     if elem_type == 'property':
         pattern = r'^P\d{1,9}$'
     elif elem_type == 'item':
@@ -1410,44 +1415,66 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
     Funkcja tworzy obiekt będący deklaracją lub referencją lub kwalifikatorem
     """
     statement = None
+    if value == 'somevalue' or value == 'novalue':
+        snak_type = value
+    else:
+        snak_type = 'value'
 
     res, property_nr = find_name_qid(prop, 'property')
     if res:
         property_type = get_property_type(property_nr)
         if property_type == 'string':
+            if snak_type != 'value':
+                value = None
             statement = wbi_datatype.String(value=value, prop_nr=property_nr,
                                             is_reference=is_ref, references=refs,
-                                            is_qualifier=is_qlf, qualifiers=qlfs, 
-                                            if_exists=if_exists)
+                                            is_qualifier=is_qlf, qualifiers=qlfs,
+                                            if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'wikibase-item':
-            res, value_id = find_name_qid(value, 'item')
+            if snak_type != 'value':
+                value_id = None
+                res = True
+            else:
+                res, value_id = find_name_qid(value, 'item')
+
             if res:
                 statement = wbi_datatype.ItemID(value=value_id, prop_nr=property_nr,
-                                                is_reference=is_ref, references=refs,
-                                                is_qualifier=is_qlf, qualifiers=qlfs,
-                                                if_exists=if_exists)
+                                            is_reference=is_ref, references=refs,
+                                            is_qualifier=is_qlf, qualifiers=qlfs,
+                                            if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'wikibase-property':
-            res, value_id = find_name_qid(value, 'property')
+            if snak_type != 'value':
+                value_id = None
+                res = True
+            else:
+                res, value_id = find_name_qid(value, 'property')
+
             if res:
                 statement = wbi_datatype.Property(value=value_id, prop_nr=property_nr,
                                                   is_reference=is_ref, references=refs,
                                                   is_qualifier=is_qlf, qualifiers=qlfs, 
-                                                  if_exists=if_exists)
+                                                  if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'external-id':
+            if snak_type != 'value':
+                value = None
             statement = wbi_datatype.ExternalID(value=value, prop_nr=property_nr,
                                                 is_reference=is_ref, references=refs,
-                                                is_qualifier=is_qlf, qualifiers=qlfs, 
-                                                if_exists=if_exists)
+                                                is_qualifier=is_qlf, qualifiers=qlfs,
+                                                if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'url':
+            if snak_type != 'value':
+                value = None
             statement = wbi_datatype.Url(value=value, prop_nr=property_nr,
                                          is_reference=is_ref, references=refs,
                                          is_qualifier=is_qlf, qualifiers=qlfs,
-                                         if_exists=if_exists)
+                                         if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'monolingualtext':
             # zakładając że wartość monolingualtext jest zapisana w formie:
             # pl:"To jest tekst w języku polskim", a jeżeli brak przedrostka z kodem
             # języka to przyjmujemy 'en'
-            if value[2] == ':':
+            if snak_type != 'value':
+                value = None
+            if value and value[2] == ':':
                 # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
                 if '”' in value:
                     value = value.replace('”', '"')
@@ -1463,37 +1490,56 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
             statement = wbi_datatype.MonolingualText(text=value, prop_nr=property_nr, language=prop_lang,
                                                      is_reference=is_ref, references=refs,
                                                      is_qualifier=is_qlf, qualifiers=qlfs, 
-                                                     if_exists=if_exists)
+                                                     if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'quantity':
+            if snak_type != 'value':
+                value = None
             statement = wbi_datatype.Quantity(quantity=value, prop_nr=property_nr,
                                               is_reference=is_ref, references=refs,
                                               is_qualifier=is_qlf, qualifiers=qlfs, 
-                                              if_exists=if_exists)
+                                              if_exists=if_exists, snak_type=snak_type)
         elif property_type == 'time':
             # czas w formacie +1539-12-08T00:00:00Z/11, po slashu precyzja daty zgodnie
             # ze standardami wikibase 11 - dzień, 9 - rok
-            tmp = value.split("/")
+            if snak_type != 'value':
+                value = None
+            
+            if value:
+                tmp = value.split("/")
+            else:
+                tmp = [None, 11]
+
             if len(tmp) == 2:
                 time_value = tmp[0]
                 precision = int(tmp[1])
                 statement = wbi_datatype.Time(time_value, prop_nr=property_nr,
                                               precision=precision, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
-                                              qualifiers=qlfs, if_exists=if_exists)
+                                              qualifiers=qlfs, if_exists=if_exists,
+                                              snak_type=snak_type)
             else:
                 print(f'ERROR: invalid value for time type: {value}.')
         elif property_type == 'geo-shape':
             # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda?
+            if snak_type != 'value':
+                value = None
             statement = wbi_datatype.GeoShape(value, prop_nr=property_nr, is_reference=is_ref,
                                               references=refs, is_qualifier=is_qlf,
-                                              qualifiers=qlfs, if_exists=if_exists)
+                                              qualifiers=qlfs, if_exists=if_exists,
+                                              snak_type=snak_type)
         elif property_type == 'globe-coordinate':
             # oczekuje na zapis w formacie: 51.2,20.1 opcjonalnie jeszcze ,0.1
             # czyli latitude, longitude (jako liczby dziesiętne), oraz precyzja, domyślnie 0.1
             # domyślny glob = Earth, ale można zmienić na Marsa
             # https://www.wikidata.org/wiki/Help:Data_type/pl#Globe_coordinate
+            if snak_type != 'value':
+                value = None
+            
+            if value:
+                tmp = value.split(",")
+            else:
+                tmp = [None, None, None]
 
-            tmp = value.split(",")
             try:
                 latitude = float(tmp[0])
                 longitude = float(tmp[1])
@@ -1507,7 +1553,8 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 statement = wbi_datatype.GlobeCoordinate(latitude, longitude, precision,
                                                          prop_nr=property_nr, is_reference=is_ref,
                                                          references=refs, is_qualifier=is_qlf,
-                                                         qualifiers=qlfs, if_exists=if_exists)
+                                                         qualifiers=qlfs, if_exists=if_exists,
+                                                         snak_type=snak_type)
 
     return statement
 
@@ -1603,7 +1650,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
      # jeżeli to alias?
     if s_item.statement_property in ('Apl', 'Aen', 'Ade', 'Aru', 'Aes', 'Afr', 'Alt', 'Alv', 'Aet',
                                     'Anl', 'Ait', 'Ala', 'Ahu', 'Apt', 'Auk', 'Acs',
-                                    'Ask', 'Asl', 'Aro', 'Asv', 'Afi'):
+                                    'Ask', 'Asl', 'Aro', 'Asv', 'Afi', 'Ahe'):
         try:
             wd_item = wbi_core.ItemEngine(item_id=p_id)
             lang = s_item.statement_property[1:]
@@ -1622,7 +1669,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     # jeżeli to etykieta (ale nie można zmienić  etykiety pl/en!)
     elif s_item.statement_property in ('Lde', 'Lru', 'Les', 'Lfr', 'Llt', 'Llv', 'Let',
                                        'Lnl', 'Lit', 'Lla', 'Lhu', 'Lpt', 'Luk', 'Lcs',
-                                       'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi'):
+                                       'Lsk', 'Lsl', 'Lro', 'Lsv', 'Lfi', 'Lhe'):
         try:
             wd_item = wbi_core.ItemEngine(item_id=p_id)
             lang = s_item.statement_property[1:]
@@ -1641,7 +1688,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     # jeżeli to opis (description)
     elif s_item.statement_property in ('Dpl', 'Den', 'Dde', 'Dru', 'Des', 'Dfr', 'Dlt', 'Dlv', 'Det',
                                        'Dnl', 'Dit', 'Dla', 'Dhu', 'Dpt', 'Duk', 'Dcs',
-                                       'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi'):
+                                       'Dsk', 'Dsl', 'Dro', 'Dsv', 'Dfi', 'Dhe'):
         try:
             wd_item = wbi_core.ItemEngine(item_id=p_id)
             lang = s_item.statement_property[1:]
