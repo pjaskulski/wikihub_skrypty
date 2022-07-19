@@ -29,7 +29,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 # --- klasy ---
@@ -1809,7 +1809,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         numeric_id = int(prop_value[1:])
         snak = {'entity-type': 'item', 'numeric-id': numeric_id, 'id': prop_value}
     elif prop_type == "time":
-        print(prop_value)
+        #print(prop_value)
         tmp_value = prop_value.split("/")
         time_value = tmp_value[0]
         time_precision = int(tmp_value[1])
@@ -1906,7 +1906,7 @@ def find_claim_id(wd_item_test, stat_prop_qid:str, stat_prop_value:str):
         statement_prop_nr = statement.get_prop_nr()
         statement_type = statement.data_type
         statement_value = statement_value_fix(statement_value, statement_type)
-        #print(stat_prop_qid, statement_value, stat_prop_value)
+        #print(stat_prop_qid, statement_value, stat_prop_value, statement_type)
 
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
@@ -1956,7 +1956,7 @@ def monolingual_text_fix(text_value: str) ->str:
         # jeżeli wartość typu monolingualtext ale ze zbędną dodatkową spacją
         if text_value[2:5] == ': "':
             text_value = text_value[:2] + ':"' + text_value[5:]
-    
+
     return text_value
 
 
@@ -1978,6 +1978,20 @@ def statement_value_fix(s_value, s_type) ->str:
             s_value = str(s_value[0]) + ',' + str(s_value[1])
         else:
             s_value = str(s_value)
+    elif s_type == "wikibase-item":
+        if isinstance(s_value, int):
+            s_value = str(s_value)
+        if not s_value.startswith("Q"):
+            s_value = "Q" + s_value
+    elif s_type == 'time':
+        if isinstance(s_value, tuple):
+            s_value_time = s_value[0]
+            if s_value_time is None:
+                s_value = None
+            elif isinstance(s_value_time, str):
+                s_value = s_value_time + '/' + str(s_value[3])
+            else:
+                print('ERROR: wartość typu time: ', s_value)
     else:
         if not isinstance(s_value, str):
             s_value = str(s_value)
@@ -2004,7 +2018,7 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
                 lista = tmp_json['qualifiers'].keys()
                 for q_key in lista:
                     for q_item in tmp_json['qualifiers'][q_key]:
-                        print(q_item)
+                        #print(q_item)
                         qualifier_property = q_item['property']
                         qualifier_type = q_item['datavalue']['type']
                         if qualifier_type == 'string':
@@ -2019,6 +2033,8 @@ def get_qualifiers(element:wbi_core.ItemEngine, prop_id, prop_value) ->list:
                             qualifier_value = q_item['datavalue']['value']['id']
                         elif qualifier_type == 'time':
                             qualifier_value = q_item['datavalue']['value']['time']
+                            q_precision = q_item['datavalue']['value']['precision']
+                            qualifier_value += '/' + str(q_precision)
                         elif qualifier_type == 'globecoordinate':
                             tmp = q_item['datavalue']['value']
                             qualifier_value = str(tmp['latitude']) + ',' + str(tmp['longitude'])
