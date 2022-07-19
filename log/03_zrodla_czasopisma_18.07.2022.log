@@ -1,0 +1,131 @@
+ITEM: Roczniki Nauk Prawnych
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79560 (Roczniki Nauk Prawnych)
+ITEM: Studia z Dziejów Rosji i Europy Środkowo-Wschodniej
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79561 (Studia z Dziejów Rosji i Europy Środkowo-Wschodniej)
+ITEM: Acta Universitatis Nicolai Copernici. Historia
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79562 (Acta Universitatis Nicolai Copernici. Historia)
+ITEM: Czasopismo Prawno-Historyczne
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79563 (Czasopismo Prawno-Historyczne)
+ITEM: Studia Iuridica Toruniensia
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79564 (Studia Iuridica Toruniensia)
+ITEM: Nowe Studia Grunwaldzkie
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79565 (Nowe Studia Grunwaldzkie)
+ITEM: Krakowskie Studia z Historii Państwa i Prawa
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79566 (Krakowskie Studia z Historii Państwa i Prawa)
+ITEM: Res Historica
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79567 (Res Historica)
+ITEM: Logos
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79568 (Logos)
+ITEM: Geografiâ
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79569 (Geografiâ)
+ITEM: Dziennik Ustaw Rzeczypospolitej Polskiej
+DODANO deklarację: 'instance of' (P47) o wartości: Q79446
+added: Q79570 (Dziennik Ustaw Rzeczypospolitej Polskiej)
+ITEM: Acta Universitatis Nicolai Copernici. Historia, STATEMENT: Lla, VALUE: Acta Universitatis Nicolai Copernici. Historia
+LABEL ADDED/MODIFIED, item Q79562 (Acta Universitatis Nicolai Copernici. Historia): Lla -> Acta Universitatis Nicolai Copernici. Historia
+ITEM: Acta Universitatis Nicolai Copernici. Historia, STATEMENT: title, VALUE: Acta Universitatis Nicolai Copernici. Historia
+STATEMENT ADDED, Q79562 (Acta Universitatis Nicolai Copernici. Historia): P223 -> Acta Universitatis Nicolai Copernici. Historia
+ITEM: Acta Universitatis Nicolai Copernici. Historia, STATEMENT: ISSN, VALUE: 0137-5830
+Pominięto referencję globalną dla deklaracji: Q79562->P236 typu external-id.
+STATEMENT ADDED, Q79562 (Acta Universitatis Nicolai Copernici. Historia): P236 -> 0137-5830
+ITEM: Czasopismo Prawno-Historyczne, STATEMENT: title, VALUE: Czasopismo Prawno-Historyczne
+STATEMENT ADDED, Q79563 (Czasopismo Prawno-Historyczne): P223 -> Czasopismo Prawno-Historyczne
+ITEM: Czasopismo Prawno-Historyczne, STATEMENT: ISSN, VALUE: 0070-2471
+Pominięto referencję globalną dla deklaracji: Q79563->P236 typu external-id.
+STATEMENT ADDED, Q79563 (Czasopismo Prawno-Historyczne): P236 -> 0070-2471
+ITEM: Czasopismo Prawno-Historyczne, STATEMENT: ISSN, VALUE: 2720-2186
+Pominięto referencję globalną dla deklaracji: Q79563->P236 typu external-id.
+STATEMENT ADDED, Q79563 (Czasopismo Prawno-Historyczne): P236 -> 2720-2186
+ITEM: Czasopismo Prawno-Historyczne, STATEMENT: DOI, VALUE: doi.org/10.14746/cph
+Pominięto referencję globalną dla deklaracji: Q79563->P237 typu external-id.
+STATEMENT ADDED, Q79563 (Czasopismo Prawno-Historyczne): P237 -> doi.org/10.14746/cph
+ITEM: Geografiâ, STATEMENT: Lru, VALUE: География
+LABEL ADDED/MODIFIED, item Q79569 (Geografiâ): Lru -> География
+ITEM: Geografiâ, STATEMENT: Aru, VALUE: Geografiâ
+ALIAS ADDED, item Q79569 (Geografiâ): Aru -> Geografiâ
+ITEM: Geografiâ, STATEMENT: title, VALUE: Geografiâ
+STATEMENT ADDED, Q79569 (Geografiâ): P223 -> Geografiâ
+ITEM: Geografiâ, STATEMENT: ISSN, VALUE: 1561-7114
+Pominięto referencję globalną dla deklaracji: Q79569->P236 typu external-id.
+STATEMENT ADDED, Q79569 (Geografiâ): P236 -> 1561-7114
+ITEM: Krakowskie Studia z Historii Państwa i Prawa, STATEMENT: title, VALUE: Krakowskie Studia z Historii Państwa i Prawa
+STATEMENT ADDED, Q79566 (Krakowskie Studia z Historii Państwa i Prawa): P223 -> Krakowskie Studia z Historii Państwa i Prawa
+ITEM: Krakowskie Studia z Historii Państwa i Prawa, STATEMENT: ISSN, VALUE: 2084-4115
+Pominięto referencję globalną dla deklaracji: Q79566->P236 typu external-id.
+STATEMENT ADDED, Q79566 (Krakowskie Studia z Historii Państwa i Prawa): P236 -> 2084-4115
+ITEM: Krakowskie Studia z Historii Państwa i Prawa, STATEMENT: ISSN, VALUE: 2084-4131
+Pominięto referencję globalną dla deklaracji: Q79566->P236 typu external-id.
+STATEMENT ADDED, Q79566 (Krakowskie Studia z Historii Państwa i Prawa): P236 -> 2084-4131
+ITEM: Krakowskie Studia z Historii Państwa i Prawa, STATEMENT: DOI, VALUE: doi.org/10.4467/20844131KS
+Pominięto referencję globalną dla deklaracji: Q79566->P237 typu external-id.
+STATEMENT ADDED, Q79566 (Krakowskie Studia z Historii Państwa i Prawa): P237 -> doi.org/10.4467/20844131KS
+ITEM: Logos, STATEMENT: Lru, VALUE: Логос
+LABEL ADDED/MODIFIED, item Q79568 (Logos): Lru -> Логос
+ITEM: Logos, STATEMENT: Aru, VALUE: Logos
+ALIAS ADDED, item Q79568 (Logos): Aru -> Logos
+ITEM: Logos, STATEMENT: title, VALUE: Logos
+STATEMENT ADDED, Q79568 (Logos): P223 -> Logos
+ITEM: Logos, STATEMENT: ISSN, VALUE: somevalue
+Pominięto referencję globalną dla deklaracji: Q79568->P236 typu external-id.
+STATEMENT ADDED, Q79568 (Logos): P236 -> somevalue
+ITEM: Nowe Studia Grunwaldzkie, STATEMENT: title, VALUE: Nowe Studia Grunwaldzkie
+STATEMENT ADDED, Q79565 (Nowe Studia Grunwaldzkie): P223 -> Nowe Studia Grunwaldzkie
+ITEM: Nowe Studia Grunwaldzkie, STATEMENT: ISSN, VALUE: 2449-6332
+Pominięto referencję globalną dla deklaracji: Q79565->P236 typu external-id.
+STATEMENT ADDED, Q79565 (Nowe Studia Grunwaldzkie): P236 -> 2449-6332
+ITEM: Res Historica, STATEMENT: Lla, VALUE: Res Historica
+LABEL ADDED/MODIFIED, item Q79567 (Res Historica): Lla -> Res Historica
+ITEM: Res Historica, STATEMENT: title, VALUE: Res Historica
+STATEMENT ADDED, Q79567 (Res Historica): P223 -> Res Historica
+ITEM: Res Historica, STATEMENT: ISSN, VALUE: 2082-6060
+Pominięto referencję globalną dla deklaracji: Q79567->P236 typu external-id.
+STATEMENT ADDED, Q79567 (Res Historica): P236 -> 2082-6060
+ITEM: Res Historica, STATEMENT: ISSN, VALUE: 2449-8467
+Pominięto referencję globalną dla deklaracji: Q79567->P236 typu external-id.
+STATEMENT ADDED, Q79567 (Res Historica): P236 -> 2449-8467
+ITEM: Roczniki Nauk Prawnych, STATEMENT: title, VALUE: Roczniki Nauk Prawnych
+STATEMENT ADDED, Q79560 (Roczniki Nauk Prawnych): P223 -> Roczniki Nauk Prawnych
+ITEM: Roczniki Nauk Prawnych, STATEMENT: ISSN, VALUE: 1507-7896
+Pominięto referencję globalną dla deklaracji: Q79560->P236 typu external-id.
+STATEMENT ADDED, Q79560 (Roczniki Nauk Prawnych): P236 -> 1507-7896
+ITEM: Roczniki Nauk Prawnych, STATEMENT: ISSN, VALUE: 2544-5227
+Pominięto referencję globalną dla deklaracji: Q79560->P236 typu external-id.
+STATEMENT ADDED, Q79560 (Roczniki Nauk Prawnych): P236 -> 2544-5227
+ITEM: Studia Iuridica Toruniensia, STATEMENT: Lla, VALUE: Studia Iuridica Toruniensia
+LABEL ADDED/MODIFIED, item Q79564 (Studia Iuridica Toruniensia): Lla -> Studia Iuridica Toruniensia
+ITEM: Studia Iuridica Toruniensia, STATEMENT: title, VALUE: Studia Iuridica Toruniensia
+STATEMENT ADDED, Q79564 (Studia Iuridica Toruniensia): P223 -> Studia Iuridica Toruniensia
+ITEM: Studia Iuridica Toruniensia, STATEMENT: ISSN, VALUE: 1689-5258
+Pominięto referencję globalną dla deklaracji: Q79564->P236 typu external-id.
+STATEMENT ADDED, Q79564 (Studia Iuridica Toruniensia): P236 -> 1689-5258
+ITEM: Studia Iuridica Toruniensia, STATEMENT: ISSN, VALUE: 2391-7873
+Pominięto referencję globalną dla deklaracji: Q79564->P236 typu external-id.
+STATEMENT ADDED, Q79564 (Studia Iuridica Toruniensia): P236 -> 2391-7873
+ITEM: Studia z Dziejów Rosji i Europy Środkowo-Wschodniej, STATEMENT: title, VALUE: Studia z Dziejów Rosji i Europy Środkowo-Wschodniej
+STATEMENT ADDED, Q79561 (Studia z Dziejów Rosji i Europy Środkowo-Wschodniej): P223 -> Studia z Dziejów Rosji i Europy Środkowo-Wschodniej
+ITEM: Studia z Dziejów Rosji i Europy Środkowo-Wschodniej, STATEMENT: ISSN, VALUE: 1230-5057
+Pominięto referencję globalną dla deklaracji: Q79561->P236 typu external-id.
+STATEMENT ADDED, Q79561 (Studia z Dziejów Rosji i Europy Środkowo-Wschodniej): P236 -> 1230-5057
+ITEM: Studia z Dziejów Rosji i Europy Środkowo-Wschodniej, STATEMENT: ISSN, VALUE: 2353-6403
+Pominięto referencję globalną dla deklaracji: Q79561->P236 typu external-id.
+STATEMENT ADDED, Q79561 (Studia z Dziejów Rosji i Europy Środkowo-Wschodniej): P236 -> 2353-6403
+ITEM: Dziennik Ustaw Rzeczypospolitej Polskiej, STATEMENT: Apl, VALUE: Dziennik Ustaw
+ALIAS ADDED, item Q79570 (Dziennik Ustaw Rzeczypospolitej Polskiej): Apl -> Dziennik Ustaw
+ITEM: Dziennik Ustaw Rzeczypospolitej Polskiej, STATEMENT: title, VALUE: Dziennik Ustaw Rzeczypospolitej Polskiej
+STATEMENT ADDED, Q79570 (Dziennik Ustaw Rzeczypospolitej Polskiej): P223 -> Dziennik Ustaw Rzeczypospolitej Polskiej
+ITEM: Dziennik Ustaw Rzeczypospolitej Polskiej, STATEMENT: ISSN, VALUE: 0867-3411
+Pominięto referencję globalną dla deklaracji: Q79570->P236 typu external-id.
+STATEMENT ADDED, Q79570 (Dziennik Ustaw Rzeczypospolitej Polskiej): P236 -> 0867-3411
+ITEM: Dziennik Ustaw Rzeczypospolitej Polskiej, STATEMENT: ISSN, VALUE: 1689-3336
+Pominięto referencję globalną dla deklaracji: Q79570->P236 typu external-id.
+STATEMENT ADDED, Q79570 (Dziennik Ustaw Rzeczypospolitej Polskiej): P236 -> 1689-3336
