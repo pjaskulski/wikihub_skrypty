@@ -99,4 +99,8 @@ if __name__ == "__main__":
     wynik = search_by_purl('P197', 'http://purl.org/ontohgis#object_95')
     print(wynik)
 
-    print("Długa etykieta:", element_search("Ustrój terytoriualny oparty o komitaty (megye) i powiaty (processus, reambulatio, węg. szolgabírói járás) ukształtował się w średniowieczu, od XI wieku, i mimo wielu prób reform administracyjnych obowiązuje zasadniczo po dzień dzisiejszy. Najważniejsze reformy miały miejsce w latach 1785-1790, 1849-1860 i były związane z próbą centralizacji administracyjnej w ramach monarchii austriackiej.", "item", 'en'))
+    #print("Długa etykieta:", element_search("Ustrój terytoriualny oparty o komitaty (megye) i powiaty (processus, reambulatio, węg. szolgabírói járás) ukształtował się w średniowieczu, od XI wieku, i mimo wielu prób reform administracyjnych obowiązuje zasadniczo po dzień dzisiejszy. Najważniejsze reformy miały miejsce w latach 1785-1790, 1849-1860 i były związane z próbą centralizacji administracyjnej w ramach monarchii austriackiej.", "item", 'en'))
+
+    #my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q79708')
+    #data = my_first_wikidata_item.get_json_representation()
+    #print(data)    

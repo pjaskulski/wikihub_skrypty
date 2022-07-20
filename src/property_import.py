@@ -29,7 +29,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --- klasy ---
 class BasicProp:
@@ -120,7 +120,7 @@ class WDHSpreadsheet:
         # arkusz elementów
         self.i_list = self.workbook[self.sheets[2]]
         self.item_columns = self.get_col_names(self.i_list)
-        # możliwe są także opcjonalne kolumny StartsAt, EndsAt, Instance of
+        # możliwe są także opcjonalne kolumny StartsAt, EndsAt, Instance of, Purl_identifier
         i_list_expected = ['Label_en', 'Label_pl', 'Description_en', 'Description_pl', 'Wiki_id']
         res, inf = self.test_columns(self.item_columns, i_list_expected)
         if not res:
@@ -305,7 +305,7 @@ class WDHSpreadsheet:
             # tylko jeżeli etykieta i opis w języku angielskim lub etykieta polska
             # są wypełnione dane właściwości są dodawane do listy
             if (i_item.label_en and i_item.description_en) or (i_item.label_pl):
-                extend_cols = ['Wiki_id','StartsAt','EndsAt', 'Instance of']
+                extend_cols = ['Wiki_id','StartsAt','EndsAt', 'Instance of', 'Purl_identifier']
                 for col in extend_cols:
                     key = col.lower()
                     if col in self.item_columns:
@@ -326,6 +326,12 @@ class WDHSpreadsheet:
                             i_item.ends_at = col_value
                         elif key == 'instance of':
                             i_item.instance_of = col_value
+                        elif key == 'purl_identifier':
+                            if col_value is None:
+                                col_value = ''
+                            if not isinstance(col_value, str):
+                                col_value = str(col_value)
+                            i_item.purl_identifier = col_value
 
                 i_list.append(i_item)
 
@@ -626,6 +632,7 @@ class WDHItem:
         self.starts_at = ''
         self.ends_at = ''
         self.instance_of = ''
+        self.purl_identifier = ''
 
     @property
     def label_en(self) -> str:
@@ -761,6 +768,19 @@ class WDHItem:
                     print(f'ERROR: nieznany format daty: {value}')
         else:
             self._ends_at = ''
+    
+    @property
+    def purl_identifier(self) -> str:
+        """ get Purl_identifier """
+        return self._purl_identifier
+
+    @purl_identifier.setter
+    def purl_identifier(self, value: str):
+        """ set Purl_identifier """
+        if value:
+            self._purl_identifier = value.strip()
+        else:
+            self._purl_identifier = ''
 
     @property
     def instance_of(self) -> str:
@@ -842,8 +862,8 @@ class WDHItem:
                 wiki_dane = wbi_datatype.ExternalID(value=self.wiki_id, prop_nr=wikibase_prop.wiki_id,
                     references=references)
 
-        # obsługa opcjonalnych kolumn StatsAt, EndsAt, Instance of
-        wiki_starts = wiki_ends = wiki_instance = None
+        # obsługa opcjonalnych kolumn StatsAt, EndsAt, Instance of, Purl_identifier
+        wiki_starts = wiki_ends = wiki_instance = wiki_purl = None
 
         # StartsAt
         if self.starts_at:
@@ -918,6 +938,25 @@ class WDHItem:
             else:
                 print(f'ERROR: nie znaleziono symbolu Q dla wartości deklaracji instance_of: {instance_value}')
 
+        # Purl_identifier
+        if self.purl_identifier:
+            skip_purl_identifier = False
+            res, purl_qid = find_name_qid('purl identifier', 'property')
+            if res:
+                if search_item:
+                    if has_statement(search_id, purl_qid, self.purl_identifier):
+                        print(f'SKIP: element {search_id} ({self.label_en}) posiada deklarację: {purl_qid} o wartości: {self.purl_identifier}')
+                        skip_purl_identifier = True
+
+                if not skip_purl_identifier:
+                    wiki_purl = wbi_datatype.ExternalID(value=self.purl_identifier, prop_nr=purl_qid,
+                                                        references=None)
+                    item_is_changed = True
+                    print(f"DODANO deklarację: 'purl identifier' ({purl_qid}) o wartości: {self.purl_identifier}")
+
+            else:
+                print("ERROR: nie znaleziono właściwości 'purl identifier' w instancji Wkibase.")
+
         # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
         if not search_item or item_is_changed:
             try:
@@ -945,6 +984,8 @@ class WDHItem:
                     data.append(wiki_ends)
                 if wiki_instance:
                     data.append(wiki_instance)
+                if wiki_purl:
+                    data.append(wiki_purl)
 
                 if data and WIKIBASE_WRITE:
                     wd_statement = wbi_core.ItemEngine(item_id=new_id, data=data, debug=False)
@@ -1159,6 +1200,9 @@ class WDHStatementItem:
                         return
 
                     tmp[qualifier_id] = value
+                    # modyfikacja wartości jeżeli to typ time (point in time)
+                    if get_property_type(qualifier_id) == 'time':
+                        tmp[qualifier_id] = prepare_datetime(value)
 
                 self.qualifiers = tmp
 
@@ -1795,6 +1839,19 @@ def get_property_type(p_id: str) -> str:
 
     return data_type
 
+def prepare_datetime(t_value: str) -> str:
+    """ Modyfikuje format zapisu daty do akceptowalnego przez wikibase """
+    t_value = t_value.strip()
+
+    if len(t_value) == 4:
+        t_value = f'+{t_value}-00-00T00:00:00Z/9'
+    elif len(t_value) == 7: # 1564-10
+        t_value = f'+{t_value}-00T00:00:00Z/10'
+    elif len(t_value) == 10: # 1564-10-11
+        t_value = f'+{t_value}T00:00:00Z/11'
+
+    return t_value
+
 
 def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> bool:
     """ dodaje kwalifikator do deklaracji, obecnie obsługuje tylko 'value',
@@ -1832,6 +1889,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         snak = {'entity-type': 'item', 'numeric-id': numeric_id, 'id': prop_value}
     elif prop_type == "time":
         #print(prop_value)
+        prop_value = prepare_datetime(prop_value)
         tmp_value = prop_value.split("/")
         time_value = tmp_value[0]
         time_precision = int(tmp_value[1])
