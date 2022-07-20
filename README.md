@@ -1,5 +1,5 @@
-# wikidariah_skrypty
-Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiDARIAH 
+# wikihub_skrypty
+Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiHUB 
 
 ## 1. proste przykłady:
 
