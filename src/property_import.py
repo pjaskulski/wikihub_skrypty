@@ -29,8 +29,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = False
-
+WIKIBASE_WRITE = True
 
 # --- klasy ---
 class BasicProp:
@@ -706,6 +705,12 @@ class WDHItem:
         pattern = r"\+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\/\d{1,2}"
         if value:
             value = value.strip()
+            # jeżeli data podana z dniem będącym początkiem lub końcem roku
+            # to chodziło o dokładność roczną
+            if ((len(value) == 10 and value.endswith('12-31')) or 
+                (len(value) == 10 and value.endswith('01-01'))):
+                value = value[:4]
+
             if len(value) == 4: # 1564
                 self._starts_at = f'+{value}-00-00T00:00:00Z/9'
             elif len(value) == 7: # 1564-10
@@ -1510,7 +1515,16 @@ def create_statement(prop: str, value: str, is_ref: bool = False, refs = None,
                 value = None
             
             if value:
-                tmp = value.split("/")
+                if "/" in value:
+                    tmp = value.split("/")
+                elif len(value) == 4:
+                    tmp = []
+                    tmp.append(f'+{value}-00-00T00:00:00Z')
+                    tmp.append('9')
+                elif len(value) == 10:
+                    tmp = []
+                    tmp.append(f'+{value}T00:00:00Z')
+                    tmp.append('11')
             else:
                 tmp = [None, 11]
 
@@ -1792,7 +1806,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
                                                user_agent=None, allow_anonymous=False)
         token = results['query']['tokens']['csrftoken']
     except MWApiError as wbsetqualifier_error:
-        print('Error:', wbsetqualifier_error)
+        print('Error add qualifier - token:', wbsetqualifier_error)
         return False
 
     snak_type = "value"
@@ -1804,6 +1818,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
             prop_value = '+' + prop_value
         snak = {'amount': prop_value, 'unit': '1'}
     elif prop_type == "string":
+        # [{'snaktype': 'value', 'property': 'P232', 'datavalue': {'value': '17', 'type': 'string'}
         snak = {'value': prop_value}
     elif prop_type == "wikibase-item":
         numeric_id = int(prop_value[1:])
@@ -1818,7 +1833,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         tmp_value = prop_value.split(',')
         latitude = float(tmp_value[0])
         longitude = float(tmp_value[1])
-        snak = {'latitude': latitude, 'longitude': longitude, 
+        snak = {'latitude': latitude, 'longitude': longitude,
                 'precision': 0.01, 'globe': 'http://www.wikidata.org/entity/Q2'}
 
     snak_encoded = json.dumps(snak)
@@ -1838,7 +1853,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         if results['success'] == 1:
             add_result = True
     except MWApiError as wbsetqualifier_error:
-        print('Error:', wbsetqualifier_error)
+        print(f'Error add qualifier:\n claim_id: {claim_id}, prop_nr: {prop_nr}, snak: {snak_encoded}\n', wbsetqualifier_error)
 
     return add_result
 
@@ -1858,7 +1873,7 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
                                                user_agent=None, allow_anonymous=False)
         token = results['query']['tokens']['csrftoken']
     except MWApiError as wbsetreference_error:
-        print('Error:', wbsetreference_error)
+        print('Error (add reference - token):', wbsetreference_error)
         return False
 
     snak_type = "value"
@@ -1878,7 +1893,7 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         if results['success'] == 1:
             add_result = True
     except MWApiError as wbsetreference_error:
-        print('Error:', wbsetreference_error)
+        print(f'Error add reference - snak: \n{snak_encoded}\n', wbsetreference_error)
 
     return add_result
 
