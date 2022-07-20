@@ -707,7 +707,7 @@ class WDHItem:
             value = value.strip()
             # jeżeli data podana z dniem będącym początkiem lub końcem roku
             # to chodziło o dokładność roczną
-            if ((len(value) == 10 and value.endswith('12-31')) or 
+            if ((len(value) == 10 and value.endswith('12-31')) or
                 (len(value) == 10 and value.endswith('01-01'))):
                 value = value[:4]
 
@@ -740,6 +740,12 @@ class WDHItem:
         pattern = r"\+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\/\d{1,2}"
         if value:
             value = value.strip()
+            # jeżeli data podana z dniem będącym początkiem lub końcem roku
+            # to chodziło o dokładność roczną
+            if ((len(value) == 10 and value.endswith('12-31')) or
+                (len(value) == 10 and value.endswith('01-01'))):
+                value = value[:4]
+
             if len(value) == 4: # 1564
                 self._ends_at = f'+{value}-00-00T00:00:00Z/9'
             elif len(value) == 7: # 1564-10
@@ -1021,6 +1027,7 @@ class WDHStatementItem:
             także zapis aliasu, opisu, dodatkowej etykiety dla elementu - zależnie od wartości
             self.statement_property
         """
+        #print("KWALIFIKATORY: ", self.qualifiers)
         is_ok, p_id = find_name_qid(self.label_en, 'item')
         if not is_ok:
             print('ERROR:', f'brak elementu -> {self.label_en}')
@@ -1819,7 +1826,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         snak = {'amount': prop_value, 'unit': '1'}
     elif prop_type == "string":
         # [{'snaktype': 'value', 'property': 'P232', 'datavalue': {'value': '17', 'type': 'string'}
-        snak = {'value': prop_value}
+        snak = prop_value
     elif prop_type == "wikibase-item":
         numeric_id = int(prop_value[1:])
         snak = {'entity-type': 'item', 'numeric-id': numeric_id, 'id': prop_value}
@@ -1837,6 +1844,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
                 'precision': 0.01, 'globe': 'http://www.wikidata.org/entity/Q2'}
 
     snak_encoded = json.dumps(snak)
+    print(snak_encoded)
 
     params = {"action": "wbsetqualifier",
               "claim": claim_id,
