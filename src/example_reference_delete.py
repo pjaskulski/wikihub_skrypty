@@ -43,6 +43,36 @@ def get_token(my_login) -> str:
     return result
 
 
+def delete_reference(par_claim_id, par_reference_hash, par_token) -> bool:
+    """ usuwanie referencji """
+    result = False
+    
+    p_params = {
+                "action": "wbremovereferences",
+                "statement": par_claim_id,
+                "references": par_reference_hash,
+                "token": par_token,
+                "bot": True,
+            }
+
+    try:
+        p_results = mediawiki_api_call_helper(
+            data=p_params,
+            login=login_data,
+            mediawiki_api_url=None,
+            user_agent=None,
+            allow_anonymous=False,
+        )
+
+        if p_results["success"] == 1:
+            result = True
+
+    except MWApiError as wbdelreference_error:
+        print("Error remove reference", wbdelreference_error)
+
+    return result
+
+
 if __name__ == "__main__":
     # login i hasło ze zmiennych środowiskowych (plik .env w folderze ze źródłami)
     env_path = Path('.') / '.env'
@@ -72,27 +102,9 @@ if __name__ == "__main__":
 
                     # token
                     token = get_token(login_data)
+                    is_deleted = delete_reference(claim_id, reference_hash, token)
 
-                    params = {
-                        "action": "wbremovereferences",
-                        "statement": claim_id,
-                        "references": reference_hash,
-                        "token": token,
-                        "bot": True,
-                    }
-
-                    try:
-                        results = mediawiki_api_call_helper(
-                            data=params,
-                            login=login_data,
-                            mediawiki_api_url=None,
-                            user_agent=None,
-                            allow_anonymous=False,
-                        )
-
-                        if results["success"] == 1:
-                            print(f'Usunięto referencję {g_ref_qid} o wartości {g_ref_value} z deklaracji {statement_prop}')
-                    except MWApiError as wbsetreference_error:
-                        print("Error remove reference", wbsetreference_error)
-
+                    if is_deleted:
+                        print(f'Usunięto referencję {g_ref_qid} o wartości {g_ref_value} z deklaracji {statement_prop}')
+                    
     print("Skrypt wykonany")
