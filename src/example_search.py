@@ -104,3 +104,5 @@ if __name__ == "__main__":
     #my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q79708')
     #data = my_first_wikidata_item.get_json_representation()
     #print(data)    
+
+    print('state: ', element_search('state', 'item', 'en', strict=True))

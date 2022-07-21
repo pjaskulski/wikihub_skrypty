@@ -38,15 +38,16 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
     Zwraca tuple np.: (True, 'P133') lub (False, 'NOT FOUND')
     """
     description = ''
-    aliases = False
-    strict = False
+    aliases = strict = purl_id = False
     if kwargs:
         if 'description' in kwargs:
             description = kwargs['description']
-        elif 'aliases' in kwargs:
+        if 'aliases' in kwargs:
             aliases = kwargs['aliases']
-        elif 'strict' in kwargs:
+        if 'strict' in kwargs:
             strict = kwargs['strict']
+        if 'purl_id' in kwargs:
+            purl_id = kwargs['purl_id']
 
     # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
     if len(search_string) > 240:
@@ -69,6 +70,11 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                         value_desc = data["descriptions"][lang]["value"]
                         if value_desc == description:
                             return True, results[0]
+                        elif value_desc != description and strict:
+                            return False, "NOT FOUND"
+                #elif purl_id:
+                #    claims = data['claims']
+
                 else:
                     return True, results[0]
             elif aliases:
@@ -83,7 +89,7 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                         else:
                             return True, results[0]
             # jeżeli szukamy dokładnie takiej etykiety to zawsze ma zwracać NOT FOUND
-            elif strict:
+            elif value != search_string and strict:
                 return False, "NOT FOUND"
 
         else:

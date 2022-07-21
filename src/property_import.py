@@ -800,11 +800,12 @@ class WDHItem:
         # jeżeli jest etykieta 'en'
         if self.label_en:
             search_item, search_id = element_search(self.label_en, 'item', 'en',
-                                                    description=self.description_en)
+                                                    description=self.description_en, strict=True, 
+                                                    purl_id=self.purl_identifier)
         # jeżeli brak etykiety 'en' ale jest 'pl'
         elif self.label_pl:
             search_item, search_id = element_search(self.label_pl, 'item', 'pl',
-                                                    description=self.description_pl)
+                                                    description=self.description_pl, strict=True)
 
         item_is_changed = False
         # jeżeli znaleziono w wikibase
