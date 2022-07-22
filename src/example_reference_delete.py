@@ -8,6 +8,7 @@ from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
+from wikidariahtools import element_exists
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -46,7 +47,7 @@ def get_token(my_login) -> str:
 def delete_reference(par_claim_id, par_reference_hash, par_token) -> bool:
     """ usuwanie referencji """
     result = False
-    
+
     p_params = {
                 "action": "wbremovereferences",
                 "statement": par_claim_id,
@@ -68,7 +69,7 @@ def delete_reference(par_claim_id, par_reference_hash, par_token) -> bool:
             result = True
 
     except MWApiError as wbdelreference_error:
-        print("Error remove reference", wbdelreference_error)
+        print("Error: problem z usuwaniem referencji, ", wbdelreference_error)
 
     return result
 
@@ -85,13 +86,20 @@ if __name__ == "__main__":
     g_ref_qid = 'P182'
     g_ref_value = 'https://ontohgis.pl/'
     
-    items = ['Q79361']
+    items = []
+    for i in range(79000, 79895):
+        items.append(f"Q{i}")
 
     for item in items:
+        print(f"Item: {item}")
+        if not element_exists(item):
+            continue
+
         wd_item = wbi_core.ItemEngine(item_id=item)
 
         for statement in wd_item.statements:
             claim_id = statement.get_id()
+            statement_value = statement.get_value()
             statement_prop = statement.get_prop_nr()
             tmp_references = statement.get_references()
             for t_ref_blok in tmp_references:
@@ -105,6 +113,6 @@ if __name__ == "__main__":
                     is_deleted = delete_reference(claim_id, reference_hash, token)
 
                     if is_deleted:
-                        print(f'Usunięto referencję {g_ref_qid} o wartości {g_ref_value} z deklaracji {statement_prop}')
+                        print(f'Usunięto referencję: {g_ref_qid} ({g_ref_value}) z deklaracji {statement_prop} ({statement_value})')
                     
     print("Skrypt wykonany")
