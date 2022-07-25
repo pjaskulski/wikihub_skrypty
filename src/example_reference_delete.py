@@ -44,7 +44,7 @@ def get_token(my_login) -> str:
     return result
 
 
-def delete_reference(par_claim_id, par_reference_hash, par_token) -> bool:
+def delete_reference(my_login, par_claim_id, par_reference_hash, par_token) -> bool:
     """ usuwanie referencji """
     result = False
 
@@ -59,7 +59,7 @@ def delete_reference(par_claim_id, par_reference_hash, par_token) -> bool:
     try:
         p_results = mediawiki_api_call_helper(
             data=p_params,
-            login=login_data,
+            login=my_login,
             mediawiki_api_url=None,
             user_agent=None,
             allow_anonymous=False,
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
                     # token
                     token = get_token(login_data)
-                    is_deleted = delete_reference(claim_id, reference_hash, token)
+                    is_deleted = delete_reference(login_data, claim_id, reference_hash, token)
 
                     if is_deleted:
                         print(f'Usunięto referencję: {g_ref_qid} ({g_ref_value}) z deklaracji {statement_prop} ({statement_value})')

@@ -1,7 +1,7 @@
 """ moduł """
 import re
 import sys
-import roman as romenum
+#import roman as romenum
 from openpyxl import load_workbook
 from wyjatki_postacie import WYJATKI
 from wyjatki_postacie import ETYKIETY_WYJATKI

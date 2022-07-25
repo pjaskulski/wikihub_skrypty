@@ -105,4 +105,6 @@ if __name__ == "__main__":
     #data = my_first_wikidata_item.get_json_representation()
     #print(data)    
 
-    print('state: ', element_search('state', 'item', 'en', strict=True))
+    print('state: ', element_search('district', 'item', 'en',
+                                    description='administrative unit of the 2nd level of the secular administration system: The Second Polish Republic', 
+                                    strict=True))

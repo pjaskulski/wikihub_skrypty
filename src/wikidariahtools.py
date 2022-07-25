@@ -98,6 +98,7 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         #return False, f"AMBIGIOUS ID FOUND {results}"
         return True, results[0]
 
+    # jeżeli znaleziono wiele elementów/właściwości
     exact_id = ''
     for qid in results:
         wikidata_item = wbi_core.ItemEngine(item_id=qid)
@@ -108,6 +109,10 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                 if description:
                     if lang in data['descriptions']:
                         value_desc = data["descriptions"][lang]["value"]
+                        print("value:", value)
+                        print("search_string:", search_string )
+                        print("description:", value_desc)
+                        print("search_description", description)
                         if value_desc == description:
                             exact_id = qid
                             break
