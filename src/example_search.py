@@ -18,9 +18,6 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
 
-def test():
-    print('TEST')
-
 if __name__ == "__main__":
     # pobieranie wskazanego elementu - tu Q30 (Kazimierz Jagiellończyk)
     # i właściwości P152 (painting style)
@@ -96,7 +93,7 @@ if __name__ == "__main__":
     data_type = search_results['entities']['P47']['datatype']
     print(data_type)
 
-    wynik = search_by_purl('P197', 'http://purl.org/ontohgis#object_95')
+    wynik = search_by_purl('P197', 'http://purl.org/ontohgis#administrative_type_114')
     print(wynik)
 
     #print("Długa etykieta:", element_search("Ustrój terytoriualny oparty o komitaty (megye) i powiaty (processus, reambulatio, węg. szolgabírói járás) ukształtował się w średniowieczu, od XI wieku, i mimo wielu prób reform administracyjnych obowiązuje zasadniczo po dzień dzisiejszy. Najważniejsze reformy miały miejsce w latach 1785-1790, 1849-1860 i były związane z próbą centralizacji administracyjnej w ramach monarchii austriackiej.", "item", 'en'))
@@ -105,6 +102,6 @@ if __name__ == "__main__":
     #data = my_first_wikidata_item.get_json_representation()
     #print(data)    
 
-    print('state: ', element_search('district', 'item', 'en',
-                                    description='administrative unit of the 2nd level of the secular administration system: The Second Polish Republic', 
-                                    strict=True))
+    #print('state: ', element_search('district', 'item', 'en',
+    #                                description='administrative unit of the 2nd level of the secular administration system: The Second Polish Republic', 
+    #                                strict=True))

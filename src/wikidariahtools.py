@@ -49,6 +49,9 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         if 'purl_id' in kwargs:
             purl_id = kwargs['purl_id']
 
+    # if 'WIKIBASE_WRITE' in globals():
+    #     if WIKIBASE_WRITE:
+
     # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
     if len(search_string) > 240:
         search_string = search_string[:241]

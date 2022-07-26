@@ -26,6 +26,9 @@ GLOBAL_REFERENCE = {}
 # słowniki dodawanych/modyfikowanych właściwości i elementów
 GLOBAL_PROPERTY = {}
 GLOBAL_ITEM = {}
+# do trybu testowego
+#QID_LICZNIK = 0
+#TEST_QID = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
@@ -1089,9 +1092,9 @@ class WDHItem:
 
                 # zapis id nowego/modyfikowaneg item
                 if self.label_en:
-                    GLOBAL_ITEM[self.label_en + "/" + self.label_pl] = new_id
+                    GLOBAL_ITEM[self.label_en + "/" + self.label_pl + f" ({self.purl_identifier})"] = new_id
                 else:
-                    GLOBAL_ITEM["-/" + self.label_pl] = new_id
+                    GLOBAL_ITEM["-/" + self.label_pl + f" ({self.purl_identifier})"] = new_id
 
                 # deklaracje dla elementu
                 data = []
@@ -1118,9 +1121,9 @@ class WDHItem:
         # jeżeli nie nowy element i nie ma zmian do zapisu
         else:
             if self.label_en:
-                GLOBAL_ITEM[self.label_en + "/" + self.label_pl] = search_id
+                GLOBAL_ITEM[self.label_en + "/" + self.label_pl + f" ({self.purl_identifier})"] = search_id
             else:
-                GLOBAL_ITEM["-/" + self.label_pl] = search_id
+                GLOBAL_ITEM["-/" + self.label_pl + f" ({self.purl_identifier})"] = search_id
 
 
 class WDHStatementItem:
