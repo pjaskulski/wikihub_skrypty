@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import json
+import time
 from pathlib import Path
 from typing import Union
 from openpyxl import load_workbook
@@ -32,7 +33,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # --- klasy ---
 class BasicProp:
@@ -863,7 +864,7 @@ class WDHItem:
             )
         # jeżeli brak etykiety 'en' ale jest 'pl'
         elif self.label_pl:
-            print("Wyszukiwanie po polskej etykiecie")
+            print("Wyszukiwanie po polskiej etykiecie.")
             search_item, search_id = element_search(
                 self.label_pl,
                 "item",
@@ -1054,7 +1055,7 @@ class WDHItem:
 
         # Purl_identifier
         if self.purl_identifier:
-            print("Podano Purl")
+            #print("Podano Purl")
             skip_purl_identifier = False
             res, purl_qid = find_name_qid("purl identifier", "property")
             if res:
@@ -1115,9 +1116,9 @@ class WDHItem:
                     )
                     wd_statement.write(login_instance, entity_type="item")
 
-                print(mode + new_id + f" ({self.label_en})")
+                #print(mode + new_id + f" ({self.label_en})")
             except (MWApiError, KeyError) as error_add_element:
-                print("ERROR: ", self.label_en, "(", error_add_element.error_msg, ")")
+                print(f"ERROR: {self.label_en} ({error_add_element.error_msg})")
         # jeżeli nie nowy element i nie ma zmian do zapisu
         else:
             if self.label_en:
@@ -1200,7 +1201,7 @@ class WDHStatementItem:
         # print("KWALIFIKATORY: ", self.qualifiers)
         is_ok, p_id = find_name_qid(self.label_en, "item")
         if not is_ok:
-            print("ERROR:", f"brak elementu -> {self.label_en}")
+            print("ERROR: " + f"brak elementu -> {self.label_en}")
             return
 
         # jeżeli to alias?
@@ -1253,8 +1254,7 @@ class WDHStatementItem:
                     is_ok, prop_id = find_name_qid("stated as", "property")
                     if not is_ok:
                         print(
-                            "ERROR:",
-                            "w instancji Wikibase brak właściwości -> stated as",
+                            "ERROR: w instancji Wikibase brak właściwości -> stated as",
                         )
                         return
 
@@ -1285,13 +1285,7 @@ class WDHStatementItem:
 
                                 # jeźeli brak to próba dodania referencji globalnej
                                 if not test_ref_exists:
-                                    print(
-                                        "Nie znaleziono referencji: ",
-                                        add_ref_qid,
-                                        f"({add_ref_prop})",
-                                        "o wartości: ",
-                                        add_ref_value,
-                                    )
+                                    print(f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value}")
                                     if WIKIBASE_WRITE:
                                         clm_id = find_claim_id(
                                             wd_item, prop_id, p_value
@@ -1454,8 +1448,7 @@ class WDHStatementItem:
             is_ok, prop_id = find_name_qid(self.statement_property, "property")
             if not is_ok:
                 print(
-                    "ERROR:",
-                    f"w instancji wikibase brak właściwości -> {self.statement_property}",
+                    f"ERROR: w instancji wikibase brak właściwości -> {self.statement_property}"
                 )
                 return
 
@@ -1466,8 +1459,7 @@ class WDHStatementItem:
                     is_ok, qualifier_id = find_name_qid(q_key, "property")
                     if not is_ok:
                         print(
-                            "ERROR:",
-                            f"w instancji Wikibase brak właściwości -> {q_key}",
+                            f"ERROR: w instancji Wikibase brak właściwości -> {q_key}",
                         )
                         return
 
@@ -1485,16 +1477,14 @@ class WDHStatementItem:
                 is_ok, p_value = find_name_qid(self.statement_value, "item")
                 if not is_ok:
                     print(
-                        "ERROR:",
-                        f"w instancji Wikibase brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}",
+                        f"ERROR: w instancji Wikibase brak elementu -> {self.statement_value} będącego wartością -> {self.statement_property}",
                     )
                     return
             elif prop_type == "wikibase-property":
                 is_ok, p_value = find_name_qid(self.statement_value, "property")
                 if not is_ok:
                     print(
-                        "ERROR:",
-                        f"w instancji Wikibase brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}",
+                        f"ERROR: w instancji Wikibase brak właściwości -> {self.statement_value} będącej wartością -> {self.statement_property}",
                     )
                     return
             else:
@@ -1508,16 +1498,14 @@ class WDHStatementItem:
                     is_ok, q_value = find_name_qid(value, "item")
                     if not is_ok:
                         print(
-                            "ERROR:",
-                            f"w instancji Wikibase brak elementu -> {value} będącego wartością kwalifikatora -> {key}",
+                            f"ERROR: w instancji Wikibase brak elementu -> {value} będącego wartością kwalifikatora -> {key}",
                         )
                         return
                 elif qualifier_type == "wikibase-property":
                     is_ok, q_value = find_name_qid(value, "property")
                     if not is_ok:
                         print(
-                            "ERROR:",
-                            f"brak właściwości -> {value} będącej wartością kwalifikatora -> {key}",
+                            f"ERROR: brak właściwości -> {value} będącej wartością kwalifikatora -> {key}",
                         )
                         return
                 else:
@@ -1555,12 +1543,7 @@ class WDHStatementItem:
                         # jeźeli brak to próba dodania referencji globalnej
                         if not test_ref_exists:
                             print(
-                                "Nie znaleziono referencji: ",
-                                add_ref_qid,
-                                f"({add_ref_prop})",
-                                "o wartości: ",
-                                add_ref_value,
-                                f" w deklaracji {prop_id} dla elementu {p_id}",
+                                f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value} w deklaracji {prop_id} dla elementu {p_id}"
                             )
                             if WIKIBASE_WRITE:
                                 clm_id = find_claim_id(wd_item, prop_id, p_value)
@@ -1635,6 +1618,8 @@ class WDHStatementItem:
 
 # --- funkcje ---
 
+#def printlog(value: str):
+#    """ zapis w logu"""
 
 def add_property(p_dane: WDHProperty) -> tuple:
     """
@@ -1764,7 +1749,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
                 )
                 add_res, add_info = add_property_statement(inv_statement)
                 if not add_res:
-                    print(f"{add_info}")
+                    print(f"ADD_PROPERTY_STATEMENT: {add_info}")
 
         add_result = (True, mode + " qid:" + p_new_id + f" ({p_dane.label_en})")
 
@@ -2489,7 +2474,7 @@ def add_qualifier(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         }
 
     snak_encoded = json.dumps(snak)
-    print(snak_encoded)
+    # print(snak_encoded)
 
     params = {
         "action": "wbsetqualifier",
@@ -2571,7 +2556,7 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         if results["success"] == 1:
             add_result = True
     except MWApiError as wbsetreference_error:
-        print(f"Error add reference - snak: \n{snak_encoded}\n", wbsetreference_error)
+        print(f"Error add reference - snak: \n{snak_encoded}\n{wbsetreference_error}")
 
     return add_result
 
@@ -2690,7 +2675,7 @@ def statement_value_fix(s_value, s_type) -> str:
             elif isinstance(s_value_time, str):
                 s_value = s_value_time + "/" + str(s_value[3])
             else:
-                print("ERROR: wartość typu time: ", s_value)
+                print(f"ERROR: wartość typu time: {s_value}")
     else:
         if not isinstance(s_value, str):
             s_value = str(s_value)
@@ -2758,6 +2743,40 @@ def check_if_qw_exists(q_list, qualifier_property, qualifier_value) -> bool:
     return qw_result
 
 
+def update_references(my_login, p_id: str, prop_id: str, p_value: str, additional_references: dict):
+    """
+    weryfikacja czy ma referencje z referencji globalnych
+    """
+    wd_item = wbi_core.ItemEngine(item_id=p_id)
+    if additional_references:
+        for (add_ref_prop, add_ref_value,) in additional_references.items():
+            is_ok, add_ref_qid = find_name_qid(add_ref_prop, "property")
+            test_ref_exists = verify_reference(
+                wd_item, prop_id, p_value, add_ref_qid, add_ref_value
+            )
+            # jeźeli brak to próba dodania referencji globalnej
+            if not test_ref_exists:
+                print(
+                    f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value} w deklaracji {prop_id} dla elementu {p_id}"
+                )
+                if WIKIBASE_WRITE:
+                    clm_id = find_claim_id(wd_item, prop_id, p_value)
+                    if clm_id:
+                        if add_reference(
+                            my_login,
+                            clm_id,
+                            add_ref_qid,
+                            add_ref_value,
+                        ):
+                            print(
+                                f"REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}"
+                            )
+                    else:
+                        print(
+                            f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
+                        )
+
+
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = ""):
     """
     Funkcja weryfikuje czy właściwość (property) lub element (item) ma już
@@ -2804,7 +2823,7 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
                             value = value[1:]
                     else:
                         value = "???"  # jeszcze nie obsługiwany typ - do weryfikacji
-                        print(item, " - ", value_to_check)
+                        print(f"{item} (jeszcze nie obsługiwany typ) - {value_to_check}")
 
                 if value == value_to_check:
                     has_claim = True
@@ -2814,6 +2833,9 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
 
 
 if __name__ == "__main__":
+    # pomiar czasu wykonania
+    start_time = time.time()
+
     # login i hasło ze zmiennych środowiskowych
     env_path = Path(".") / ".env"
     load_dotenv(dotenv_path=env_path)
@@ -2845,19 +2867,21 @@ if __name__ == "__main__":
 
     # właściwośći
     dane = plik_xlsx.get_property_list()
-    for wb_property in dane:
-        print(f"PROPERTY: {wb_property.label_en}")
+    dane_count = len(dane)
+    for index, wb_property in enumerate(dane, start=1):
+        print(f"PROPERTY ({index}/{dane_count}): {wb_property.label_en}")
         result, info = add_property(wb_property)
-        print(result, f"Property {info}")
+        print(f"{result} Property {info}")
 
     # dodatkowe deklaracje dla właściwości
     dane = plik_xlsx.get_statement_list()
-    for stm in dane:
+    dane_count = len(dane)
+    for index, stm in enumerate(dane, start=1):
         print(
-            f"PROPERTY: {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}"
+            f"PROPERTY (statements) ({index}/{dane_count}): {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}"
         )
         result, info = add_property_statement(stm)
-        print(result, f"{info}")
+        print(f"result {info}")
 
     # elementy 'strukturalne' ('definicyjne')
     dane = plik_xlsx.get_item_list()
@@ -2884,15 +2908,17 @@ if __name__ == "__main__":
     if unique_error:
         sys.exit(1)
 
-    for wb_item in dane:
-        print(f"ITEM: {wb_item.label_en}")
+    dane_count = len(dane)
+    for index, wb_item in enumerate(dane, start=1):
+        print(f"ITEM ({index}/{dane_count}): {wb_item.label_en}")
         wb_item.write_to_wikibase()
 
     # dodatkowe deklaracje dla elementów strukturalnych/definicyjnych
     dane = plik_xlsx.get_item_statement_list()
-    for stm in dane:
+    dane_count = len(dane)
+    for index, stm in enumerate(dane, start=1):
         print(
-            f"ITEM: {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}"
+            f"ITEM ({index}/{dane_count}): {stm.label_en}, STATEMENT: {stm.statement_property}, VALUE: {stm.statement_value}"
         )
         stm.write_to_wikibase()
 
@@ -2920,3 +2946,7 @@ if __name__ == "__main__":
             )
             numer += 1
         f.write("</p></body></html>\n")
+    
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')
