@@ -432,7 +432,11 @@ class WDHSpreadsheet:
         return s_list
 
     def get_global(self) -> dict:
-        """get_global"""
+        """get_global - pobiera z arkusza definicje referencji globalnych
+           (możliwa tylko jedna referencja globalna dla każdego arkusza,
+           jeżeli jest więcej to uwzględni tylko ostatnią). Referencje globalne
+           dotyczą w praktyce tylko arkuszy P_statements i Q_statements
+        """
         global GLOBAL_REFERENCE
 
         for row in self.globals.iter_rows(2, self.globals.max_row):
@@ -1266,44 +1270,8 @@ class WDHStatementItem:
                         print(
                             f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}."
                         )
-                        # weryfikacja czy ma referencje z referencji globalnych
-                        if self.additional_references:
-                            for (
-                                add_ref_prop,
-                                add_ref_value,
-                            ) in self.additional_references.items():
-                                is_ok, add_ref_qid = find_name_qid(
-                                    add_ref_prop, "property"
-                                )
-                                test_ref_exists = verify_reference(
-                                    wd_item,
-                                    prop_id,
-                                    p_value,
-                                    add_ref_qid,
-                                    add_ref_value,
-                                )
-
-                                # jeźeli brak to próba dodania referencji globalnej
-                                if not test_ref_exists:
-                                    print(f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value}")
-                                    if WIKIBASE_WRITE:
-                                        clm_id = find_claim_id(
-                                            wd_item, prop_id, p_value
-                                        )
-                                        if clm_id:
-                                            if add_reference(
-                                                login_instance,
-                                                clm_id,
-                                                add_ref_qid,
-                                                add_ref_value,
-                                            ):
-                                                print(
-                                                    f"REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}"
-                                                )
-                                        else:
-                                            print(
-                                                f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
-                                            )
+                        # weryfikacja i uzupełnianie referencje z referencji globalnych
+                        update_references(login_instance, wd_item, p_id, prop_id, p_value, self.additional_references)
 
                     else:
                         # wartości deklaracji 'stated as' są dołączane do istniejących, nie zastępują poprzednich!
@@ -1529,38 +1497,9 @@ class WDHStatementItem:
                     f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}."
                 )
 
-                # weryfikacja czy ma referencje z referencji globalnych
+                # weryfikacja czy deklaracja ma referencje z referencji globalnych
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
-                if self.additional_references:
-                    for (
-                        add_ref_prop,
-                        add_ref_value,
-                    ) in self.additional_references.items():
-                        is_ok, add_ref_qid = find_name_qid(add_ref_prop, "property")
-                        test_ref_exists = verify_reference(
-                            wd_item, prop_id, p_value, add_ref_qid, add_ref_value
-                        )
-                        # jeźeli brak to próba dodania referencji globalnej
-                        if not test_ref_exists:
-                            print(
-                                f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value} w deklaracji {prop_id} dla elementu {p_id}"
-                            )
-                            if WIKIBASE_WRITE:
-                                clm_id = find_claim_id(wd_item, prop_id, p_value)
-                                if clm_id:
-                                    if add_reference(
-                                        login_instance,
-                                        clm_id,
-                                        add_ref_qid,
-                                        add_ref_value,
-                                    ):
-                                        print(
-                                            f"REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}"
-                                        )
-                                else:
-                                    print(
-                                        f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
-                                    )
+                update_references(login_instance, wd_item, p_id, prop_id, p_value, self.additional_references)
 
                 # weryfikacja czy deklaracja ma wszystkie kwalifikatory, a jeżeli nie to
                 # uzupełnianie kwalifikatorów
@@ -2743,38 +2682,41 @@ def check_if_qw_exists(q_list, qualifier_property, qualifier_value) -> bool:
     return qw_result
 
 
-def update_references(my_login, p_id: str, prop_id: str, p_value: str, additional_references: dict):
+def update_references(my_login, my_item, p_id: str, prop_id: str, p_value: str, additional_references: dict):
     """
-    weryfikacja czy ma referencje z referencji globalnych
+    weryfikacja czy deklaracja ma referencje z przekazanego słownika,
+    a jeżeli nie to próba uzupełnienia
     """
-    wd_item = wbi_core.ItemEngine(item_id=p_id)
-    if additional_references:
-        for (add_ref_prop, add_ref_value,) in additional_references.items():
-            is_ok, add_ref_qid = find_name_qid(add_ref_prop, "property")
-            test_ref_exists = verify_reference(
-                wd_item, prop_id, p_value, add_ref_qid, add_ref_value
+    # jeżeli przekazany słownik jest pusty
+    if not additional_references:
+        return
+
+    for (add_ref_prop, add_ref_value,) in additional_references.items():
+        is_ok, add_ref_qid = find_name_qid(add_ref_prop, "property")
+        test_ref_exists = verify_reference(
+            my_item, prop_id, p_value, add_ref_qid, add_ref_value
+        )
+        # jeźeli brak to próba dodania referencji
+        if not test_ref_exists:
+            print(
+                f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value} w deklaracji {prop_id} dla elementu {p_id}"
             )
-            # jeźeli brak to próba dodania referencji globalnej
-            if not test_ref_exists:
-                print(
-                    f"Nie znaleziono referencji: {add_ref_qid} ({add_ref_prop}) o wartości: {add_ref_value} w deklaracji {prop_id} dla elementu {p_id}"
-                )
-                if WIKIBASE_WRITE:
-                    clm_id = find_claim_id(wd_item, prop_id, p_value)
-                    if clm_id:
-                        if add_reference(
-                            my_login,
-                            clm_id,
-                            add_ref_qid,
-                            add_ref_value,
-                        ):
-                            print(
-                                f"REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}"
-                            )
-                    else:
+            if WIKIBASE_WRITE:
+                clm_id = find_claim_id(my_item, prop_id, p_value)
+                if clm_id:
+                    if add_reference(
+                        my_login,
+                        clm_id,
+                        add_ref_qid,
+                        add_ref_value,
+                    ):
                         print(
-                            f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
+                            f"REFERENCE: do deklaracji {prop_id} (o wartości {p_value}) dodano referencję: {add_ref_qid} ({add_ref_prop}) o wartości {add_ref_value}"
                         )
+                else:
+                    print(
+                        f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
+                    )
 
 
 def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = ""):
@@ -2831,7 +2773,7 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
 
     return has_claim
 
-
+# --------------------------------- MAIN ---------------------------------------
 if __name__ == "__main__":
     # pomiar czasu wykonania
     start_time = time.time()
