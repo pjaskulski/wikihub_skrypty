@@ -208,6 +208,8 @@ Piątym arkuszem pliku XLSX powinien być arkusz **Globals** zawierający defini
 Wypełnienie arkusza jest opcjonalne (musi jednak istniejć i posiadać zdefiniowane kolumny). Jeżeli 
 zostanie wypełniony to dla wskazanego arkusza, np. podczas importu deklaracji dla elementów Q, do wszystkich deklaracji zostanie podpięta referencja opisana w kolumnach 'Rerefence property', 'Reference value'. Nie dotyczy to jednak deklaracji właściwości typu external-id np. 'purl identifier' (które same w sobie są referencją). 
 
+Przykładowe dane do importu z katalogu data pochodzą z bazy ontoghis.pl i zostały przygotowane w ramach prac projektu Dariah-PL w IH PAN.
+
 
 ### TODO
 
