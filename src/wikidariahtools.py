@@ -317,3 +317,45 @@ def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
         return True, search_result
 
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
+
+
+def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
+    """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości/elementu
+    jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang) równej argumentowi
+    (jeżeli strict=True to dokładnie równej) i zwraca jej id
+    """
+    output = (True, name)  # zakładamy, że w name jest id (np. P47)
+    # ale jeżeli nie, to szukamy w wikibase
+
+    # jeżeli szukana wartość name = 'somevalue' lub 'novalue' to zwraca True i wartość
+    if name == "somevalue" or name == "novalue":
+        return (True, name)
+
+    if elem_type == "property":
+        pattern = r"^P\d{1,9}$"
+    elif elem_type == "item":
+        pattern = r"^Q\d{1,9}$"
+
+    match = re.search(pattern, name)
+    if not match:
+        # http://purl.org/ontohgis#administrative_system_1
+        purl_pattern = r"https?:\/\/purl\.org\/"
+
+        match = re.search(purl_pattern, name)
+        # wyszukiwanie elementu z deklaracją 'purl identifier' o wartości równej
+        # zmiennej name
+        if match:
+            f_result, purl_qid = find_name_qid("purl identifier", "property")
+            if f_result:
+                output = search_by_purl(purl_qid, name)
+                if not output[0]:
+                    output = (False, f"INVALID DATA, {elem_type}: {name}, {output[1]}")
+            else:
+                output = (False, f"ERROR: {purl_qid}")
+        # zwykłe wyszukiwanie
+        else:
+            output = element_search(name, elem_type, "en", strict=strict)
+            if not output[0]:
+                output = (False, f"INVALID DATA, {elem_type}: {name}, {output[1]}")
+
+    return output
