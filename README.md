@@ -1,5 +1,5 @@
 # wikihub_skrypty
-Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiHUB 
+Skrypty pomocnicze do importowania. modyfikacji i wyszukiwania danych w instancji Wikibase - WikiHUB. Uwaga: skrypty zapisujące dane bezpośrednio w wikibase wykorzystują bibliotekę [WikibaseIntegerator](https://github.com/LeMyst/WikibaseIntegrator) w wersji 0.11, niekompatybilnej z najnowszą wersją 0.12. 
 
 ## 1. proste przykłady:
 
