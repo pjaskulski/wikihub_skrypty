@@ -213,10 +213,11 @@ Przykładowe dane do importu z katalogu data pochodzą z bazy ontoghis.pl i zost
 
 ### TODO
 
-- [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną włąściwość
+- [x]  jeżeli dodano właściwość inverse_property, to właściwość będąca jej wartością powinna dostać odwrotnie analogiczną właściwość
 - [x]  modyfikacja istniejących właściwości
 - [x]  druga zakładka (P_statements): obsługa referencji
-- [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate' 
+- [x]  dodać obsługę pozostałych typów danych podczas dodawania deklaracji (statements): 'quantity', 'time', 'geo-shape', 'globe-coordinate'
+- [ ]  obsłuzyć wprowadzanie odwrotnych właściwości 'subclass of' <-> 'superclass of', 'part of' <-> 'has part of parts' 
 
 ## 3. Imiona Nazwiska
 
