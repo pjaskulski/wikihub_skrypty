@@ -29,7 +29,7 @@ dla dodawanej właściwości (właściwość P1 -> jest odwrotnością -> P2), a
 
 ![Arkusz P_list](/doc/arkusz_wlasciwosci_P_list.png)
 
-Uwaga: aby nowa właściwość była w ogóle uwzględniona przez skrypt przewtwarzający należy wypełnić kolumnę Datatype, oraz parę: Label_en i Description_pl, lub parę Label_en i Label_pl, w innym przypadku wiersz arkusza zostanie uznany za niepełny i pominięty.
+Uwaga: aby nowa właściwość była w ogóle uwzględniona przez skrypt przewtwarzający należy wypełnić kolumnę Datatype, oraz parę: Label_en i Description_pl, lub parę Label_en i Label_pl, w innym przypadku wiersz arkusza zostanie uznany za niepełny i pominięty. Pomijane są oczywiście także zupełnie puste wiersze, do arkuszy można też wprowadzać inne niż oczekiwane przez skrypt kolumny, które również będą ignorowane, a mogą mieć znaczenie pomocnicze dla osoby przygotowującej arkusze. 
 
 Wypełnienie tylko tego arkusza już pozwala na przeprowadzenie importu do Wikibase. Powstaną wówczas (o ile ich nie dodano wcześniej) proste definicje właściwości z wypełnionym nagłówkiem (etykiety i opisy), typem danych i opcjonalnie 2 deklaracjami ('Wikidata ID' i 'inverse property').
 
