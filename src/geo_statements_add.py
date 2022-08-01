@@ -9,7 +9,7 @@ from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
 from wikidariahtools import element_exists, find_name_qid
-from property_import import get_property_type, create_statement_data, has_statement
+from property_import import get_property_type, create_statement_data, has_statement, create_inverse_statement
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -20,49 +20,9 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
 
-WRITE_TO_WIKIBASE = True
+WIKIBASE_WRITE = True
 
-def create_inverse_statement(qid: str, main_property: str, inverse_property: str):
-    """ funkcja sprawdza czy istnieje odwrotna właściwość dla elementu
-     będącego wartością głównej właściwości i jeżeli nie taką tworzy
-     """
-    if has_statement(qid, main_property):
-        wd_item = wbi_core.ItemEngine(item_id=qid)
-
-        for statement in wd_item.statements:
-            statement_prop = statement.get_prop_nr()
-
-            if statement_prop == main_property:
-                statement_value = statement.get_value()
-                statement_type = get_property_type(statement_prop)
-                if statement_type == 'wikibase-item':
-                    statement_value = f'Q{statement_value}'
-
-                # weryfikacja czy element będący wartością właściwości main_property
-                # ma deklarację inverse_property z wartością Q badanego elementu
-                # a jeżeli nie to uzupełnienie
-                if not has_statement(statement_value, inverse_property, value_to_check=qid):
-                    data = []
-                    statement = create_statement_data(
-                        inverse_property,
-                        qid,
-                        references,
-                        None,
-                        add_ref_dict=None,
-                        if_exists="APPEND",
-                    )
-                    if statement:
-                        data.append(statement)
-
-                    if data:
-                        if WRITE_TO_WIKIBASE:
-                            try:
-                                wd_item_update = wbi_core.ItemEngine(item_id=statement_value, data=data, debug=False)
-                                wd_item_update.write(login_instance, entity_type='item')
-                                print(f"Dodano do elementu {statement_value} deklarację: {inverse_property} -> {qid}")
-                            except (MWApiError, KeyError, ValueError):
-                                print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}")
-
+# --------------------------------- MAIN ---------------------------------------
 
 if __name__ == "__main__":
     # login i hasło ze zmiennych środowiskowych (plik .env w folderze ze źródłami)
@@ -150,8 +110,8 @@ if __name__ == "__main__":
         wb_update = wbi_core.ItemEngine(item_id=item)
         print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
 
-        create_inverse_statement(item, p_part_of, p_has_part_or_parts)
-        create_inverse_statement(item, p_has_part_or_parts, p_part_of)
+        create_inverse_statement(item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(item, p_has_part_or_parts, p_part_of, references)
 
     print("\nUzupełnianie: administrative types\n")
     for item in administrative_types:
@@ -161,7 +121,7 @@ if __name__ == "__main__":
         wb_update = wbi_core.ItemEngine(item_id=item)
         print(f"Przewarzanie: {item} ({wb_update.get_label('pl')})")
 
-        create_inverse_statement(item, p_part_of, p_has_part_or_parts)
-        create_inverse_statement(item, p_has_part_or_parts, p_part_of)
+        create_inverse_statement(item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(item, p_has_part_or_parts, p_part_of, references)
 
     print("Skrypt wykonany")
