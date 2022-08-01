@@ -2773,6 +2773,49 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
 
     return has_claim
 
+
+def create_inverse_statement(qid: str, main_property: str, inverse_property: str, references: dict = None):
+    """ funkcja sprawdza czy istnieje odwrotna właściwość dla elementu
+     będącego wartością głównej właściwości i jeżeli nie taką tworzy
+     """
+    if has_statement(qid, main_property):
+        wd_item = wbi_core.ItemEngine(item_id=qid)
+
+        for statement in wd_item.statements:
+            statement_prop = statement.get_prop_nr()
+
+            if statement_prop == main_property:
+                statement_value = statement.get_value()
+                statement_type = get_property_type(statement_prop)
+                if statement_type == 'wikibase-item':
+                    statement_value = f'Q{statement_value}'
+
+                # weryfikacja czy element będący wartością właściwości main_property
+                # ma deklarację inverse_property z wartością Q badanego elementu
+                # a jeżeli nie to uzupełnienie
+                if not has_statement(statement_value, inverse_property, value_to_check=qid):
+                    data = []
+                    statement = create_statement_data(
+                        inverse_property,
+                        qid,
+                        references,
+                        None,
+                        add_ref_dict=None,
+                        if_exists="APPEND",
+                    )
+                    if statement:
+                        data.append(statement)
+
+                    if data:
+                        if WIKIBASE_WRITE:
+                            try:
+                                wd_item_update = wbi_core.ItemEngine(item_id=statement_value, data=data, debug=False)
+                                wd_item_update.write(login_instance, entity_type='item')
+                                print(f"Dodano do elementu {statement_value} deklarację: {inverse_property} -> {qid}")
+                            except (MWApiError, KeyError, ValueError):
+                                print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}")
+
+
 # --------------------------------- MAIN ---------------------------------------
 if __name__ == "__main__":
     # pomiar czasu wykonania
@@ -2888,7 +2931,7 @@ if __name__ == "__main__":
             )
             numer += 1
         f.write("</p></body></html>\n")
-    
+
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')
