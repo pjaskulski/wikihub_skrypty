@@ -6,10 +6,10 @@ from pathlib import Path
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator import wbi_core
-from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
 from wikidariahtools import element_exists, find_name_qid
-from property_import import get_property_type, create_statement_data, has_statement, create_inverse_statement
+from property_import import create_inverse_statement
+
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
