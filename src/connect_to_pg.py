@@ -9,12 +9,12 @@ import psycopg2
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
-from wikibaseintegrator import wbi_login, wbi_datatype
-from wikidariahtools import find_name_qid, element_search
-from property_import import create_statement, create_statement_data, create_qualifiers, create_references
+from wikibaseintegrator import wbi_login
+from wikidariahtools import find_name_qid, element_search, get_claim_value
+from property_import import create_statement_data, has_statement
 
 
-WRITE_TO_WIKIBASE = True
+WIKIBASE_WRITE = True
 q_items = {}
 
 # kolejność języków w polach tablicowych
@@ -87,6 +87,10 @@ ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
     sys.exit(1)
+ok, q_administrative_system = find_name_qid('administrative system', 'item', strict=True)
+if not ok:
+    print("ERROR: brak elementu 'administrative system' w instancji Wikibase")
+    sys.exit(1)
 
 
 # wspólna referencja dla wszystkich deklaracji
@@ -133,7 +137,7 @@ for result in results:
     adm_unit_id = int(result[0])
 
     label_pl = label_en = result[1]
-    
+
     adm_unit_type = result[2]
     ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
@@ -153,7 +157,7 @@ for result in results:
                         )
     if statement:
         data.append(statement)
-    
+
     # deklaracja właściwości 'instance of'
     statement = create_statement_data(
                             p_instance_of,
@@ -168,11 +172,11 @@ for result in results:
 
     # deklaracja właściwości 'administrative unit type'
     # tymczasowo przez mapowanie purl->Q z pliku tekstowego, docelowo szukanie przez purl
-    qid = purl[adm_unit_type_purl]
-    if qid:
+    unit_type_qid = purl[adm_unit_type_purl]
+    if unit_type_qid:
         statement = create_statement_data(
                             p_administrative_unit_type,
-                            qid,
+                            unit_type_qid,
                             references,
                             None,
                             add_ref_dict=None,
@@ -183,14 +187,14 @@ for result in results:
 
     # zapytanie zwracające listę nazw i lat obowiązywania dla jednostki administracyjnej
     sql = f"""
-    SELECT "Names", "StartsAt", "EndsAt" 
+    SELECT "Names", "StartsAt", "EndsAt"
     FROM ontology."AdministrativeUnitNames"
     WHERE "VariableAdministrativeUnitIdentifiers" = {adm_unit_id}
 """
     cursor.execute(sql)
     data_unit_names = cursor.fetchall()
     for record in data_unit_names:
-        print(record)
+        # print(record)
         names = record[0]
         starts_at = record[1]
         ends_at = record[2]
@@ -228,32 +232,35 @@ for result in results:
     wd_item = wbi_core.ItemEngine(new_item=True, data=data)
     wd_item.set_label(label_en, lang='en')
     wd_item.set_label(label_pl,lang='pl')
+
     if aliasy:
         for lang_alias, value_alias in aliasy.items():
             wd_item.set_aliases(value_alias, lang_alias)
 
-    if WRITE_TO_WIKIBASE:
-        ok, item_id = element_search(label_en, 'item', 'en', strict=True)
-        if not ok:
+
+    ok, item_id = element_search(label_en, 'item', 'en', strict=True)
+    if not ok:
+        if WIKIBASE_WRITE:
             new_id = wd_item.write(login_instance, bot_account=True, entity_type='item')
             if new_id:
                 print(f'Dodano nowy element: {label_en} ({adm_unit_id}) = {new_id}')
                 q_items[adm_unit_id] = new_id
         else:
-            print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
-            q_items[adm_unit_id] = item_id
+            print(f"Item gotowy do dodania: {label_en} ({adm_unit_id})")
     else:
-        print(f"Item gotowy do dodania: {label_en} ({adm_unit_id})")
+        print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
+        q_items[adm_unit_id] = item_id
 
 #sys.exit(1)
 
 # zapytania zwracające dane o przynależności przynależności jednostek podrzędnych
 # do danej jednostki
+print("Uzupełnianie 'part of' i 'has part or parts'")
 for result in results:
     adm_unit_id = int(result[0])
 
     sql = f"""
-    SELECT "PartIdentifiers", "StartsAt", "EndsAt" 
+    SELECT "PartIdentifiers", "StartsAt", "EndsAt"
     FROM ontology."AdministrativeUnitMereologyLinks"
     WHERE "WholeIdentifiers" = {adm_unit_id}
     """
@@ -288,18 +295,22 @@ for result in results:
             data.append(statement)
 
     if data:
-        if WRITE_TO_WIKIBASE:
-            wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
-            wd_item.write(login_instance, entity_type='item')
+        if not has_statement(item_qid, p_has_part_or_parts, part_qid):
+            if WIKIBASE_WRITE:
+                wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
+                wd_item.write(login_instance, entity_type='item')
+                print(f'Do elementu {item_qid} dodano właściwość {p_has_part_or_parts} o wartości {part_qid}')
+            else:
+                print(f'Przygotowano dodanie do elementu {item_qid} właściwości {p_has_part_or_parts} o wartości {part_qid}')
         else:
-            print(data)
+            print(f'Element {item_qid} już posiada właściwość {p_has_part_or_parts} o wartości {part_qid}')
 
 # zapytania zwracające dane o przynależności danej jednostki do jednostki nadrzędnej
 for result in results:
     adm_unit_id = int(result[0])
 
     sql = f"""
-    SELECT "WholeIdentifiers", "StartsAt", "EndsAt" 
+    SELECT "WholeIdentifiers", "StartsAt", "EndsAt"
     FROM ontology."AdministrativeUnitMereologyLinks"
     WHERE "PartIdentifiers" = {adm_unit_id}
     """
@@ -334,11 +345,78 @@ for result in results:
             data.append(statement)
 
     if data:
-        if WRITE_TO_WIKIBASE:
-            wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
-            wd_item.write(login_instance, entity_type='item')
+        if not has_statement(item_qid, p_part_of, whole_qid):
+            if WIKIBASE_WRITE:
+                wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
+                wd_item.write(login_instance, entity_type='item')
+                print(f'Do elementu {item_qid} dodano właściwość {p_part_of} o wartości {whole_qid}')
+            else:
+                print(f'Przygotowano dodanoe do elementu {item_qid} właściwości {p_part_of} o wartości {whole_qid}')
         else:
-            print(data)
+            print(f'Element {item_qid} już posiada właściwość {p_part_of} o wartości {whole_qid}')
+
+# uzupełnianie description
+print('Uzupełnianie description')
+for result in results:
+    adm_unit_id = int(result[0])
+    unit_qid = q_items[adm_unit_id]
+    adm_unit_type = result[2]
+    adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
+    unit_type_qid = purl[adm_unit_type_purl]
+
+    wb_unit_type = wbi_core.ItemEngine(item_id=unit_type_qid)
+    unit_label_pl = wb_unit_type.get_label('pl')
+    unit_label_en = wb_unit_type.get_label('en')
+
+    parent_unit_label_pl = parent_unit_label_en = ''
+    if has_statement(unit_qid, p_part_of):
+        value = get_claim_value(unit_qid, p_part_of)
+        if value:
+            wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
+            parent_unit_label_pl = wb_parent_unit.get_label('pl')
+            parent_unit_label_en = wb_parent_unit.get_label('en')
+
+    adm_sys_label_pl = adm_sys_label_en = ''
+    if has_statement(unit_type_qid, p_part_of):
+        value = get_claim_value(unit_type_qid, p_part_of)
+        if value:
+            for v in value:
+                if has_statement(v, p_instance_of, value_to_check=q_administrative_system):
+                    wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
+                    adm_sys_label_pl = wb_adm_sys.get_label('pl')
+                    adm_sys_label_en = wb_adm_sys.get_label('en')
+                    break
+
+    wb_item = wbi_core.ItemEngine(item_id=unit_qid)
+    old_pl = wb_item.get_description('pl')
+    old_en = wb_item.get_description('en')
+
+    is_change = False
+    if parent_unit_label_pl and parent_unit_label_en:
+        new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
+        new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
+        if old_pl != new_pl:
+            wb_item.set_description(new_pl, 'pl')
+            is_change = True
+        if old_en != new_en:
+            wb_item.set_description(new_en, 'en')
+            is_change = True
+    else:
+        new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
+        new_en = f"{unit_label_en} in {adm_sys_label_en}"
+        if old_pl != new_pl:
+            wb_item.set_description(new_pl, 'pl')
+            is_change = True
+        if old_en != new_en:
+            wb_item.set_description(new_en, 'en')
+            is_change = True
+
+    if is_change:
+        if WIKIBASE_WRITE:
+            wb_item.write(login_instance, entity_type='item')
+            print(f"Dodano opis: {new_pl} / {new_en}")
+        else:
+            print(f"Przygotowano dodanie opisu: {new_pl} / {new_en}")
 
 # zamykanie połączenia z DB
 conn.close()
