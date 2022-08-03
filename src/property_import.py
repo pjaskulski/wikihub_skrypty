@@ -65,6 +65,8 @@ class WDHSpreadsheet:
 
     def __init__(self, path: str):
         self.path = path
+        #if self.path.endswith('.yaml'):
+        #    self.read_from_yaml()
         self.sheets = ["P_list", "P_statements", "Q_list", "Q_statements", "Globals"]
         self.p_list = None  # arkusz z listą właściwości
         self.p_statements = None  # arkusz z listą deklaracji dla właściwości
@@ -2774,11 +2776,12 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
     return has_claim
 
 
-def create_inverse_statement(qid: str, main_property: str, inverse_property: str, references: dict = None):
+def create_inverse_statement(my_login_instance, qid: str, main_property: str, inverse_property: str, references: dict = None):
     """ funkcja sprawdza czy istnieje odwrotna właściwość dla elementu
      będącego wartością głównej właściwości i jeżeli nie taką tworzy
      """
     if has_statement(qid, main_property):
+        print(f"Znaleziono właściwość {main_property}")
         wd_item = wbi_core.ItemEngine(item_id=qid)
 
         for statement in wd_item.statements:
@@ -2794,6 +2797,7 @@ def create_inverse_statement(qid: str, main_property: str, inverse_property: str
                 # ma deklarację inverse_property z wartością Q badanego elementu
                 # a jeżeli nie to uzupełnienie
                 if not has_statement(statement_value, inverse_property, value_to_check=qid):
+                    print(f"Element docelowy właściwości {main_property} nie posiada właściwości {inverse_property}, trwa uzupełnianie...")
                     data = []
                     statement = create_statement_data(
                         inverse_property,
@@ -2810,10 +2814,12 @@ def create_inverse_statement(qid: str, main_property: str, inverse_property: str
                         if WIKIBASE_WRITE:
                             try:
                                 wd_item_update = wbi_core.ItemEngine(item_id=statement_value, data=data, debug=False)
-                                wd_item_update.write(login_instance, entity_type='item')
+                                wd_item_update.write(my_login_instance, entity_type='item')
                                 print(f"Dodano do elementu {statement_value} deklarację: {inverse_property} -> {qid}")
                             except (MWApiError, KeyError, ValueError):
                                 print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}")
+                        else:
+                            print(f"Przygotowano dodanie do elementu {statement_value} deklaracji: {inverse_property} -> {qid}")
 
 
 # --------------------------------- MAIN ---------------------------------------
@@ -2838,7 +2844,9 @@ if __name__ == "__main__":
     wikibase_prop.get_wiki_properties()
 
     # dane z arkusza XLSX, wg ścieżki przekazanej argumentem z linii komend
-    # jeżeli nie przekazano, skrypt szuka pliku 'data/arkusz_import.xlsx'
+    # lub według pliku konfiguracyjnego yaml, w którym zawarta jest ścieżka
+    # oraz mapowanie nazw kolumn rezeczywistych <-> oczekiwanych
+    # jeżeli argumentu nie przekazano, skrypt szuka pliku 'data/arkusz_import.xlsx'
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:

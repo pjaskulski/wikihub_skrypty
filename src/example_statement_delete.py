@@ -42,6 +42,6 @@ if __name__ == "__main__":
         # {'pageinfo': {'lastrevid': 211631}, 'success': 1,
         # 'claims': ['Q79211$FCEEDC83-8089-4810-BE90-4D4EF2892996']}
         if result['success'] == 1:
-            print('Usunięto deklarację.')
+            print(f'Z elementu {element} usunięto deklarację {prop_nr} o wartości {prop_value}.')
     else:
         print(f'Nie znaleziono dla elementu {element} deklaracji z właściwością {prop_nr} o wartości: {prop_value}.')

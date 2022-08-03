@@ -236,7 +236,7 @@ def short_names_in_autor(value: str) -> str:
                         wynik.append(name_part[0:2] + ".")
                     elif name_part.startswith('Sz'):
                         wynik.append(name_part[0:2] + ".")
-                    else:    
+                    else:
                         wynik.append(name_part[0] + ".")
                 else:
                     wynik.append(name_part)               # jeżeli inicjał
@@ -297,6 +297,49 @@ def get_claim_id(qid: str, claim_property: str, claim_value: str) -> list:
                     claim_id.append(item['id'])
 
         return claim_id
+
+    except (MWApiError, KeyError, ValueError):
+        return None
+
+
+def get_claim_value(qid: str, claim_property: str) -> list:
+    """ zwraca identyfikator deklaracji """
+    claim_value = []
+
+    try:
+        wikibase_item = wbi_core.ItemEngine(item_id=qid)
+        property_list = wikibase_item.get_property_list()
+        if claim_property not in property_list:
+            return None
+
+        data = wikibase_item.get_entity()
+        if len(data['claims'][claim_property]) > 0:
+            for item in data['claims'][claim_property]:
+                if 'value' in item['mainsnak']['datavalue']:
+                    value_json = item["mainsnak"]["datavalue"]["value"]
+                    if (
+                        "type" in item["mainsnak"]["datavalue"]
+                        and item["mainsnak"]["datavalue"]["type"] == "string"
+                    ):
+                        value = value_json
+                    elif "text" in value_json and "language" in value_json:
+                        value = f"{value_json['language']}:\"{value_json['text']}\""
+                    elif "entity-type" in value_json:
+                        value = value_json["id"]
+                    elif "latitude" in value_json:
+                        value = f"{value_json['latitude']},{value_json['longitude']}"
+                    elif "time" in value_json:
+                        value = f"{value_json['time']}/{value_json['precision']}"
+                    elif "amount" in value_json:
+                        value = value_json["amount"]
+                        if value.startswith("+"):
+                            value = value[1:]
+                    else:
+                        value = "???"
+
+                    claim_value.append(value)
+
+        return claim_value
 
     except (MWApiError, KeyError, ValueError):
         return None

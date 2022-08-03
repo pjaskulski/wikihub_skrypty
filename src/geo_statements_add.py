@@ -20,7 +20,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --------------------------------- MAIN ---------------------------------------
 
@@ -36,6 +36,14 @@ if __name__ == "__main__":
     ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
     if not ok:
         print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_part_of = find_name_qid('part of', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'part of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_has_part_or_parts = find_name_qid('has part or parts', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'has part or parts' w instancji Wikibase")
         sys.exit(1)
 
     # wspólna referencja dla wszystkich deklaracji
@@ -100,9 +108,6 @@ if __name__ == "__main__":
                      'Q80193', 'Q80194', 'Q80195', 'Q80196', 'Q80197', 'Q80198',
                      'Q80199', 'Q80200']
 
-    p_part_of = find_name_qid('part of', 'property', strict=True)
-    p_has_part_or_parts = find_name_qid('has part or parts', 'property', strict=True)
-
     print("\nUzupełnianie: administrative systems\n")
     for item in systems_items:
         if not element_exists(item):
@@ -110,8 +115,8 @@ if __name__ == "__main__":
         wb_update = wbi_core.ItemEngine(item_id=item)
         print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
 
-        create_inverse_statement(item, p_part_of, p_has_part_or_parts, references)
-        create_inverse_statement(item, p_has_part_or_parts, p_part_of, references)
+        create_inverse_statement(login_instance, item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(login_instance, item, p_has_part_or_parts, p_part_of, references)
 
     print("\nUzupełnianie: administrative types\n")
     for item in administrative_types:
@@ -119,9 +124,9 @@ if __name__ == "__main__":
             continue
 
         wb_update = wbi_core.ItemEngine(item_id=item)
-        print(f"Przewarzanie: {item} ({wb_update.get_label('pl')})")
+        print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
 
-        create_inverse_statement(item, p_part_of, p_has_part_or_parts, references)
-        create_inverse_statement(item, p_has_part_or_parts, p_part_of, references)
+        create_inverse_statement(login_instance, item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(login_instance, item, p_has_part_or_parts, p_part_of, references)
 
     print("Skrypt wykonany")
