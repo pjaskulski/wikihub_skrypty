@@ -1,0 +1,284 @@
+kraj koronny,crown land,58
+powiat ziemski,rural district,27
+cesarstwo,empire,114
+kraj koronny,crown land,64
+departament kamery wojenno-skarbowej,Wad and Domain chamber's department,77
+powiat,district,5
+powiat,district,26
+superintendentura,superintendency,210
+państwo,State,31
+państwo,State,33
+państwo,State,44
+parafia,parish,212
+konsystorz generalny,general consistory,208
+seniorat,seigniory,213
+powiat miejski,urban district,28
+parafia,parish,209
+gmina wiejska,rural commune,35
+konsystorz generalny,general consistory,211
+obwód,oblast,54
+superintendentura,,214
+królestwo,kingdom,246
+cesarstwo,empire,109
+królestwo,kingdom,73
+metroplia,metropoly,148
+cyrkuł-stolica obszaru dworskiego,tsyrkul-provincial capital,284
+cyrkuł,tsyrkul,285
+państwo,kingdom,79
+elektorat,electorate,87
+królestwo,kingdom,113
+cesarstwo,empire,249
+prowincja,province,30
+prowincja,province,43
+stolica obszaru administracyjnego,provincial capital,286
+obszar dworski,manorial demesne,36
+gmina,commune,279
+prowincja,province,78
+marchia,margraviate,124
+marchia,margraviate,130
+królestwo,kingdom,134
+dzielnica,state,84
+margrabstwo,,86
+gmina wiejska,rural commune,280
+powiat,land district,10
+powiat,district,39
+gmina miejska,town commune,281
+obszar dworski,manorial demesne,282
+powiat,district,283
+obszar administracyjny,province,287
+państwo,state,290
+państwo,state,48
+kraj,region,291
+księstwo zależne,duchy,133
+eparchia,eparchy,160
+powiat ziemski,rural district,40
+państwo,state,85
+królestwo,kingdom,98
+metropolia,metropoly,161
+podokręg,,218
+okręg,,219
+państwo kościelne,Holy See,162
+kraj koronny,crown land,288
+gmina miejska,town commune,247
+księstwo,duchy,119
+państwo zakonne,monastic state,142
+cesarstwo,empire,256
+rejencja,district government,29
+rejencja,district government,42
+gmina wiejska,rural commune,248
+powiat,district,46
+generalne gubernatorstwo,governorate-general,56
+kraj,krai,71
+ziemstwo,,220
+konsystorz,,215
+prowincja,province,221
+powiat,district,253
+gmina,commune,250
+gmina miejska,town commune,251
+gmina wiejska,rural commune,252
+generał-gubernatorstwo,general-governorate,255
+gubernia,province,254
+cesarstwo,empire,289
+okres,district,292
+państwo złożone,composite state,99
+państwo złożone,composite state,101
+obec,obec,293
+prowincja,province,83
+wołość,wolosc,222
+ziemia,land,265
+księstwo,duchy,224
+wielkie księstwo,Grand Duchy,225
+powiat miejski,urban district,41
+oficjalat,officialate,168
+gmina,commune,257
+powiat,district,63
+powiat,district,69
+parafia,parish,169
+protopopia-namiestnictwo-okręg,protopopy-governorship-deanery,170
+eparchia,eparchy,171
+metropolia,metropoly,172
+protopopia,protopopy,174
+namiestnictwo,governorship,175
+województwo,voivodship,47
+okręg,,176
+gmina miejska,commune,258
+ziemia,land,223
+gmina wiejska,rural commune,259
+obszar dworski,manorial demesne,260
+księstwo,duchy,126
+powiat,district,261
+powiat miejski,urban district,262
+powiat wiejski,rural district,263
+powiat,district,264
+województwo,palatinate,266
+gubernium,provincial government,88
+namiestnictwo,vicegerency,55
+powiat,district,74
+powiat ziemski,rural district,75
+cesarstwo,empire,72
+prowincja,province,129
+powiat,district,80
+wójtostwo,bailiwick,25
+cesarstwo,empire,57
+prowincja,province,267
+księstwo,duchy,112
+obwód,oblast,51
+okręg,district,68
+gubernium,gubernium,94
+miasto Warszawa,city of Warsaw,7
+województwo,voivodeship,8
+jednota,Union,182
+królestwo,the Crown,268
+gubernia,guberniya,53
+gubernia,guberniya,52
+księstwo lenne,fiefdom,272
+komornictwo,,269
+gubernia,province,70
+królestwo,the Crown,273
+starostwo,county,270
+okręg,district,271
+powiat sądowy,district,276
+cyrkuł,tsyrkul,274
+gmina,commune,275
+powiat polityczny,political district,277
+starostwo,county,278
+seniorat,Seniorat,187
+województwo,palatinate,82
+komitat,county,97
+cesarstwo,empire,100
+okręg,district,92
+powiat,district,96
+prepozytura,,155
+cesarstwo,empire,105
+powiat,district,111
+wójtostwo,bailiwick,38
+cesarstwo,empire,108
+państwo złożone,composite state,110
+gmina,municipality,9
+landwójtostwo,rural bailiwick,118
+cesarstwo,empire,102
+cesarstwo,empire,107
+gmina miejska,town commune,1
+landwójtostwo,rural bailiwick,122
+landwójtostwo,rural bailiwick,128
+gmina miejska,town commune,2
+gmina wiejska,rural commune,3
+urząd dominialny,rural district,121
+władztwo biskupa i kapituły,chapter lands,141
+wójtostwo,bailiwick,127
+wójtostwo,bailiwick,136
+prowincja,province,123
+wójtostwo,bailiwick,137
+prokuratorstwo,pfleger's dominion,138
+gmina,commune,24
+miasto polokacyjne,charter town,116
+obszar dworski,manorial demesne,4
+gmina wiejska,rural commune,13
+obszar dworski,manorial demesne,14
+państwo,state,12
+dominium,dominium,90
+wolne miasto,free city,32
+ziemia,land,81
+miasto-ziemia,town,115
+komturstwo,commandery,140
+konsystorz generalny,general consistory,190
+inspekcja,inspection,195
+parafia,parish,194
+archidiakonat-dziekania-prepozytura-terytorium,archdeaconry-deaconry-provostship-territory,146
+diecezja,diocese,147
+państwo kościelne,Holy See,149
+kahał,,217
+przykahałek,,216
+dekanat,deanery,150
+archiprezbiterat,archpresbyterate,151
+parafia,parish,177
+jednota,union,179
+parafia,parish,183
+jednota,union,185
+dystrykt,district,178
+parafia,parish,186
+dystrykt,district,184
+wikariat okręgowy,forane vicariate,152
+archidiakonat,archdeaconry,153
+dziekania,deaconry,154
+terytorium,territory,156
+parafia,parish,157
+protopopia-namiestnictwo-dekanat,protopopy-governorship-deanery,158
+namiestnictwo generalne - kryłos - oficjalat,general governorship-kliros-officialate,159
+protopopia,protopopy,163
+namiestnictwo,governorship,164
+dekanat,deanery,165
+namiestnictwo generalne,general governorship,166
+kryłos,krilos,167
+patriarchat,patriarchate,173
+parafia,parish,180
+dystrykt,district,181
+cyrkuł,tsyrkul,93
+konsystorz prowincjonalny,consistory,189
+inspekcja,inspection,191
+superintendentura,superintendency,192
+inspekcja-superintendentura-prepozytura,inspection-superintendency-provostry,188
+prepozytura,provostry,193
+konsystorz generalny,general consistory,196
+parafia,parish,197
+superintendentura,superintendency,198
+superintendentura,superintendecy,207
+okręg kościelny,district,199
+parafia,parish,203
+prowincja kościelna,ecclesiastical province,200
+kościół krajowy,state church,201
+konfederacja,federation,202
+diecezja,diocese,204
+konsystorz generalny,general consistory,205
+parafia,parish,206
+parafia,parish,144
+dekanat-archiprezbiterat-wikariat okręgowy,deanery-archpresbyterate-forane vicariate,145
+gmina,commune,45
+gmina,volost,49
+gmina miejska,town commune,34
+gmina,commune,37
+gmina,commune,59
+gmina wiejska,rural commune,60
+gmina miejska,town commune,61
+księstwo,duchy,232
+obszar dworski,manorial demesne,62
+gmina,commune,65
+gmina miejska,town commune,66
+gmina wiejska,rural commune,67
+dominium-magistrat,dominium-magistrate,89
+departament,department,231
+powiat,district,230
+powiat,district,226
+okręg,shire district,227
+gmina,municipality,228
+gmina,commune,229
+cesarstwo,empire,233
+municypalność,municipality,234
+ziemia,land,117
+powiat,uyezd,50
+miasto na prawach powiatu,district city,6
+miejski okręg inspekcji podatkowej,circut,76
+dzielnica,district,132
+komturstwo,commandery,139
+magistrat,magistrate,91
+zgromadzenie gminne,communal assembly,235
+gmina wiejska,rural commune,236
+gmina miejska,town commune,237
+państwo kościelne,papal state,238
+gmina,commune,242
+województwo,voivodeship,11
+metropolia,metropolis,239
+województwo,voivodeship,245
+diecezja,diocese,240
+parafia,parish,241
+powiat,district,243
+obwód,district,244
+królestwo,kingdom,95
+część (człon) państwa związkowego,part,104
+cesarstwo,empire,120
+cesarstwo,empire,125
+państwo złożone,federal state,131
+państwo złożone,composite state,135
+państwo kościelne,papal state,143
+część (człon) państwa związkowego,state,106
+część (człon) państwa związkowego,part,103
