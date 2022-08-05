@@ -14,7 +14,7 @@ from wikidariahtools import find_name_qid, element_search, get_claim_value
 from property_import import create_statement_data, has_statement
 
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 q_items = {}
 
 # kolejność języków w polach tablicowych
@@ -49,6 +49,19 @@ DB_DATABASE = os.environ.get("DB_DATABASE")
 
 BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
 BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+
+with open('../data/type_names_ang.txt', 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+
+UNIT_TYPE_NAME_PL = {}
+UNIT_TYPE_NAME_EN = {}
+
+for line in lines:
+    line = line.strip()
+    tmp = line.split(',')
+    if len(tmp) == 3:
+        UNIT_TYPE_NAME_PL[int(tmp[2])] = tmp[0]
+        UNIT_TYPE_NAME_EN[int(tmp[2])] = tmp[1]
 
 # standardowe właściwości i elementy
 ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
@@ -129,6 +142,11 @@ sql = """
     FROM ontology."VariableAdministrativeUnits"
     WHERE "Identifiers" = 5364 or "Identifiers" = 15
 """
+sql = """
+    SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
+    FROM ontology."VariableAdministrativeUnits"
+    WHERE "Identifiers" < 100000000
+"""
 
 cursor.execute(sql)
 results = cursor.fetchall()
@@ -139,6 +157,23 @@ for result in results:
     label_pl = label_en = result[1]
 
     adm_unit_type = result[2]
+    # uzupełnianie nazw jednostek o nazwę typu tylko jeżeli jej brak a nazwa jednostki nie jest
+    # nazwą własną pisaną z dużej litery. W przypadku angielskich nazw jednostek zmiana nazwy
+    # polskiej z bazy na angielską wg. arkusza administrative_types
+    adm_unit_type_name_pl = adm_unit_type_name_en = ''
+    if adm_unit_type:
+        adm_unit_type_name_pl = UNIT_TYPE_NAME_PL[adm_unit_type]
+        if (adm_unit_type_name_pl and not label_pl[0].isupper()
+            and adm_unit_type_name_pl not in label_pl.lower()):
+            label_pl = adm_unit_type_name_pl + ' ' + label_pl
+        adm_unit_type_name_en = UNIT_TYPE_NAME_EN[adm_unit_type]
+        if (adm_unit_type_name_en and not label_en[0].isupper()
+            and adm_unit_type_name_en not in label_en.lower()):
+            # ewentualne wyczyszczenie polskiej nazwy:
+            if adm_unit_type_name_pl and adm_unit_type_name_pl in label_en:
+                label_en = label_en.replace(adm_unit_type_name_pl, '').strip()
+            label_en = adm_unit_type_name_en + ' ' + label_en
+
     ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
     instance_of = q_administrative_unit
@@ -239,6 +274,7 @@ for result in results:
 
 
     ok, item_id = element_search(label_en, 'item', 'en', strict=True)
+    ok = False
     if not ok:
         if WIKIBASE_WRITE:
             new_id = wd_item.write(login_instance, bot_account=True, entity_type='item')
@@ -246,12 +282,12 @@ for result in results:
                 print(f'Dodano nowy element: {label_en} ({adm_unit_id}) = {new_id}')
                 q_items[adm_unit_id] = new_id
         else:
-            print(f"Item gotowy do dodania: {label_en} ({adm_unit_id})")
+            print(f"EN: {label_en} ({adm_unit_id}) / PL: {label_pl} ({adm_unit_id})")
     else:
         print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
         q_items[adm_unit_id] = item_id
 
-#sys.exit(1)
+sys.exit(1)
 
 # zapytania zwracające dane o przynależności przynależności jednostek podrzędnych
 # do danej jednostki

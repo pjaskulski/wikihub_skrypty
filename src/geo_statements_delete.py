@@ -20,7 +20,7 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 #wbi_config['PROPERTY_CONSTRAINT_PID'] = 'Pxxx'
 #wbi_config['DISTINCT_VALUES_CONSTRAINT_QID'] = 'Qxxx'
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # --------------------------------- MAIN ---------------------------------------
 
@@ -48,6 +48,14 @@ if __name__ == "__main__":
     ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
     if not ok:
         print("ERROR: brak właściwości 'instance of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_part_of = find_name_qid('part of', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'part of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_has_part_or_parts = find_name_qid('has part or parts', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'has part or parts' w instancji Wikibase")
         sys.exit(1)
 
     administrative_types = ['Q79902', 'Q79903', 'Q79904', 'Q79905', 'Q79906', 'Q79907',
@@ -109,7 +117,7 @@ if __name__ == "__main__":
 
         for statement in wb_update.statements:
             prop_nr = statement.get_prop_nr()
-            if prop_nr not in (p_handle_id, p_purl_identifier, p_wikidata_id, p_instance_of):
+            if prop_nr in (p_part_of, p_has_part_or_parts):
                 claim_id = statement.get_id()
                 if claim_id:
                     if WIKIBASE_WRITE:
@@ -118,7 +126,7 @@ if __name__ == "__main__":
                         if result['success'] == 1:
                             print(f'Z elementu {item} usunięto deklarację {prop_nr}.')
                         else:
-                            print(f'ERROR: podczas usuwania z elementu {item} deklaracji {prop_nr}.')
+                            print(f'ERROR: podczas usuwania deklaracji {prop_nr} z elementu {item}.')
                     else:
                         print(f'Przygotowano usunięcie deklaracji {prop_nr} z elementu {item}.')
 

@@ -1,4 +1,4 @@
-""" skrypt uzupełnia etykiety typów jednostek administracyjnych """
+""" skrypt dodaje brakujące dekaracje do elementów geograficznych """
 
 import os
 import sys
@@ -8,6 +8,7 @@ from wikibaseintegrator import wbi_login
 from wikibaseintegrator import wbi_core
 from dotenv import load_dotenv
 from wikidariahtools import element_exists, find_name_qid
+from property_import import create_inverse_statement
 
 
 # adresy
@@ -21,63 +22,6 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 WIKIBASE_WRITE = True
 
-# nazwy_pl = ['cesarstwo', 'cyrkuł', 'część (człon) państwa związkowego', 'dekanat',
-            # 'diecezja', 'dystrykt', 'dzielnica', 'eparchia', 'gmina', 'gmina miejska',
-            # 'gmina wiejska', 'gubernia', 'gubernium', 'inspekcja', 'jednota',
-            # 'komturstwo', 'konsystorz generalny', 'kraj', 'kraj koronny', 'królestwo',
-            # 'księstwo', 'landwójtostwo', 'marchia', 'metropolia', 'namiestnictwo',
-            # 'obszar dworski', 'obwód', 'okręg', 'państwo', 'państwo kościelne',
-            # 'państwo złożone', 'parafia', 'powiat', 'powiat miejski', 'powiat ziemski',
-            # 'prepozytura', 'protopopia', 'prowincja', 'rejencja', 'seniorat',
-            # 'starostwo', 'superintendentura', 'województwo', 'wójtostwo', 'ziemia']
-
-# nazwy_en = ['bailiwick', 'commandery', 'commune', 'composite state', 'county',
-#             'crown land', 'deanery', 'diocese', 'district', 'district government',
-#             'duchy', 'empire', 'eparchy', 'general consistory', 'governorship',
-#             'guberniya', 'Holy See', 'inspection', 'kingdom', 'land', 'manorial demesne',
-#             'margraviate', 'metropoly', 'municipality', 'oblast', 'palatinate',
-#             'papal state', 'parish', 'part', 'protopopy', 'protopopy-governorship-deanery',
-#             'province', 'rural bailiwick', 'rural commune', 'rural district', 'State',
-#             'state', 'superintendency', 'the Crown', 'town commune', 'tsyrkul',
-#             'tsyrkul-provincial capital', 'union', 'urban district', 'voivodeship']
-
-def statement_value_fix(s_value, s_type) -> str:
-    """poprawia wartość pobraną z deklaracji właściwości"""
-    if s_value is None:
-        return s_value
-
-    if s_type == "monolingualtext":
-        s_value = s_value[1] + ':"' + s_value[0] + '"'
-    elif s_type == "quantity":
-        if isinstance(s_value, tuple):
-            s_value = s_value[0].replace("+", "").replace("-", "")
-        else:
-            s_value = str(s_value)
-    elif s_type == "globe-coordinate":
-        if isinstance(s_value, tuple):
-            s_value = str(s_value[0]) + "," + str(s_value[1])
-        else:
-            s_value = str(s_value)
-    elif s_type == "wikibase-item":
-        if isinstance(s_value, int):
-            s_value = str(s_value)
-        if not s_value.startswith("Q"):
-            s_value = "Q" + s_value
-    elif s_type == "time":
-        if isinstance(s_value, tuple):
-            s_value_time = s_value[0]
-            if s_value_time is None:
-                s_value = None
-            elif isinstance(s_value_time, str):
-                s_value = s_value_time + "/" + str(s_value[3])
-            else:
-                print(f"ERROR: wartość typu time: {s_value}")
-    else:
-        if not isinstance(s_value, str):
-            s_value = str(s_value)
-
-    return s_value
-
 # --------------------------------- MAIN ---------------------------------------
 
 if __name__ == "__main__":
@@ -89,10 +33,39 @@ if __name__ == "__main__":
 
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-    ok, p_belongs_to_adm_sys = find_name_qid('belongs to administrative system', 'property', strict=True)
+    ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
     if not ok:
-        print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
+        print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
         sys.exit(1)
+    ok, p_part_of = find_name_qid('part of', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'part of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_has_part_or_parts = find_name_qid('has part or parts', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'has part or parts' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_subclass_of = find_name_qid('subclass of', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'subclass of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_superclass_of = find_name_qid('superclass of', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'superclass of' w instancji Wikibase")
+        sys.exit(1)
+
+    # wspólna referencja dla wszystkich deklaracji
+    references = {}
+    references[p_reference_url] = 'https://ontohgis.pl'
+
+    systems_items = ['Q79708', 'Q79709', 'Q79710', 'Q79711', 'Q79712', 'Q79713',
+                     'Q79714', 'Q79715', 'Q79716', 'Q79717', 'Q79718', 'Q79719',
+                     'Q79720', 'Q79721', 'Q79722', 'Q79723', 'Q79724', 'Q79725',
+                     'Q79726', 'Q79727', 'Q79728', 'Q79729', 'Q79730', 'Q79731',
+                     'Q79732', 'Q79733', 'Q79734', 'Q79735', 'Q79736', 'Q79737',
+                     'Q79738', 'Q79739', 'Q79740', 'Q79741', 'Q79742', 'Q79743',
+                     'Q79744', 'Q79745', 'Q79746', 'Q79747', 'Q79748', 'Q79749',
+                     'Q79750', 'Q79751', 'Q79752', 'Q79753', 'Q79754', 'Q79755']
 
     administrative_types = ['Q79902', 'Q79903', 'Q79904', 'Q79905', 'Q79906', 'Q79907',
                      'Q79896', 'Q79897', 'Q79908', 'Q79909', 'Q79910', 'Q79911',
@@ -143,6 +116,18 @@ if __name__ == "__main__":
                      'Q80193', 'Q80194', 'Q80195', 'Q80196', 'Q80197', 'Q80198',
                      'Q80199', 'Q80200']
 
+    print("\nUzupełnianie: administrative systems\n")
+    for item in systems_items:
+        if not element_exists(item):
+            continue
+        wb_update = wbi_core.ItemEngine(item_id=item)
+        print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
+
+        create_inverse_statement(login_instance, item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(login_instance, item, p_has_part_or_parts, p_part_of, references)
+
+        create_inverse_statement(login_instance, item, p_subclass_of, p_superclass_of, references)
+        create_inverse_statement(login_instance, item, p_superclass_of, p_subclass_of, references)
 
     print("\nUzupełnianie: administrative types\n")
     for item in administrative_types:
@@ -150,38 +135,12 @@ if __name__ == "__main__":
             continue
 
         wb_update = wbi_core.ItemEngine(item_id=item)
-        label_pl = wb_update.get_label('pl')
-        label_en = wb_update.get_label('en')
+        print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
 
-        print(f"Przetwarzanie: {item} ({label_pl})")
+        create_inverse_statement(login_instance, item, p_part_of, p_has_part_or_parts, references)
+        create_inverse_statement(login_instance, item, p_has_part_or_parts, p_part_of, references)
 
-        adm_system_pl = adm_system_en = ''
-        for statement in wb_update.statements:
-            prop_nr = statement.get_prop_nr()
-            if prop_nr == p_belongs_to_adm_sys:
-                statement_value = statement.get_value()
-                statement_type = statement.data_type
-                statement_value = statement_value_fix(statement_value, statement_type)
-                wb_test = wbi_core.ItemEngine(item_id=statement_value)
-                adm_system_pl = wb_test.get_label('pl')
-                adm_system_en = wb_test.get_label('en')
-                break
-
-        label_changed = False
-        if adm_system_pl and label_pl and adm_system_pl not in label_pl:
-            label_pl = f"{label_pl} ({adm_system_pl})"
-            wb_update.set_label(label_pl, 'pl')
-            label_changed = True
-        if adm_system_en and label_en and adm_system_en not in label_en:
-            label_en = f"{label_en} ({adm_system_en})"
-            wb_update.set_label(label_en, 'en')
-            label_changed = True
-
-        if label_changed:
-            if WIKIBASE_WRITE:
-                wb_update.write(login_instance, entity_type='item')
-                print(f"Uzupełniono: {item}: {label_pl} / {label_en}")
-            else:
-                print(f"Przygotowano uzupełnienie: {item}: {label_pl} / {label_en}")
+        create_inverse_statement(login_instance, item, p_subclass_of, p_superclass_of, references)
+        create_inverse_statement(login_instance, item, p_superclass_of, p_subclass_of, references)
 
     print("Skrypt wykonany")
