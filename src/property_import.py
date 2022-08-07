@@ -2816,8 +2816,8 @@ def create_inverse_statement(my_login_instance, qid: str, main_property: str, in
                                 wd_item_update = wbi_core.ItemEngine(item_id=statement_value, data=data, debug=False)
                                 wd_item_update.write(my_login_instance, entity_type='item')
                                 print(f"Dodano do elementu {statement_value} deklarację: {inverse_property} -> {qid}")
-                            except (MWApiError, KeyError, ValueError):
-                                print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}")
+                            except (MWApiError, KeyError, ValueError) as write_error:
+                                print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}: {write_error.error_msg}")
                         else:
                             print(f"Przygotowano dodanie do elementu {statement_value} deklaracji: {inverse_property} -> {qid}")
 

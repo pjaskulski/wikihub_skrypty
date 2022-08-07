@@ -80,6 +80,14 @@ ok, p_point_in_time = find_name_qid('point in time', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'point in time' w instancji Wikibase")
     sys.exit(1)
+ok, p_starts_at = find_name_qid('starts at', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'starts at' w instancji Wikibase")
+    sys.exit(1)
+ok, p_ends_at = find_name_qid('ends at', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'ends at' w instancji Wikibase")
+    sys.exit(1)
 ok, p_part_of = find_name_qid('part of', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'part of' w instancji Wikibase")
@@ -142,11 +150,11 @@ sql = """
     FROM ontology."VariableAdministrativeUnits"
     WHERE "Identifiers" = 5364 or "Identifiers" = 15
 """
-sql = """
-    SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
-    FROM ontology."VariableAdministrativeUnits"
-    WHERE "Identifiers" < 100000000
-"""
+# sql = """
+#     SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
+#     FROM ontology."VariableAdministrativeUnits"
+#     WHERE "Identifiers" < 100000000
+# """
 
 cursor.execute(sql)
 results = cursor.fetchall()
@@ -158,21 +166,14 @@ for result in results:
 
     adm_unit_type = result[2]
     # uzupełnianie nazw jednostek o nazwę typu tylko jeżeli jej brak a nazwa jednostki nie jest
-    # nazwą własną pisaną z dużej litery. W przypadku angielskich nazw jednostek zmiana nazwy
-    # polskiej z bazy na angielską wg. arkusza administrative_types
-    adm_unit_type_name_pl = adm_unit_type_name_en = ''
+    # nazwą własną pisaną z dużej litery.
+    adm_unit_type_name_pl = ''
     if adm_unit_type:
         adm_unit_type_name_pl = UNIT_TYPE_NAME_PL[adm_unit_type]
         if (adm_unit_type_name_pl and not label_pl[0].isupper()
             and adm_unit_type_name_pl not in label_pl.lower()):
             label_pl = adm_unit_type_name_pl + ' ' + label_pl
-        adm_unit_type_name_en = UNIT_TYPE_NAME_EN[adm_unit_type]
-        if (adm_unit_type_name_en and not label_en[0].isupper()
-            and adm_unit_type_name_en not in label_en.lower()):
-            # ewentualne wyczyszczenie polskiej nazwy:
-            if adm_unit_type_name_pl and adm_unit_type_name_pl in label_en:
-                label_en = label_en.replace(adm_unit_type_name_pl, '').strip()
-            label_en = adm_unit_type_name_en + ' ' + label_en
+            label_en = label_pl
 
     ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
@@ -240,7 +241,11 @@ for result in results:
             year = f"+{starts_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_point_in_time] = year
         else:
-            print("Mamy problem:", starts_at, ends_at)
+            start_year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_starts_at] = start_year
+            end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_ends_at] = end_year
+            #print("Mamy problem:", starts_at, ends_at)
 
         aliasy = {}
         for index, name in enumerate(names):
@@ -287,8 +292,6 @@ for result in results:
         print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
         q_items[adm_unit_id] = item_id
 
-sys.exit(1)
-
 # zapytania zwracające dane o przynależności przynależności jednostek podrzędnych
 # do danej jednostki
 print("Uzupełnianie 'part of' i 'has part or parts'")
@@ -316,7 +319,11 @@ for result in results:
             year = f"+{starts_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_point_in_time] = year
         else:
-            print("Mamy problem:", starts_at, ends_at)
+            start_year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_starts_at] = start_year
+            end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_ends_at] = end_year
+            #print("Mamy problem:", starts_at, ends_at)
 
         part_qid = q_items[int(part)]
         statement = create_statement_data(
@@ -366,7 +373,11 @@ for result in results:
             year = f"+{starts_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_point_in_time] = year
         else:
-            print("Mamy problem:", starts_at, ends_at)
+            start_year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_starts_at] = start_year
+            end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_ends_at] = end_year
+            #print("Mamy problem:", starts_at, ends_at)
 
         whole_qid = q_items[int(whole)]
         statement = create_statement_data(
@@ -402,7 +413,14 @@ for result in results:
 
     wb_unit_type = wbi_core.ItemEngine(item_id=unit_type_qid)
     unit_label_pl = wb_unit_type.get_label('pl')
+    # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
+    pos = unit_label_pl.find('(')
+    if pos != -1:
+        unit_label_pl = unit_label_pl[:pos].strip()
     unit_label_en = wb_unit_type.get_label('en')
+    pos = unit_label_en.find('(')
+    if pos != -1:
+        unit_label_en = unit_label_en[:pos].strip()
 
     parent_unit_label_pl = parent_unit_label_en = ''
     if has_statement(unit_qid, p_part_of):
@@ -410,7 +428,15 @@ for result in results:
         if value:
             wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
             parent_unit_label_pl = wb_parent_unit.get_label('pl')
+            # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
+            pos = parent_unit_label_pl.find('(')
+            if pos != -1:
+                parent_unit_label_pl = parent_unit_label_pl[:pos].strip()
+
             parent_unit_label_en = wb_parent_unit.get_label('en')
+            pos = parent_unit_label_en.find('(')
+            if pos != -1:
+                parent_unit_label_en = parent_unit_label_en[:pos].strip()
 
     adm_sys_label_pl = adm_sys_label_en = ''
     if has_statement(unit_type_qid, p_part_of):

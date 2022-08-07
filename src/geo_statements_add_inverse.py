@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 from pathlib import Path
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
@@ -25,6 +26,9 @@ WIKIBASE_WRITE = True
 # --------------------------------- MAIN ---------------------------------------
 
 if __name__ == "__main__":
+    # pomiar czasu wykonania
+    start_time = time.time()
+
     # login i hasło ze zmiennych środowiskowych (plik .env w folderze ze źródłami)
     env_path = Path('.') / '.env'
     load_dotenv(dotenv_path=env_path)
@@ -52,6 +56,14 @@ if __name__ == "__main__":
     ok, p_superclass_of = find_name_qid('superclass of', 'property', strict=True)
     if not ok:
         print("ERROR: brak właściwości 'superclass of' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_contains_adm_type = find_name_qid('contains administrative unit type', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'contains administrative unit type' w instancji Wikibase")
+        sys.exit(1)
+    ok, p_belongs_to_adm_sys = find_name_qid('belongs to administrative system', 'property', strict=True)
+    if not ok:
+        print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
         sys.exit(1)
 
     # wspólna referencja dla wszystkich deklaracji
@@ -143,4 +155,9 @@ if __name__ == "__main__":
         create_inverse_statement(login_instance, item, p_subclass_of, p_superclass_of, references)
         create_inverse_statement(login_instance, item, p_superclass_of, p_subclass_of, references)
 
+        create_inverse_statement(login_instance, item, p_belongs_to_adm_sys, p_contains_adm_type, references)
+
     print("Skrypt wykonany")
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')

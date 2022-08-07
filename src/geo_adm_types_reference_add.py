@@ -1,15 +1,17 @@
-""" skrypt usuwa dekaracje do elementów geograficznych """
+""" skrypt dodaje referencję typu 'reference URL' do właściwości
+    'part of' dla elementów będących typami jednostek administracyjnych
+"""
 
 import os
-import sys
+import json
 from pathlib import Path
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
 from wikibaseintegrator import wbi_core
-from wikibaseintegrator.wbi_functions import remove_claims
+from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from dotenv import load_dotenv
-from wikidariahtools import element_exists, find_name_qid
-
+from wikidariahtools import element_exists
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -22,7 +24,70 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
 WIKIBASE_WRITE = True
 
-# --------------------------------- MAIN ---------------------------------------
+def get_token(my_login) -> str:
+    """ zwraca token lub pusty string """
+    result = ''
+
+    token_params = {"action": "query",
+                    "meta": "tokens"}
+
+    try:
+        token_results = mediawiki_api_call_helper(
+            data=token_params,
+            login=my_login,
+            mediawiki_api_url=None,
+            user_agent=None,
+            allow_anonymous=False,
+        )
+
+        result = token_results["query"]["tokens"]["csrftoken"]
+
+    except MWApiError as wb_get_token_error:
+        print("Error (remove reference - token):", wb_get_token_error)
+
+    return result
+
+
+def add_reference(my_login, p_token: str, p_claim_id: str, prop_nr: str, prop_value: str) -> bool:
+    """dodaje odnośnik do deklaracji"""
+    add_result = False
+
+    snak_type = "value"
+    snak = {
+        prop_nr: [
+            {
+                "snaktype": snak_type,
+                "property": prop_nr,
+                "datavalue": {"type": "string", "value": prop_value},
+            }
+        ]
+    }
+    snak_encoded = json.dumps(snak)
+
+    params = {
+        "action": "wbsetreference",
+        "statement": p_claim_id,
+        "snaks": snak_encoded,
+        "token": p_token,
+        "bot": True,
+    }
+
+    try:
+        results = mediawiki_api_call_helper(
+            data=params,
+            login=my_login,
+            mediawiki_api_url=None,
+            user_agent=None,
+            allow_anonymous=False,
+        )
+        if results["success"] == 1:
+            add_result = True
+    except MWApiError as wbsetreference_error:
+        print(f"Error - dodawanie referencji - snak: \n{snak_encoded}\n", wbsetreference_error)
+
+    return add_result
+
+
 
 if __name__ == "__main__":
     # login i hasło ze zmiennych środowiskowych (plik .env w folderze ze źródłami)
@@ -31,40 +96,10 @@ if __name__ == "__main__":
     BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
     BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
 
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
+    login_data = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-    ok, p_purl_identifier = find_name_qid('purl identifier', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'purl identifier' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_handle_id = find_name_qid('Handle ID', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'Handle ID' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_wikidata_id = find_name_qid('Wikidata ID', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'Wikidata ID' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'instance of' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_part_of = find_name_qid('part of', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'part of' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_has_part_or_parts = find_name_qid('has part or parts', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'has part or parts' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_subclass_of = find_name_qid('subclass of', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'subclass of' w instancji Wikibase")
-        sys.exit(1)
-    ok, p_superclass_of = find_name_qid('superclass of', 'property', strict=True)
-    if not ok:
-        print("ERROR: brak właściwości 'superclass of' w instancji Wikibase")
-        sys.exit(1)
+    g_ref_qid = 'P182'
+    part_of_property = 'P212'
 
     administrative_types = ['Q79902', 'Q79903', 'Q79904', 'Q79905', 'Q79906', 'Q79907',
                      'Q79896', 'Q79897', 'Q79908', 'Q79909', 'Q79910', 'Q79911',
@@ -115,27 +150,46 @@ if __name__ == "__main__":
                      'Q80193', 'Q80194', 'Q80195', 'Q80196', 'Q80197', 'Q80198',
                      'Q80199', 'Q80200']
 
-    print("\nUsuwanie właściwości: administrative types\n")
     for item in administrative_types:
+        print(f"Item: {item}")
         if not element_exists(item):
             continue
 
-        wb_update = wbi_core.ItemEngine(item_id=item)
-        print(f"Przetwarzanie: {item} ({wb_update.get_label('pl')})")
+        wd_item = wbi_core.ItemEngine(item_id=item)
 
-        for statement in wb_update.statements:
-            prop_nr = statement.get_prop_nr()
-            if prop_nr in (p_part_of, p_has_part_or_parts, p_subclass_of, p_superclass_of):
-                claim_id = statement.get_id()
-                if claim_id:
+        for statement in wd_item.statements:
+            reference_exists = False
+            claim_id = statement.get_id()
+            statement_value = statement.get_value()
+            statement_prop = statement.get_prop_nr()
+
+            if statement_prop == part_of_property:
+                print(f'Weryfikacja deklaracji: {statement_prop} o wartości = {statement_value}')
+
+                # weryfikacja czy referencja istnieje
+                tmp_references = statement.get_references()
+                for t_ref_blok in tmp_references:
+                    stat_ref_qid = t_ref_blok[0].get_prop_nr()
+                    stat_ref_value = t_ref_blok[0].get_value()
+                    if stat_ref_qid == g_ref_qid:
+                        reference_exists = True
+
+                # jeżeli nie istnieje to dodaje
+                if not reference_exists:
+                    g_ref_value = 'https://ontohgis.pl'
+
                     if WIKIBASE_WRITE:
-                        # jeżeli znaleziono to usuwa
-                        result = remove_claims(claim_id, login=login_instance)
-                        if result['success'] == 1:
-                            print(f'Z elementu {item} usunięto deklarację {prop_nr}.')
-                        else:
-                            print(f'ERROR: podczas usuwania deklaracji {prop_nr} z elementu {item}.')
+                        # token
+                        token = get_token(login_data)
+
+                        # dołączanie referencji
+                        is_ok = add_reference(login_data, token, claim_id, g_ref_qid, g_ref_value)
+
+                        if is_ok:
+                            print(f'Dodano referencję: {g_ref_qid} ({g_ref_value}) do deklaracji {statement_prop} ({statement_value})')
                     else:
-                        print(f'Przygotowano usunięcie deklaracji {prop_nr} z elementu {item}.')
+                        print(f'Przygotowano referencję: {g_ref_qid} ({g_ref_value}) do deklaracji {statement_prop} ({statement_value})')
+                else:
+                    print(f'Referencja  {g_ref_qid} do deklaracji {statement_prop} ({statement_value}) już istnieje')
 
     print("Skrypt wykonany")
