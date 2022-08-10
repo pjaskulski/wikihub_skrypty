@@ -7,7 +7,7 @@ from wikibaseintegrator.wbi_functions import execute_sparql_query, mediawiki_api
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 # do odczytywania danych z naszej wikibase nie trzeba się logować
 #from wikibaseintegrator import wbi_login
-from wikidariahtools import element_exists, element_search, search_by_purl
+from wikidariahtools import element_exists, element_search, search_by_purl, get_claim_value, element_search_adv
 
 # adresy
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         data = data_p = data_p2 = None
 
     if data:
-        # etykieta 
+        # etykieta
         print(data["labels"]["pl"]["value"])
         # opis
         print(data["descriptions"]["pl"]["value"])
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     params = {'action': 'wbgetentities', 'ids': 'P47',
               'props': 'datatype'}
 
-    search_results = mediawiki_api_call_helper(data=params, login=None, mediawiki_api_url=None, 
+    search_results = mediawiki_api_call_helper(data=params, login=None, mediawiki_api_url=None,
                                                user_agent=None, allow_anonymous=True)
     data_type = search_results['entities']['P47']['datatype']
     print(data_type)
@@ -100,8 +100,18 @@ if __name__ == "__main__":
 
     #my_first_wikidata_item = wbi_core.ItemEngine(item_id='Q79708')
     #data = my_first_wikidata_item.get_json_representation()
-    #print(data)    
+    #print(data)
 
     #print('state: ', element_search('district', 'item', 'en',
-    #                                description='administrative unit of the 2nd level of the secular administration system: The Second Polish Republic', 
+    #                                description='administrative unit of the 2nd level of the secular administration system: The Second Polish Republic',
     #                                strict=True))
+
+    p_ontohgis_database_id = 'P253'
+    ok =True
+    adm_unit_id = 143
+    ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
+
+    parameters = [(p_ontohgis_database_id, ontohgis_database_id)]
+    wynik = element_search_adv('województwo poznańskie', 'pl', parameters=parameters)
+
+    print(wynik)

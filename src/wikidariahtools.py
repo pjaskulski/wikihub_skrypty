@@ -5,6 +5,7 @@ from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikibaseintegrator.wbi_functions import search_entities
 from wikibaseintegrator.wbi_functions import execute_sparql_query
+from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 
 
 def element_exists(element_id: str) -> bool:
@@ -49,9 +50,6 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
         if 'purl_id' in kwargs:
             purl_id = kwargs['purl_id']
 
-    # if 'WIKIBASE_WRITE' in globals():
-    #     if WIKIBASE_WRITE:
-
     # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
     if len(search_string) > 240:
         search_string = search_string[:241]
@@ -75,6 +73,7 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
                             return True, results[0]
                         elif value_desc != description and strict:
                             return False, "NOT FOUND"
+
                 #elif purl_id:
                 #    claims = data['claims']
 
@@ -402,3 +401,97 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
                 output = (False, f"INVALID DATA, {elem_type}: {name}, {output[1]}")
 
     return output
+
+
+def get_property_type(p_id: str) -> str:
+    """Funkcja zwraca typ właściwości na podstawie jej identyfikatora"""
+    params = {"action": "wbgetentities", "ids": p_id, "props": "datatype"}
+
+    search_results = mediawiki_api_call_helper(
+        data=params,
+        login=None,
+        mediawiki_api_url=None,
+        user_agent=None,
+        allow_anonymous=True,
+    )
+    data_type = None
+    if search_results:
+        data_type = search_results["entities"][p_id]["datatype"]
+
+    return data_type
+
+
+def statement_value_fix(s_value, s_type) -> str:
+    """poprawia wartość pobraną z deklaracji właściwości"""
+    if s_value is None:
+        return s_value
+
+    if s_type == "monolingualtext":
+        s_value = s_value[1] + ':"' + s_value[0] + '"'
+    elif s_type == "quantity":
+        if isinstance(s_value, tuple):
+            s_value = s_value[0].replace("+", "").replace("-", "")
+        else:
+            s_value = str(s_value)
+    elif s_type == "globe-coordinate":
+        if isinstance(s_value, tuple):
+            s_value = str(s_value[0]) + "," + str(s_value[1])
+        else:
+            s_value = str(s_value)
+    elif s_type == "wikibase-item":
+        if isinstance(s_value, int):
+            s_value = str(s_value)
+        if not s_value.startswith("Q"):
+            s_value = "Q" + s_value
+    elif s_type == "time":
+        if isinstance(s_value, tuple):
+            s_value_time = s_value[0]
+            if s_value_time is None:
+                s_value = None
+            elif isinstance(s_value_time, str):
+                s_value = s_value_time + "/" + str(s_value[3])
+            else:
+                print(f"ERROR: wartość typu time: {s_value}")
+    else:
+        if not isinstance(s_value, str):
+            s_value = str(s_value)
+
+    return s_value
+
+
+def element_search_adv(search_string: str, lang: str, parameters: list) -> tuple:
+    """ wyszukiwanie zaawansowane elementów (item): tekst
+        i listy z parami właściwość-wartość np.
+        'województwo poznańskie', [('P202','test')]
+    """
+
+    if not parameters:
+        print('ERROR - brak dodatkowych parametrów wyszukiwania.')
+        return False, "NOT FOUND"
+
+    # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
+    if len(search_string) > 240:
+        search_string = search_string[:241]
+
+    results = search_entities(search_string, language=lang,
+                              search_type='item', max_results=50)
+
+    if len(results) == 0:
+        return False, "NOT FOUND"
+
+    for qid in results:
+        wb_item = wbi_core.ItemEngine(item_id=qid)
+        label = wb_item.get_label(lang)
+        if label == search_string:
+            for par in parameters:
+                property_nr, property_value = par
+                for statement in wb_item.statements:
+                    statement_property = statement.get_prop_nr()
+                    if statement_property == property_nr:
+                        statement_value = statement.get_value()
+                        statement_type = get_property_type(statement_property)
+                        statement_value = statement_value_fix(statement_value, statement_type)
+                        if statement_value == property_value:
+                            return True, qid
+
+    return False, "NOT FOUND"

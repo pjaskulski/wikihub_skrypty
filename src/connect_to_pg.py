@@ -4,17 +4,21 @@
 
 import os
 import sys
+import time
 from pathlib import Path
 import psycopg2
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, element_search, get_claim_value
+from wikidariahtools import find_name_qid, element_search, get_claim_value, element_search_adv
 from property_import import create_statement_data, has_statement
 
 
-WIKIBASE_WRITE = False
+# pomiar czasu wykonania
+start_time = time.time()
+
+WIKIBASE_WRITE = True
 q_items = {}
 
 # kolejność języków w polach tablicowych
@@ -112,6 +116,10 @@ ok, q_administrative_system = find_name_qid('administrative system', 'item', str
 if not ok:
     print("ERROR: brak elementu 'administrative system' w instancji Wikibase")
     sys.exit(1)
+ok, p_belongs_adm_sys = find_name_qid('belongs to administrative system', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
+    sys.exit(1)
 
 
 # wspólna referencja dla wszystkich deklaracji
@@ -121,7 +129,7 @@ references[p_reference_url] = 'https://ontohgis.pl'
 # logowanie do instancji wikibase
 login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-# tymczasowo - wczytanie słownika QID/Purl
+# tymczasowo - wczytanie słownika QID/Purl (typy jednostek administracyjnych)
 purl = {}
 
 with open("temp.txt", "r", encoding="utf-8") as f:
@@ -145,21 +153,42 @@ conn = psycopg2.connect(
 cursor = conn.cursor()
 
 # zapytanie zwracające listę jednostek administracyjnych
-sql = """
-    SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
-    FROM ontology."VariableAdministrativeUnits"
-    WHERE "Identifiers" = 5364 or "Identifiers" = 15
-"""
 # sql = """
 #     SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
 #     FROM ontology."VariableAdministrativeUnits"
-#     WHERE "Identifiers" < 100000000
+#     WHERE "Identifiers" = 5364 or "Identifiers" = 15
 # """
+sql = """
+    SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
+    FROM ontology."VariableAdministrativeUnits"
+    WHERE "Identifiers" < 100000000
+"""
 
 cursor.execute(sql)
 results = cursor.fetchall()
+result_count = len(results)
 
-for result in results:
+wyjatki = ['księstwo zależne', 'kraj koronny', 'władztwo biskupa i kapituły',
+           'departament kamery wojenno-skarbowej', 'państwo złożone',
+           'państwo zakonne', 'kraj', 'państwo', 'państwo kościelne',
+           'część (człon) państwa związkowego', 'miasto Warszawa'
+    ]
+
+# przygotowanie raportu i listy dla wiki
+report_path = '../log/lista_jednostek_admnistracyjnych.html'
+f = open(report_path, 'w', encoding='utf-8')
+f.write('<html>\n')
+f.write('<head>\n')
+f.write('<meta charset="UTF-8">\n')
+f.write('<title>Lista elementów</title>\n')
+f.write('</head>\n')
+f.write('<body>\n')
+f.write('<h2>Lista dodanych/uaktualnionych jednostek administracyjnych</h2>\n')
+f.write('<ol>\n')
+wiki_path = '../log/lista_jednostek_admnistracyjnych.txt'
+g = open(wiki_path, 'w', encoding='utf-8')
+
+for index, result in enumerate(results):
     adm_unit_id = int(result[0])
 
     label_pl = label_en = result[1]
@@ -170,10 +199,14 @@ for result in results:
     adm_unit_type_name_pl = ''
     if adm_unit_type:
         adm_unit_type_name_pl = UNIT_TYPE_NAME_PL[adm_unit_type]
-        if (adm_unit_type_name_pl and not label_pl[0].isupper()
-            and adm_unit_type_name_pl not in label_pl.lower()):
+        if (adm_unit_type_name_pl
+            and adm_unit_type_name_pl not in label_pl.lower()
+            and adm_unit_type_name_pl not in wyjatki):
+
             label_pl = adm_unit_type_name_pl + ' ' + label_pl
             label_en = label_pl
+
+    print(f'Przetwarzanie {index + 1}/{result_count} - {label_pl}')
 
     ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
@@ -245,7 +278,6 @@ for result in results:
             qualifiers[p_starts_at] = start_year
             end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_ends_at] = end_year
-            #print("Mamy problem:", starts_at, ends_at)
 
         aliasy = {}
         for index, name in enumerate(names):
@@ -277,20 +309,41 @@ for result in results:
         for lang_alias, value_alias in aliasy.items():
             wd_item.set_aliases(value_alias, lang_alias)
 
+    # wyszukiwanie po etykiecie i identyfikatorze ontohgis (same etykiety
+    # jednostek się powtarzają!)
+    parameters = [(p_ontohgis_database_id, ontohgis_database_id)]
+    ok, item_id = element_search_adv(label_en, 'en', parameters=parameters)
 
-    ok, item_id = element_search(label_en, 'item', 'en', strict=True)
-    ok = False
     if not ok:
         if WIKIBASE_WRITE:
             new_id = wd_item.write(login_instance, bot_account=True, entity_type='item')
             if new_id:
                 print(f'Dodano nowy element: {label_en} ({adm_unit_id}) = {new_id}')
                 q_items[adm_unit_id] = new_id
+                # zapis do raportu
+                f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{new_id}">{new_id}</a></li>\n')
+                # zapis dla wiki
+                g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_pl}]\n')
         else:
-            print(f"EN: {label_en} ({adm_unit_id}) / PL: {label_pl} ({adm_unit_id})")
+            new_id = 'TEST'
+            print(f"Przygotowano dodanie elementu - EN: {label_en} ({adm_unit_id}) / PL: {label_pl} ({adm_unit_id})")
+            q_items[adm_unit_id] = new_id
+            # zapis testowy do raportu
+            f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{new_id}">{new_id}</a></li>\n')
+            g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_pl}]\n')
     else:
         print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
         q_items[adm_unit_id] = item_id
+        # zapis do raportu
+        f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{item_id}">{item_id}</a></li>\n')
+        g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item_id} {label_pl}]\n')
+
+# zamknięcie raportu
+f.write('</ol>\n')
+f.write('</body>\n')
+f.write('</html>\n')
+f.close()
+g.close()
 
 # zapytania zwracające dane o przynależności przynależności jednostek podrzędnych
 # do danej jednostki
@@ -304,6 +357,8 @@ for result in results:
     WHERE "WholeIdentifiers" = {adm_unit_id}
     """
     item_qid = q_items[adm_unit_id]
+    if item_qid == 'TEST':
+        continue
 
     cursor.execute(sql)
     results_part = cursor.fetchall()
@@ -323,7 +378,6 @@ for result in results:
             qualifiers[p_starts_at] = start_year
             end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_ends_at] = end_year
-            #print("Mamy problem:", starts_at, ends_at)
 
         part_qid = q_items[int(part)]
         statement = create_statement_data(
@@ -358,6 +412,8 @@ for result in results:
     WHERE "PartIdentifiers" = {adm_unit_id}
     """
     item_qid = q_items[adm_unit_id]
+    if item_qid == 'TEST':
+        continue
 
     cursor.execute(sql)
     results_part = cursor.fetchall()
@@ -398,7 +454,7 @@ for result in results:
                 wd_item.write(login_instance, entity_type='item')
                 print(f'Do elementu {item_qid} dodano właściwość {p_part_of} o wartości {whole_qid}')
             else:
-                print(f'Przygotowano dodanoe do elementu {item_qid} właściwości {p_part_of} o wartości {whole_qid}')
+                print(f'Przygotowano dodanie do elementu {item_qid} właściwości {p_part_of} o wartości {whole_qid}')
         else:
             print(f'Element {item_qid} już posiada właściwość {p_part_of} o wartości {whole_qid}')
 
@@ -423,7 +479,7 @@ for result in results:
         unit_label_en = unit_label_en[:pos].strip()
 
     parent_unit_label_pl = parent_unit_label_en = ''
-    if has_statement(unit_qid, p_part_of):
+    if unit_qid != 'TEST' and has_statement(unit_qid, p_part_of):
         value = get_claim_value(unit_qid, p_part_of)
         if value:
             wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
@@ -439,39 +495,40 @@ for result in results:
                 parent_unit_label_en = parent_unit_label_en[:pos].strip()
 
     adm_sys_label_pl = adm_sys_label_en = ''
-    if has_statement(unit_type_qid, p_part_of):
-        value = get_claim_value(unit_type_qid, p_part_of)
+    if has_statement(unit_type_qid, p_belongs_adm_sys):
+        value = get_claim_value(unit_type_qid, p_belongs_adm_sys)
         if value:
-            for v in value:
-                if has_statement(v, p_instance_of, value_to_check=q_administrative_system):
-                    wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
-                    adm_sys_label_pl = wb_adm_sys.get_label('pl')
-                    adm_sys_label_en = wb_adm_sys.get_label('en')
-                    break
+            # zakładamy, że typ należy do 1 systemu admninistracyjnego
+            wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
+            adm_sys_label_pl = wb_adm_sys.get_label('pl')
+            adm_sys_label_en = wb_adm_sys.get_label('en')
 
-    wb_item = wbi_core.ItemEngine(item_id=unit_qid)
-    old_pl = wb_item.get_description('pl')
-    old_en = wb_item.get_description('en')
+    if unit_qid != 'TEST':
+        wb_item = wbi_core.ItemEngine(item_id=unit_qid)
+        old_pl = wb_item.get_description('pl')
+        old_en = wb_item.get_description('en')
 
     is_change = False
-    if parent_unit_label_pl and parent_unit_label_en:
-        new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
-        new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
-        if old_pl != new_pl:
-            wb_item.set_description(new_pl, 'pl')
-            is_change = True
-        if old_en != new_en:
-            wb_item.set_description(new_en, 'en')
-            is_change = True
-    else:
-        new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
-        new_en = f"{unit_label_en} in {adm_sys_label_en}"
-        if old_pl != new_pl:
-            wb_item.set_description(new_pl, 'pl')
-            is_change = True
-        if old_en != new_en:
-            wb_item.set_description(new_en, 'en')
-            is_change = True
+
+    if unit_qid != 'TEST':
+        if parent_unit_label_pl and parent_unit_label_en:
+            new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
+            new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
+            if old_pl != new_pl:
+                wb_item.set_description(new_pl, 'pl')
+                is_change = True
+            if old_en != new_en:
+                wb_item.set_description(new_en, 'en')
+                is_change = True
+        else:
+            new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
+            new_en = f"{unit_label_en} in {adm_sys_label_en}"
+            if old_pl != new_pl:
+                wb_item.set_description(new_pl, 'pl')
+                is_change = True
+            if old_en != new_en:
+                wb_item.set_description(new_en, 'en')
+                is_change = True
 
     if is_change:
         if WIKIBASE_WRITE:
@@ -482,3 +539,7 @@ for result in results:
 
 # zamykanie połączenia z DB
 conn.close()
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')

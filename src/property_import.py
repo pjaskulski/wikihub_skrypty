@@ -14,7 +14,7 @@ from wikibaseintegrator import wbi_login, wbi_datatype
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
 from wikibaseintegrator.wbi_exceptions import MWApiError
 from dotenv import load_dotenv
-from wikidariahtools import element_search, search_by_purl
+from wikidariahtools import element_search, search_by_purl, get_property_type, statement_value_fix
 
 
 # adresy dla API Wikibase
@@ -33,7 +33,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --- klasy ---
 class BasicProp:
@@ -2320,22 +2320,22 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     return add_result
 
 
-def get_property_type(p_id: str) -> str:
-    """Funkcja zwraca typ właściwości na podstawie jej identyfikatora"""
-    params = {"action": "wbgetentities", "ids": p_id, "props": "datatype"}
+# def get_property_type(p_id: str) -> str:
+#     """Funkcja zwraca typ właściwości na podstawie jej identyfikatora"""
+#     params = {"action": "wbgetentities", "ids": p_id, "props": "datatype"}
 
-    search_results = mediawiki_api_call_helper(
-        data=params,
-        login=None,
-        mediawiki_api_url=None,
-        user_agent=None,
-        allow_anonymous=True,
-    )
-    data_type = None
-    if search_results:
-        data_type = search_results["entities"][p_id]["datatype"]
+#     search_results = mediawiki_api_call_helper(
+#         data=params,
+#         login=None,
+#         mediawiki_api_url=None,
+#         user_agent=None,
+#         allow_anonymous=True,
+#     )
+#     data_type = None
+#     if search_results:
+#         data_type = search_results["entities"][p_id]["datatype"]
 
-    return data_type
+#     return data_type
 
 
 def prepare_datetime(t_value: str) -> str:
@@ -2586,42 +2586,42 @@ def monolingual_text_fix(text_value: str) -> str:
     return text_value
 
 
-def statement_value_fix(s_value, s_type) -> str:
-    """poprawia wartość pobraną z deklaracji właściwości"""
-    if s_value is None:
-        return s_value
+# def statement_value_fix(s_value, s_type) -> str:
+#     """poprawia wartość pobraną z deklaracji właściwości"""
+#     if s_value is None:
+#         return s_value
 
-    if s_type == "monolingualtext":
-        s_value = s_value[1] + ':"' + s_value[0] + '"'
-    elif s_type == "quantity":
-        if isinstance(s_value, tuple):
-            s_value = s_value[0].replace("+", "").replace("-", "")
-        else:
-            s_value = str(s_value)
-    elif s_type == "globe-coordinate":
-        if isinstance(s_value, tuple):
-            s_value = str(s_value[0]) + "," + str(s_value[1])
-        else:
-            s_value = str(s_value)
-    elif s_type == "wikibase-item":
-        if isinstance(s_value, int):
-            s_value = str(s_value)
-        if not s_value.startswith("Q"):
-            s_value = "Q" + s_value
-    elif s_type == "time":
-        if isinstance(s_value, tuple):
-            s_value_time = s_value[0]
-            if s_value_time is None:
-                s_value = None
-            elif isinstance(s_value_time, str):
-                s_value = s_value_time + "/" + str(s_value[3])
-            else:
-                print(f"ERROR: wartość typu time: {s_value}")
-    else:
-        if not isinstance(s_value, str):
-            s_value = str(s_value)
+#     if s_type == "monolingualtext":
+#         s_value = s_value[1] + ':"' + s_value[0] + '"'
+#     elif s_type == "quantity":
+#         if isinstance(s_value, tuple):
+#             s_value = s_value[0].replace("+", "").replace("-", "")
+#         else:
+#             s_value = str(s_value)
+#     elif s_type == "globe-coordinate":
+#         if isinstance(s_value, tuple):
+#             s_value = str(s_value[0]) + "," + str(s_value[1])
+#         else:
+#             s_value = str(s_value)
+#     elif s_type == "wikibase-item":
+#         if isinstance(s_value, int):
+#             s_value = str(s_value)
+#         if not s_value.startswith("Q"):
+#             s_value = "Q" + s_value
+#     elif s_type == "time":
+#         if isinstance(s_value, tuple):
+#             s_value_time = s_value[0]
+#             if s_value_time is None:
+#                 s_value = None
+#             elif isinstance(s_value_time, str):
+#                 s_value = s_value_time + "/" + str(s_value[3])
+#             else:
+#                 print(f"ERROR: wartość typu time: {s_value}")
+#     else:
+#         if not isinstance(s_value, str):
+#             s_value = str(s_value)
 
-    return s_value
+#     return s_value
 
 
 def get_qualifiers(element: wbi_core.ItemEngine, prop_id, prop_value) -> list:
