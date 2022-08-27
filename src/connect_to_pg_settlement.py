@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, element_search, get_claim_value, element_search_adv
+from wikidariahtools import find_name_qid, get_claim_value, element_search_adv
 from property_import import create_statement_data, has_statement
 
 
@@ -104,7 +104,7 @@ ok, p_ontohgis_database_id = find_name_qid('ontohgis database id', 'property', s
 if not ok:
     print("ERROR: brak właściwości 'ontohgis database id' w instancji Wikibase")
     sys.exit(1)
-ok, q_administrative_unit = find_name_qid('administrative unit', 'item', strict=True)
+ok, q_dwelling = find_name_qid('dwelling', 'item', strict=True)
 if not ok:
     print("ERROR: brak elementu 'administrative unit' w instancji Wikibase")
     sys.exit(1)
@@ -120,25 +120,22 @@ ok, p_belongs_adm_sys = find_name_qid('belongs to administrative system', 'prope
 if not ok:
     print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
     sys.exit(1)
+ok, p_prng_id = find_name_qid('id prng', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'id prng' w instancji Wikibase")
+    sys.exit(1)
+ok, p_codgik_id = find_name_qid('codgik id', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'codgik id' w instancji Wikibase")
+    sys.exit(1)
 
 
-# wspólna referencja dla wszystkich deklaracji
+# wspólna referencja dla wszystkich deklaracji - czy to ma być ontohgis.pl???
 references = {}
 references[p_reference_url] = 'https://ontohgis.pl'
 
 # logowanie do instancji wikibase
 login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
-
-# tymczasowo - wczytanie słownika QID/Purl (typy jednostek administracyjnych)
-purl = {}
-
-with open("temp.txt", "r", encoding="utf-8") as f:
-    lines = f.readlines()
-
-for line in lines:
-    line = line.strip()
-    tmp = line.split(" = ")
-    purl[tmp[0]] = tmp[1]
 
 # połączenie do serwera DB
 conn = psycopg2.connect(
@@ -152,30 +149,21 @@ conn = psycopg2.connect(
 # utworzenie kursora
 cursor = conn.cursor()
 
-# zapytanie zwracające listę jednostek administracyjnych
-# sql = """
-#     SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
-#     FROM ontology."VariableAdministrativeUnits"
-#     WHERE "Identifiers" = 5364 or "Identifiers" = 15
-# """
+# zapytanie zwracające listę miejscowości
 sql = """
-    SELECT "Identifiers", "Names", "AdministrativeUnitTypeIdentifiers"
-    FROM ontology."VariableAdministrativeUnits"
-    WHERE "Identifiers" < 100000000
+    SELECT "Identifiers", "Names", "codgik_gid_fk", public."miejscowosci_codgik"."id_prng"
+    FROM ontology."VariableSettlements"
+    LEFT JOIN public."miejscowosci_codgik" ON "codgik_gid_fk" = "gid"
 """
 
 cursor.execute(sql)
 results = cursor.fetchall()
 result_count = len(results)
 
-wyjatki = ['księstwo zależne', 'kraj koronny', 'władztwo biskupa i kapituły',
-           'departament kamery wojenno-skarbowej', 'państwo złożone',
-           'państwo zakonne', 'kraj', 'państwo', 'państwo kościelne',
-           'część (człon) państwa związkowego', 'miasto Warszawa'
-    ]
+print(result_count)
 
 # przygotowanie raportu i listy dla wiki
-report_path = '../log/lista_jednostek_admnistracyjnych.html'
+report_path = '../log/lista_miejscowosci.html'
 f = open(report_path, 'w', encoding='utf-8')
 f.write('<html>\n')
 f.write('<head>\n')
@@ -183,34 +171,20 @@ f.write('<meta charset="UTF-8">\n')
 f.write('<title>Lista elementów</title>\n')
 f.write('</head>\n')
 f.write('<body>\n')
-f.write('<h2>Lista dodanych/uaktualnionych jednostek administracyjnych</h2>\n')
+f.write('<h2>Lista dodanych/uaktualnionych miejscowości</h2>\n')
 f.write('<ol>\n')
-wiki_path = '../log/lista_jednostek_admnistracyjnych.txt'
+wiki_path = '../log/lista_miejscowości.txt'
 g = open(wiki_path, 'w', encoding='utf-8')
 
+
 for index, result in enumerate(results):
-    adm_unit_id = int(result[0])
-
+    settlement_id = int(result[0])
     label_pl = label_en = result[1]
+    ontohgis_database_id = f'ONTOHGIS-VariableSettlements-{settlement_id}'
+    id_codgik_gid_fk = result[2]
+    id_prng = result[3]
 
-    adm_unit_type = result[2]
-    # uzupełnianie nazw jednostek o nazwę typu tylko jeżeli jej brak a nazwa jednostki nie jest
-    # nazwą własną pisaną z dużej litery.
-    adm_unit_type_name_pl = ''
-    if adm_unit_type:
-        adm_unit_type_name_pl = UNIT_TYPE_NAME_PL[adm_unit_type]
-        if (adm_unit_type_name_pl
-            and adm_unit_type_name_pl not in label_pl.lower()
-            and adm_unit_type_name_pl not in wyjatki):
-
-            label_pl = adm_unit_type_name_pl + ' ' + label_pl
-            label_en = label_pl
-
-    print(f'Przetwarzanie {index + 1}/{result_count} - {label_pl}')
-
-    ontohgis_database_id = f'ONTOHGIS-VariableAdministrativeUnits-{adm_unit_id}'
-    adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
-    instance_of = q_administrative_unit
+    print(f'Przetwarzanie {index + 1}/{result_count} - {label_pl} - PRNG: {id_prng}')
 
     # tworzenie deklaracji
     data = []
@@ -227,10 +201,35 @@ for index, result in enumerate(results):
     if statement:
         data.append(statement)
 
+    # deklaracja właściwości 'prng id'
+    statement = create_statement_data(
+                            p_prng_id,
+                            id_prng,
+                            None,
+                            None,
+                            add_ref_dict=None,
+                            if_exists="APPEND",
+                        )
+    if statement:
+        data.append(statement)
+
+    # deklaracja właściwości 'codgik id'
+    statement = create_statement_data(
+                            p_codgik_id,
+                            id_codgik_gid_fk,
+                            None,
+                            None,
+                            add_ref_dict=None,
+                            if_exists="APPEND",
+                        )
+    if statement:
+        data.append(statement)
+
+
     # deklaracja właściwości 'instance of'
     statement = create_statement_data(
                             p_instance_of,
-                            q_administrative_unit,
+                            q_dwelling,
                             references,
                             None,
                             add_ref_dict=None,
@@ -239,42 +238,27 @@ for index, result in enumerate(results):
     if statement:
         data.append(statement)
 
-    # deklaracja właściwości 'administrative unit type'
-    # tymczasowo przez mapowanie purl->Q z pliku tekstowego, docelowo szukanie przez purl
-    unit_type_qid = purl[adm_unit_type_purl]
-    if unit_type_qid:
-        statement = create_statement_data(
-                            p_administrative_unit_type,
-                            unit_type_qid,
-                            references,
-                            None,
-                            add_ref_dict=None,
-                            if_exists="APPEND",
-                        )
-        if statement:
-            data.append(statement)
-
-    # zapytanie zwracające listę nazw i lat obowiązywania dla jednostki administracyjnej
+    # zapytanie zwracające listę nazw i lat obowiązywania dla miejscowosci
     sql = f"""
-    SELECT "Names", "StartsAt", "EndsAt"
-    FROM ontology."AdministrativeUnitNames"
-    WHERE "VariableAdministrativeUnitIdentifiers" = {adm_unit_id}
+    SELECT "Names", "StartsAt", "EndsAt", "Source", "AlternativeNames"
+    FROM ontology."SettlementNames"
+    WHERE "VariableSettlementIdentifiers" = {settlement_id}
 """
     cursor.execute(sql)
-    data_unit_names = cursor.fetchall()
-    aliasy = {} # inaczej w przypadku braku rekordów aliasy przejdą z poprzedniej jednostki
+    data_settlements_names = cursor.fetchall()
+    aliasy = {}
     qualifiers = {}
-    for record in data_unit_names:
+    for record in data_settlements_names:
         # print(record)
         names = record[0]
         starts_at = record[1]
         ends_at = record[2]
+        source = record[3]
 
-        qualifiers = {}
         aliasy = {}
+        qualifiers = {}
 
         # kwalifikator 'point in time'
-        # jeżeli to w rzczywistości nie zakres a punkt w czasie
         if (starts_at.year == ends_at.year and starts_at.month == 1
             and starts_at.day == 1 and ends_at.month == 12 and ends_at.day == 31):
             year = f"+{starts_at.year}-00-00T00:00:00Z/9"
@@ -284,7 +268,6 @@ for index, result in enumerate(results):
             qualifiers[p_starts_at] = start_year
             end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
             qualifiers[p_ends_at] = end_year
-
 
         for index, name in enumerate(names):
             # deklaracja 'stated as'
@@ -316,7 +299,7 @@ for index, result in enumerate(results):
             wd_item.set_aliases(value_alias, lang_alias)
 
     # wyszukiwanie po etykiecie i identyfikatorze ontohgis (same etykiety
-    # jednostek się powtarzają!)
+    # miejscowości się powtarzają!)
     parameters = [(p_ontohgis_database_id, ontohgis_database_id)]
     ok, item_id = element_search_adv(label_en, 'en', parameters=parameters)
 
@@ -324,22 +307,22 @@ for index, result in enumerate(results):
         if WIKIBASE_WRITE:
             new_id = wd_item.write(login_instance, bot_account=True, entity_type='item')
             if new_id:
-                print(f'Dodano nowy element: {label_en} ({adm_unit_id}) = {new_id}')
-                q_items[adm_unit_id] = new_id
+                print(f'Dodano nowy element: {label_en} ({settlement_id}) = {new_id}')
+                q_items[settlement_id] = new_id
                 # zapis do raportu
                 f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{new_id}">{new_id}</a></li>\n')
                 # zapis dla wiki
                 g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_pl}]\n')
         else:
             new_id = 'TEST'
-            print(f"Przygotowano dodanie elementu - EN: {label_en} ({adm_unit_id}) / PL: {label_pl} ({adm_unit_id})")
-            q_items[adm_unit_id] = new_id
+            print(f"Przygotowano dodanie elementu - EN: {label_en} ({settlement_id}) / PL: {label_pl} ({adm_unit_id})")
+            q_items[settlement_id] = new_id
             # zapis testowy do raportu
             f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{new_id}">{new_id}</a></li>\n')
             g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_pl}]\n')
     else:
-        print(f'Element: {label_en} ({adm_unit_id}) już istnieje: {item_id}')
-        q_items[adm_unit_id] = item_id
+        print(f'Element: {label_en} ({settlement_id}) już istnieje: {item_id}')
+        q_items[settlement_id] = item_id
         # zapis do raportu
         f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{item_id}">{item_id}</a></li>\n')
         g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item_id} {label_pl}]\n')
@@ -351,18 +334,18 @@ f.write('</html>\n')
 f.close()
 g.close()
 
-# zapytania zwracające dane o przynależności przynależności jednostek podrzędnych
-# do danej jednostki
+# zapytania zwracające dane o przynależności miejscowości podrzędnych
+# do danej miejscowości
 print("Uzupełnianie 'part of' i 'has part or parts'")
 for result in results:
-    adm_unit_id = int(result[0])
+    settlement_id = int(result[0])
 
     sql = f"""
     SELECT "PartIdentifiers", "StartsAt", "EndsAt"
-    FROM ontology."AdministrativeUnitMereologyLinks"
-    WHERE "WholeIdentifiers" = {adm_unit_id}
+    FROM ontology."SettlementMereologyLinks"
+    WHERE "WholeIdentifiers" = {settlement_id}
     """
-    item_qid = q_items[adm_unit_id]
+    item_qid = q_items[settlement_id]
     if item_qid == 'TEST':
         continue
 
@@ -408,16 +391,16 @@ for result in results:
         else:
             print(f'Element {item_qid} już posiada właściwość {p_has_part_or_parts} o wartości {part_qid}')
 
-# zapytania zwracające dane o przynależności danej jednostki do jednostki nadrzędnej
+# zapytania zwracające dane o przynależności danej miejscowości do miejscowości nadrzędnej
 for result in results:
     adm_unit_id = int(result[0])
 
     sql = f"""
     SELECT "WholeIdentifiers", "StartsAt", "EndsAt"
-    FROM ontology."AdministrativeUnitMereologyLinks"
-    WHERE "PartIdentifiers" = {adm_unit_id}
+    FROM ontology."SettlementMereologyLinks"
+    WHERE "PartIdentifiers" = {settlement_id}
     """
-    item_qid = q_items[adm_unit_id]
+    item_qid = q_items[settlement_id]
     if item_qid == 'TEST':
         continue
 
@@ -464,84 +447,85 @@ for result in results:
         else:
             print(f'Element {item_qid} już posiada właściwość {p_part_of} o wartości {whole_qid}')
 
-# uzupełnianie description
-print('Uzupełnianie description')
-for result in results:
-    adm_unit_id = int(result[0])
-    unit_qid = q_items[adm_unit_id]
-    adm_unit_type = result[2]
-    adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
-    unit_type_qid = purl[adm_unit_type_purl]
+# !!! uzupełnianie description - miejscowości na razie bez opisów !!!
 
-    wb_unit_type = wbi_core.ItemEngine(item_id=unit_type_qid)
-    unit_label_pl = wb_unit_type.get_label('pl')
-    # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
-    pos = unit_label_pl.find('(')
-    if pos != -1:
-        unit_label_pl = unit_label_pl[:pos].strip()
-    unit_label_en = wb_unit_type.get_label('en')
-    pos = unit_label_en.find('(')
-    if pos != -1:
-        unit_label_en = unit_label_en[:pos].strip()
+# print('Uzupełnianie description')
+# for result in results:
+#     settlement_id = int(result[0])
+#     settlement_qid = q_items[settlement_id]
+#     adm_unit_type = result[2]
+#     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
+#     unit_type_qid = purl[adm_unit_type_purl]
 
-    parent_unit_label_pl = parent_unit_label_en = ''
-    if unit_qid != 'TEST' and has_statement(unit_qid, p_part_of):
-        value = get_claim_value(unit_qid, p_part_of)
-        if value:
-            wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
-            parent_unit_label_pl = wb_parent_unit.get_label('pl')
-            # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
-            pos = parent_unit_label_pl.find('(')
-            if pos != -1:
-                parent_unit_label_pl = parent_unit_label_pl[:pos].strip()
+#     wb_unit_type = wbi_core.ItemEngine(item_id=unit_type_qid)
+#     unit_label_pl = wb_unit_type.get_label('pl')
+#     # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
+#     pos = unit_label_pl.find('(')
+#     if pos != -1:
+#         unit_label_pl = unit_label_pl[:pos].strip()
+#     unit_label_en = wb_unit_type.get_label('en')
+#     pos = unit_label_en.find('(')
+#     if pos != -1:
+#         unit_label_en = unit_label_en[:pos].strip()
 
-            parent_unit_label_en = wb_parent_unit.get_label('en')
-            pos = parent_unit_label_en.find('(')
-            if pos != -1:
-                parent_unit_label_en = parent_unit_label_en[:pos].strip()
+#     parent_unit_label_pl = parent_unit_label_en = ''
+#     if unit_qid != 'TEST' and has_statement(unit_qid, p_part_of):
+#         value = get_claim_value(unit_qid, p_part_of)
+#         if value:
+#             wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
+#             parent_unit_label_pl = wb_parent_unit.get_label('pl')
+#             # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
+#             pos = parent_unit_label_pl.find('(')
+#             if pos != -1:
+#                 parent_unit_label_pl = parent_unit_label_pl[:pos].strip()
 
-    adm_sys_label_pl = adm_sys_label_en = ''
-    if has_statement(unit_type_qid, p_belongs_adm_sys):
-        value = get_claim_value(unit_type_qid, p_belongs_adm_sys)
-        if value:
-            # zakładamy, że typ należy do 1 systemu admninistracyjnego
-            wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
-            adm_sys_label_pl = wb_adm_sys.get_label('pl')
-            adm_sys_label_en = wb_adm_sys.get_label('en')
+#             parent_unit_label_en = wb_parent_unit.get_label('en')
+#             pos = parent_unit_label_en.find('(')
+#             if pos != -1:
+#                 parent_unit_label_en = parent_unit_label_en[:pos].strip()
 
-    if unit_qid != 'TEST':
-        wb_item = wbi_core.ItemEngine(item_id=unit_qid)
-        old_pl = wb_item.get_description('pl')
-        old_en = wb_item.get_description('en')
+#     adm_sys_label_pl = adm_sys_label_en = ''
+#     if has_statement(unit_type_qid, p_belongs_adm_sys):
+#         value = get_claim_value(unit_type_qid, p_belongs_adm_sys)
+#         if value:
+#             # zakładamy, że typ należy do 1 systemu admninistracyjnego
+#             wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
+#             adm_sys_label_pl = wb_adm_sys.get_label('pl')
+#             adm_sys_label_en = wb_adm_sys.get_label('en')
 
-    is_change = False
+#     if unit_qid != 'TEST':
+#         wb_item = wbi_core.ItemEngine(item_id=unit_qid)
+#         old_pl = wb_item.get_description('pl')
+#         old_en = wb_item.get_description('en')
 
-    if unit_qid != 'TEST':
-        if parent_unit_label_pl and parent_unit_label_en:
-            new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
-            new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
-            if old_pl != new_pl:
-                wb_item.set_description(new_pl, 'pl')
-                is_change = True
-            if old_en != new_en:
-                wb_item.set_description(new_en, 'en')
-                is_change = True
-        else:
-            new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
-            new_en = f"{unit_label_en} in {adm_sys_label_en}"
-            if old_pl != new_pl:
-                wb_item.set_description(new_pl, 'pl')
-                is_change = True
-            if old_en != new_en:
-                wb_item.set_description(new_en, 'en')
-                is_change = True
+#     is_change = False
 
-    if is_change:
-        if WIKIBASE_WRITE:
-            wb_item.write(login_instance, entity_type='item')
-            print(f"Dodano opis: {new_pl} / {new_en}")
-        else:
-            print(f"Przygotowano dodanie opisu: {new_pl} / {new_en}")
+#     if unit_qid != 'TEST':
+#         if parent_unit_label_pl and parent_unit_label_en:
+#             new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
+#             new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
+#             if old_pl != new_pl:
+#                 wb_item.set_description(new_pl, 'pl')
+#                 is_change = True
+#             if old_en != new_en:
+#                 wb_item.set_description(new_en, 'en')
+#                 is_change = True
+#         else:
+#             new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
+#             new_en = f"{unit_label_en} in {adm_sys_label_en}"
+#             if old_pl != new_pl:
+#                 wb_item.set_description(new_pl, 'pl')
+#                 is_change = True
+#             if old_en != new_en:
+#                 wb_item.set_description(new_en, 'en')
+#                 is_change = True
+
+#     if is_change:
+#         if WIKIBASE_WRITE:
+#             wb_item.write(login_instance, entity_type='item')
+#             print(f"Dodano opis: {new_pl} / {new_en}")
+#         else:
+#             print(f"Przygotowano dodanie opisu: {new_pl} / {new_en}")
 
 # zamykanie połączenia z DB
 conn.close()
