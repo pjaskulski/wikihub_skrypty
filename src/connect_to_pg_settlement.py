@@ -7,6 +7,7 @@ import sys
 import time
 from pathlib import Path
 import psycopg2
+from shapely import wkb
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
@@ -142,9 +143,9 @@ ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
     sys.exit(1)
-ok, p_prng_id = find_name_qid('id prng', 'property', strict=True)
+ok, p_prng_id = find_name_qid('PRNG id', 'property', strict=True)
 if not ok:
-    print("ERROR: brak właściwości 'id prng' w instancji Wikibase")
+    print("ERROR: brak właściwości 'PRNG id' w instancji Wikibase")
     sys.exit(1)
 ok, p_codgik_id = find_name_qid('codgik id', 'property', strict=True)
 if not ok:
@@ -154,9 +155,9 @@ ok, p_settlement_type = find_name_qid('settlement type', 'property', strict=True
 if not ok:
     print("ERROR: brak właściwości 'settlement type' w instancji Wikibase")
     sys.exit(1)
-ok, q_ahp = find_name_qid('Atlas historyczny Polski', 'item', strict=True)
+ok, q_ahp = find_name_qid('Historical Atlas of Poland', 'item', strict=True)
 if not ok:
-    print("ERROR: brak elementu 'Atlas historyczny Polski' w instancji Wikibase")
+    print("ERROR: brak elementu 'Historical Atlas of Poland' w instancji Wikibase")
     sys.exit(1)
 ok, p_coordinate = find_name_qid('coordinate location', 'property', strict=True)
 if not ok:
@@ -219,7 +220,11 @@ for index, result in enumerate(results):
     label_pl = label_en = result[1]
     ontohgis_database_id = f'ONTOHGIS-VariableSettlements-{settlement_id}'
     id_codgik_gid_fk = result[2]
+    if isinstance(id_codgik_gid_fk, int):
+        id_codgik_gid_fk = str(id_codgik_gid_fk)
     id_prng = result[3]
+    if isinstance(id_prng, int):
+        id_prng = str(id_prng)
 
     print(f'Przetwarzanie {index + 1}/{result_count} - {label_pl} - PRNG: {id_prng}')
 
@@ -337,7 +342,7 @@ for index, result in enumerate(results):
                ontology."SettlementTypesDictionary"."Names" as SettlementTypeName
         FROM ontology."SettlementTypes"
         JOIN ontology."SettlementTypesDictionary" ON ontology."SettlementTypes"."SettlementTypeIdentifiers" = ontology."SettlementTypesDictionary"."Identifiers"
-        WHERE ""VariableSettlementIdentifiers"" = {settlement_id}
+        WHERE "VariableSettlementIdentifiers" = {settlement_id}
     """
     cursor.execute(sql)
     data_settlements_type = cursor.fetchall()
@@ -387,8 +392,8 @@ for index, result in enumerate(results):
                "EndsAt",
                "Source",
                "the_geom"
-        FROM ontology."SettlementsLocations"
-        WHERE ""VariableSettlementIdentifiers"" = {settlement_id}
+        FROM ontology."SettlementLocations"
+        WHERE "VariableSettlementIdentifiers" = {settlement_id}
     """
     cursor.execute(sql)
     data_settlements_loc = cursor.fetchall()
@@ -400,8 +405,8 @@ for index, result in enumerate(results):
         ends_at = record[2]
         source = record[3]
         geom = record[4]
-        print(type(geom), geom) # POINT (18.497368539000203 51.663693918985125)
-        settlement_location = ''
+        geom = wkb.loads(record[4], hex=True).wkt   # POINT (18.497368539000203 51.663693918985125)
+        settlement_location = geom.replace('POINT', '').replace('(', '').replace(')','').strip().replace(' ', ',')
 
         qualifiers = {}
         if (starts_at.year == ends_at.year and starts_at.month == 1
