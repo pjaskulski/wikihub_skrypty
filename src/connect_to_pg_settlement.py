@@ -456,7 +456,7 @@ for index, result in enumerate(results):
                 g.write(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_pl}]\n')
         else:
             new_id = 'TEST'
-            print(f"Przygotowano dodanie elementu - EN: {label_en} ({settlement_id}) / PL: {label_pl} ({adm_unit_id})")
+            print(f"Przygotowano dodanie elementu - EN: {label_en} ({settlement_id}) / PL: {label_pl} ({settlement_id})")
             q_items[settlement_id] = new_id
             # zapis testowy do raportu
             f.write(f'<li>{label_pl} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{new_id}">{new_id}</a></li>\n')
