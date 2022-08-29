@@ -11,14 +11,14 @@ from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, get_claim_value, element_search_adv
+from wikidariahtools import find_name_qid, element_search_adv
 from property_import import create_statement_data, has_statement
 
 
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 q_items = {}
 
 # kolejność języków w polach tablicowych
@@ -34,6 +34,48 @@ q_items = {}
 # 10 - angielski
 
 lang_code = {0: "pl", 1:"ru", 2:"de", 3:"uk", 4:"be", 5:"lt", 6:"la", 7:"cs", 8:"hu", 9:"en"}
+
+# typy miejscowości (tymczasowy słownik, gdyż wyszukiwanie przez purl może nie działać)
+settlement_types = {}
+settlement_types[71] = 'Q79356'  # osada wsi
+settlement_types[2] = 'Q79095'   # wieś
+settlement_types[63] = 'Q79347'  # część wsi
+settlement_types[75] = 'Q79348'  # przysiółek wsi
+settlement_types[61] = 'Q79349'  # część miasta
+settlement_types[33] = 'Q79350'  # osada
+settlement_types[66] = 'Q79351'  # kolonia wsi
+settlement_types[36] = 'Q79352'  # osada leśna
+settlement_types[20] = 'Q79353'  # kolonia
+settlement_types[3] = 'Q79354'   # miasto
+settlement_types[27] = 'Q79355'  # leśniczówka
+settlement_types[71] = 'Q79356'  # osada wsi
+settlement_types[60] = 'Q79357'  # część kolonii
+settlement_types[69] = 'Q79358'  # osada leśna wsi
+settlement_types[8] = 'Q79359'   # folwark
+settlement_types[38] = 'Q79360'  # osada młyńska
+settlement_types[44] = 'Q79361'  # przysiółek
+settlement_types[74] = 'Q79362'  # przysiółek osady
+settlement_types[62] = 'Q79363'  # część osady
+settlement_types[73] = 'Q79364'  # przysiółek kolonii
+settlement_types[43] = 'Q79365'  # przedmieście
+settlement_types[76] = 'Q79366'  # schronisko turystyczne
+settlement_types[64] = 'Q79367'  # kolonia kolonii
+settlement_types[1] = 'Q79368'   # zamek
+settlement_types[125] = 'Q79369' # osada kuźnicza
+settlement_types[70] = 'Q79370'  # osada osady
+settlement_types[65] = 'Q79371'  # kolonia osady
+settlement_types[72] = 'Q79372'  # osiedle wsi
+settlement_types[112] = 'Q79373' # część przysiółka
+settlement_types[68] = 'Q79374'  # osada kolonii
+settlement_types[21] = 'Q79375'  # osada górnicza
+settlement_types[37] = 'Q79376'  # osada miejska
+settlement_types[34] = 'Q79422'  # osiedle
+settlement_types[132] = 'Q79421' # klasztor
+settlement_types[19] = 'Q79425'  # osada klasztorna
+settlement_types[4] = 'Q79442'   # ruiny zamku
+settlement_types[99] = 'Q79378'  # osada karczemna
+settlement_types[67] = 'Q79443'  # osada kolejowa
+settlement_types[7] = 'Q79380'   # dwór - obiekt
 
 
 # adresy wikibase
@@ -54,31 +96,19 @@ DB_DATABASE = os.environ.get("DB_DATABASE")
 BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
 BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
 
-with open('../data/type_names_ang.txt', 'r', encoding='utf-8') as f:
-    lines = f.readlines()
-
-UNIT_TYPE_NAME_PL = {}
-UNIT_TYPE_NAME_EN = {}
-
-for line in lines:
-    line = line.strip()
-    tmp = line.split(',')
-    if len(tmp) == 3:
-        UNIT_TYPE_NAME_PL[int(tmp[2])] = tmp[0]
-        UNIT_TYPE_NAME_EN[int(tmp[2])] = tmp[1]
 
 # standardowe właściwości i elementy
 ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'instance of' w instancji Wikibase")
     sys.exit(1)
-ok, p_administrative_unit_type = find_name_qid('administrative unit type', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'administrative unit type' w instancji Wikibase")
-    sys.exit(1)
 ok, p_stated_as = find_name_qid('stated as', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'stated as' w instancji Wikibase")
+    sys.exit(1)
+ok, p_stated_in = find_name_qid('stated in', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'stated in' w instancji Wikibase")
     sys.exit(1)
 ok, p_point_in_time = find_name_qid('point in time', 'property', strict=True)
 if not ok:
@@ -112,14 +142,6 @@ ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
     sys.exit(1)
-ok, q_administrative_system = find_name_qid('administrative system', 'item', strict=True)
-if not ok:
-    print("ERROR: brak elementu 'administrative system' w instancji Wikibase")
-    sys.exit(1)
-ok, p_belongs_adm_sys = find_name_qid('belongs to administrative system', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
-    sys.exit(1)
 ok, p_prng_id = find_name_qid('id prng', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'id prng' w instancji Wikibase")
@@ -127,6 +149,18 @@ if not ok:
 ok, p_codgik_id = find_name_qid('codgik id', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'codgik id' w instancji Wikibase")
+    sys.exit(1)
+ok, p_settlement_type = find_name_qid('settlement type', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'settlement type' w instancji Wikibase")
+    sys.exit(1)
+ok, q_ahp = find_name_qid('Atlas historyczny Polski', 'item', strict=True)
+if not ok:
+    print("ERROR: brak elementu 'Atlas historyczny Polski' w instancji Wikibase")
+    sys.exit(1)
+ok, p_coordinate = find_name_qid('coordinate location', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'coordinate location' w instancji Wikibase")
     sys.exit(1)
 
 
@@ -178,6 +212,9 @@ g = open(wiki_path, 'w', encoding='utf-8')
 
 
 for index, result in enumerate(results):
+    if index > 5:
+        sys.exit(1)
+
     settlement_id = int(result[0])
     label_pl = label_en = result[1]
     ontohgis_database_id = f'ONTOHGIS-VariableSettlements-{settlement_id}'
@@ -240,10 +277,10 @@ for index, result in enumerate(results):
 
     # zapytanie zwracające listę nazw i lat obowiązywania dla miejscowosci
     sql = f"""
-    SELECT "Names", "StartsAt", "EndsAt", "Source", "AlternativeNames"
-    FROM ontology."SettlementNames"
-    WHERE "VariableSettlementIdentifiers" = {settlement_id}
-"""
+        SELECT "Names", "StartsAt", "EndsAt", "Source", "AlternativeNames"
+        FROM ontology."SettlementNames"
+        WHERE "VariableSettlementIdentifiers" = {settlement_id}
+    """
     cursor.execute(sql)
     data_settlements_names = cursor.fetchall()
     aliasy = {}
@@ -289,6 +326,110 @@ for index, result in enumerate(results):
                 aliasy[lang_code[index]] = name
 
         #print(names, starts_at.year, ends_at, type(starts_at))
+
+    # zapytanie zwracające typy miejscowości (i daty obowiązywania)
+    sql = f"""
+        SELECT "VariableSettlementIdentifiers",
+               "StartsAt",
+               "EndsAt",
+               "Source",
+               "SettlementTypeIdentifiers",
+               ontology."SettlementTypesDictionary"."Names" as SettlementTypeName
+        FROM ontology."SettlementTypes"
+        JOIN ontology."SettlementTypesDictionary" ON ontology."SettlementTypes"."SettlementTypeIdentifiers" = ontology."SettlementTypesDictionary"."Identifiers"
+        WHERE ""VariableSettlementIdentifiers"" = {settlement_id}
+    """
+    cursor.execute(sql)
+    data_settlements_type = cursor.fetchall()
+
+    qualifiers = {}
+
+    for record in data_settlements_type:
+        starts_at = record[1]
+        ends_at = record[2]
+        source = record[3]
+        settlement_type_id = int(record[4])
+        settlement_type_qid = settlement_types[settlement_type_id]
+
+        qualifiers = {}
+        if (starts_at.year == ends_at.year and starts_at.month == 1
+            and starts_at.day == 1 and ends_at.month == 12 and ends_at.day == 31):
+            year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_point_in_time] = year
+        else:
+            start_year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_starts_at] = start_year
+            end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_ends_at] = end_year
+
+        local_references = None
+        if source == 'AHP':
+            local_references= {}
+            local_references[p_stated_in] = q_ahp
+
+
+        statement = create_statement_data(
+                            p_settlement_type,
+                            settlement_type_qid,
+                            references,
+                            qualifiers,
+                            add_ref_dict=local_references,
+                            if_exists="APPEND",
+                        )
+        if statement:
+            data.append(statement)
+
+
+    # zapytanie zwracające lokalizację miejscowości (i daty obowiązywania)
+    sql = f"""
+        SELECT "VariableSettlementIdentifiers",
+               "StartsAt",
+               "EndsAt",
+               "Source",
+               "the_geom"
+        FROM ontology."SettlementsLocations"
+        WHERE ""VariableSettlementIdentifiers"" = {settlement_id}
+    """
+    cursor.execute(sql)
+    data_settlements_loc = cursor.fetchall()
+
+    qualifiers = {}
+
+    for record in data_settlements_loc:
+        starts_at = record[1]
+        ends_at = record[2]
+        source = record[3]
+        geom = record[4]
+        print(type(geom), geom) # POINT (18.497368539000203 51.663693918985125)
+        settlement_location = ''
+
+        qualifiers = {}
+        if (starts_at.year == ends_at.year and starts_at.month == 1
+            and starts_at.day == 1 and ends_at.month == 12 and ends_at.day == 31):
+            year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_point_in_time] = year
+        else:
+            start_year = f"+{starts_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_starts_at] = start_year
+            end_year = f"+{ends_at.year}-00-00T00:00:00Z/9"
+            qualifiers[p_ends_at] = end_year
+
+        local_references = None
+        if source == 'AHP':
+            local_references= {}
+            local_references[p_stated_in] = q_ahp
+
+        statement = create_statement_data(
+                            p_coordinate,
+                            settlement_location,
+                            references,
+                            qualifiers,
+                            add_ref_dict=local_references,
+                            if_exists="APPEND",
+                        )
+        if statement:
+            data.append(statement)
+
 
     wd_item = wbi_core.ItemEngine(new_item=True, data=data)
     wd_item.set_label(label_en, lang='en')
@@ -449,83 +590,6 @@ for result in results:
 
 # !!! uzupełnianie description - miejscowości na razie bez opisów !!!
 
-# print('Uzupełnianie description')
-# for result in results:
-#     settlement_id = int(result[0])
-#     settlement_qid = q_items[settlement_id]
-#     adm_unit_type = result[2]
-#     adm_unit_type_purl = f'http://purl.org/ontohgis#administrative_type_{adm_unit_type}'
-#     unit_type_qid = purl[adm_unit_type_purl]
-
-#     wb_unit_type = wbi_core.ItemEngine(item_id=unit_type_qid)
-#     unit_label_pl = wb_unit_type.get_label('pl')
-#     # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
-#     pos = unit_label_pl.find('(')
-#     if pos != -1:
-#         unit_label_pl = unit_label_pl[:pos].strip()
-#     unit_label_en = wb_unit_type.get_label('en')
-#     pos = unit_label_en.find('(')
-#     if pos != -1:
-#         unit_label_en = unit_label_en[:pos].strip()
-
-#     parent_unit_label_pl = parent_unit_label_en = ''
-#     if unit_qid != 'TEST' and has_statement(unit_qid, p_part_of):
-#         value = get_claim_value(unit_qid, p_part_of)
-#         if value:
-#             wb_parent_unit = wbi_core.ItemEngine(item_id=value[0])
-#             parent_unit_label_pl = wb_parent_unit.get_label('pl')
-#             # tylko nazwa jednostki (bez nazwy systemu w nawiasach)
-#             pos = parent_unit_label_pl.find('(')
-#             if pos != -1:
-#                 parent_unit_label_pl = parent_unit_label_pl[:pos].strip()
-
-#             parent_unit_label_en = wb_parent_unit.get_label('en')
-#             pos = parent_unit_label_en.find('(')
-#             if pos != -1:
-#                 parent_unit_label_en = parent_unit_label_en[:pos].strip()
-
-#     adm_sys_label_pl = adm_sys_label_en = ''
-#     if has_statement(unit_type_qid, p_belongs_adm_sys):
-#         value = get_claim_value(unit_type_qid, p_belongs_adm_sys)
-#         if value:
-#             # zakładamy, że typ należy do 1 systemu admninistracyjnego
-#             wb_adm_sys = wbi_core.ItemEngine(item_id=value[0])
-#             adm_sys_label_pl = wb_adm_sys.get_label('pl')
-#             adm_sys_label_en = wb_adm_sys.get_label('en')
-
-#     if unit_qid != 'TEST':
-#         wb_item = wbi_core.ItemEngine(item_id=unit_qid)
-#         old_pl = wb_item.get_description('pl')
-#         old_en = wb_item.get_description('en')
-
-#     is_change = False
-
-#     if unit_qid != 'TEST':
-#         if parent_unit_label_pl and parent_unit_label_en:
-#             new_pl = f"{unit_label_pl} w {parent_unit_label_pl} w {adm_sys_label_pl}"
-#             new_en = f"{unit_label_en} in {parent_unit_label_en} in {adm_sys_label_en}"
-#             if old_pl != new_pl:
-#                 wb_item.set_description(new_pl, 'pl')
-#                 is_change = True
-#             if old_en != new_en:
-#                 wb_item.set_description(new_en, 'en')
-#                 is_change = True
-#         else:
-#             new_pl = f"{unit_label_pl} w {adm_sys_label_pl}"
-#             new_en = f"{unit_label_en} in {adm_sys_label_en}"
-#             if old_pl != new_pl:
-#                 wb_item.set_description(new_pl, 'pl')
-#                 is_change = True
-#             if old_en != new_en:
-#                 wb_item.set_description(new_en, 'en')
-#                 is_change = True
-
-#     if is_change:
-#         if WIKIBASE_WRITE:
-#             wb_item.write(login_instance, entity_type='item')
-#             print(f"Dodano opis: {new_pl} / {new_en}")
-#         else:
-#             print(f"Przygotowano dodanie opisu: {new_pl} / {new_en}")
 
 # zamykanie połączenia z DB
 conn.close()
