@@ -33,7 +33,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # --- klasy ---
 class BasicProp:
@@ -155,6 +155,8 @@ class WDHSpreadsheet:
             "Value",
             "Qualifier",
             "Qualifier_value",
+            "Reference_property",
+            "Reference_value"
         ]
         res, inf = self.test_columns(self.item_statement_columns, i_statements_expected)
         if not res:
@@ -342,6 +344,8 @@ class WDHSpreadsheet:
                     "EndsAt",
                     "Instance of",
                     "Purl identifier",
+                    "Reference_property",
+                    "Reference_value"
                 ]
                 for col in extend_cols:
                     key = col.lower()
@@ -374,16 +378,17 @@ class WDHSpreadsheet:
 
         return i_list
 
+
     def get_item_statement_list(self) -> list:
         """zwraca listę obiektów deklaracji do dodania do elementów"""
 
         s_list = []
         for row in self.i_statements.iter_rows(2, self.i_statements.max_row):
-            basic_cols = ["Label_en", "P", "Value", "Qualifier", "Qualifier_value"]
+            basic_cols = ["Label_en", "P", "Value", "Qualifier", "Qualifier_value",
+                          "Reference_property", "Reference_value"]
 
-            label_en = (
-                statement_property
-            ) = statement_value = qualifier = qualifier_value = ""
+            label_en = statement_property = statement_value = qualifier = qualifier_value = ""
+            reference_property = reference_value = ""
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.item_statement_columns[col]].value
@@ -406,6 +411,12 @@ class WDHSpreadsheet:
                         qualifier_value = str(qualifier_value)
                     # jeżeli to multilingual text to weryfikacja cudzysłowów
                     qualifier_value = monolingual_text_fix(qualifier_value)
+                elif key == "reference_property":
+                    reference_property = col_value
+                elif key == "reference_value":
+                    reference_value = col_value
+                    if not isinstance(reference_value, str):
+                        reference_value = str(reference_value)
 
             # tylko jeżeli etykieta w języku angielskim, właściwość i wartość są wypełnione
             # dane deklaracji są dodawane do listy
@@ -416,20 +427,25 @@ class WDHSpreadsheet:
                 s_item.statement_value = statement_value
                 if qualifier and qualifier_value:
                     s_item.qualifiers[qualifier] = qualifier_value
+                if reference_property and reference_property != 'NONE' and reference_value:
+                    s_item.references[reference_property] = reference_value
                 s_item.sheet_name = self.sheets[3]
 
                 # jeżeli są globalne referencje
                 if s_item.sheet_name in GLOBAL_REFERENCE:
-                    g_ref_property, g_ref_value = GLOBAL_REFERENCE[s_item.sheet_name]
-                    s_item.additional_references[g_ref_property] = g_ref_value
+                    if reference_property == "":
+                        g_ref_property, g_ref_value = GLOBAL_REFERENCE[s_item.sheet_name]
+                        s_item.additional_references[g_ref_property] = g_ref_value
 
                 s_list.append(s_item)
             # jeżeli nie ma wartości etykiety, właściwości i wartości deklaracji
             # a są dane kwalifikatora to  dodaje kwalifikator do ostatnio dodanej
-            # pozycji z listy
+            # pozycji z listy, podobnie dla referencji (tzw. lokalnych)
             else:
                 if qualifier and qualifier_value:
                     s_list[-1].qualifiers[qualifier] = qualifier_value
+                if reference_property and reference_property != 'NONE' and reference_value:
+                    s_list[-1].references[reference_property] = reference_value
 
         return s_list
 
@@ -641,31 +657,31 @@ class WDHStatementProperty:
         else:
             self._statement_value = ""
 
-    @property
-    def reference_property(self):
-        """get reference_property"""
-        return self._reference_property
+    # @property
+    # def reference_property(self):
+    #     """get reference_property"""
+    #     return self._reference_property
 
-    @reference_property.setter
-    def reference_property(self, value: str):
-        """set reference_property"""
-        if value:
-            self._reference_property = value.strip()
-        else:
-            self._reference_property = ""
+    # @reference_property.setter
+    # def reference_property(self, value: str):
+    #     """set reference_property"""
+    #     if value:
+    #         self._reference_property = value.strip()
+    #     else:
+    #         self._reference_property = ""
 
-    @property
-    def reference_value(self):
-        """gettet: reference_value"""
-        return self._reference_value
+    # @property
+    # def reference_value(self):
+    #     """gettet: reference_value"""
+    #     return self._reference_value
 
-    @reference_value.setter
-    def reference_value(self, value: str):
-        """setter: reference_value"""
-        if value:
-            self._reference_value = value.strip()
-        else:
-            self._reference_property = ""
+    # @reference_value.setter
+    # def reference_value(self, value: str):
+    #     """setter: reference_value"""
+    #     if value:
+    #         self._reference_value = value.strip()
+    #     else:
+    #         self._reference_property = ""
 
     def write_to_wikibase(self):
         """zapis deklaracji w instancji wikibase"""
@@ -1123,6 +1139,10 @@ class WDHItem:
                     wd_statement.write(login_instance, entity_type="item")
 
                 #print(mode + new_id + f" ({self.label_en})")
+                if item_is_changed:
+                    print(f"ZAKTUALIZOWANO element: {new_id} ({self.label_en}/{self.label_pl})")
+                else:
+                    print(f"DODANO element: {new_id} ({self.label_en}/{self.label_pl})")
             except (MWApiError, KeyError) as error_add_element:
                 print(f"ERROR: {self.label_en} ({error_add_element.error_msg})")
         # jeżeli nie nowy element i nie ma zmian do zapisu
@@ -1143,6 +1163,8 @@ class WDHStatementItem:
         statement_value: str = "",
         qualifier: str = "",
         qualifier_value: str = "",
+        reference_property: str = "",
+        reference_value: str = "",
     ):
         self.label_en = label_en
         self.statement_property = statement_property
@@ -1152,6 +1174,9 @@ class WDHStatementItem:
             self.qualifiers[qualifier.strip()] = qualifier_value.strip()
         self.sheet_name = ""
         self.references = {}
+        # jeżeli identyfikator/nazwa właściwości referencji = NONE to znaczy że nie ma referencji lokalnej
+        if reference_property and reference_property!= 'NONE' and reference_value:
+            self.references[reference_property.strip()] = reference_value.strip()
         self.additional_references = {}
 
     @property
@@ -1486,8 +1511,8 @@ class WDHStatementItem:
             self.qualifiers = tmp
 
             # jeżeli właściwość deklaracji jest zewnętrznym identyfiktorem to nie dodajemy referencji
-            # z globalnych referencji
-            if prop_type == "external-id":
+            # z globalnych referencji (o ile są)
+            if prop_type == "external-id" and self.additional_references:
                 self.additional_references = None
                 print(
                     f"Pominięto referencję globalną dla deklaracji: {p_id}->{prop_id} typu external-id."
@@ -1499,9 +1524,11 @@ class WDHStatementItem:
                     f"SKIP: element: '{p_id}' ({self.label_en}) już posiada deklarację: '{prop_id}' o wartości: {p_value}."
                 )
 
-                # weryfikacja czy deklaracja ma referencje z referencji globalnych
+                # weryfikacja czy deklaracja ma referencje z referencji globalnych i ewentualne uzupełnienie
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
                 update_references(login_instance, wd_item, p_id, prop_id, p_value, self.additional_references)
+                # weryfikacja czy deklaracja ma referencję lokalną i ewentualne uzupełnienie
+                update_references(login_instance, wd_item, p_id, prop_id, p_value, self.references)
 
                 # weryfikacja czy deklaracja ma wszystkie kwalifikatory, a jeżeli nie to
                 # uzupełnianie kwalifikatorów
@@ -1527,6 +1554,7 @@ class WDHStatementItem:
                                         f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
                                     )
 
+            # jeżeli nie ma deklaracji to jest dodawana nowa
             else:
                 st_data = create_statement_data(
                     prop_id,
@@ -1547,9 +1575,9 @@ class WDHStatementItem:
                         print(
                             f"STATEMENT ADDED, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value}"
                         )
-                    except (MWApiError, KeyError, ValueError):
+                    except (MWApiError, KeyError, ValueError) as err_wiki:
                         print(
-                            f"ERROR, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value}"
+                            f"ERROR, {p_id} ({self.label_en}): {prop_id} -> {self.statement_value} {err_wiki.error_msg}"
                         )
                 else:
                     print(
@@ -1575,7 +1603,7 @@ def add_property(p_dane: WDHProperty) -> tuple:
             f"Property: '{p_dane.label_en}' already exists: {search_id}, update mode."
         )
         wd_item = wbi_core.ItemEngine(item_id=search_id)
-        mode = "updated: "
+        mode = "ZAKTUALIZOWANO właściwość:"
         description_en = wd_item.get_description("en")
         if description_en == p_dane.description_en:
             print(
@@ -1592,9 +1620,9 @@ def add_property(p_dane: WDHProperty) -> tuple:
         else:
             wd_item.set_description(p_dane.description_pl, lang="pl")
     else:
-        print("New property")
+        #print("New property")
         wd_item = wbi_core.ItemEngine(new_item=True)
-        mode = "added: "
+        mode = "DODANO właściwość:"
         # etykiety i opisy
         wd_item.set_label(p_dane.label_en, lang="en")
         wd_item.set_description(p_dane.description_en, lang="en")
@@ -2864,7 +2892,7 @@ if __name__ == "__main__":
     for index, wb_property in enumerate(dane, start=1):
         print(f"PROPERTY ({index}/{dane_count}): {wb_property.label_en}")
         result, info = add_property(wb_property)
-        print(f"{result} Property {info}")
+        print(f"{info}, {result}")
 
     # dodatkowe deklaracje dla właściwości
     dane = plik_xlsx.get_statement_list()
