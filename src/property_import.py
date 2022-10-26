@@ -33,7 +33,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --- klasy ---
 class BasicProp:
@@ -336,7 +336,7 @@ class WDHSpreadsheet:
                     i_item.label_pl = col_value
 
             # tylko jeżeli etykieta i opis w języku angielskim lub etykieta polska
-            # są wypełnione dane właściwości są dodawane do listy
+            # są wypełnione dane elementu są dodawane do listy
             if (i_item.label_en and i_item.description_en) or (i_item.label_pl):
                 extend_cols = [
                     "Wiki_id",
@@ -902,7 +902,7 @@ class WDHItem:
                 f"Item: '{self.label_en}' already exists: {search_id}, update mode enabled."
             )
             wd_item = wbi_core.ItemEngine(item_id=search_id)
-            mode = "updated: "
+            mode = "ZAKTUALIZOWANO: "
             # dla istniejących już elementów weryfikacja czy zmieniony opis
             if self.description_en:
                 description_en = wd_item.get_description("en")
@@ -927,7 +927,7 @@ class WDHItem:
         # jeżeli nie znaleziono w wikibase
         else:
             wd_item = wbi_core.ItemEngine(new_item=True)
-            mode = "added: "
+            mode = "DODANO: "
             # tylko dla nowych jest ustawiania en i pl etykieta oraz opisy
             wd_item.set_label(self.label_en, lang="en")
             if self.description_en:
@@ -994,9 +994,10 @@ class WDHItem:
                             qualifiers=None,
                         )
                         item_is_changed = True
-                        print(
-                            f"DODANO deklarację: 'starts at' ({start_qid}) o wartości: {self.starts_at}"
-                        )
+                        if mode == 'ZAKTUALIZOWANO: ':
+                            print(
+                                f"DODANO deklarację: 'starts at' ({start_qid}) o wartości: {self.starts_at}"
+                            )
 
             else:
                 print(
@@ -1030,9 +1031,10 @@ class WDHItem:
                             qualifiers=None,
                         )
                         item_is_changed = True
-                        print(
-                            f"DODANO deklarację: 'ends at' ({end_qid}) o wartości: {self.ends_at}"
-                        )
+                        if mode == 'ZAKTUALIZOWANO: ':
+                            print(
+                                f"DODANO deklarację: 'ends at' ({end_qid}) o wartości: {self.ends_at}"
+                            )
 
             else:
                 print(
@@ -1063,9 +1065,10 @@ class WDHItem:
                             qualifiers=None,
                         )
                         item_is_changed = True
-                        print(
-                            f"DODANO deklarację: 'instance of' ({instance_qid}) o wartości: {instance_value}"
-                        )
+                        if mode == 'ZAKTUALIZOWANO: ':
+                            print(
+                                f"DODANO deklarację: 'instance of' ({instance_qid}) o wartości: {instance_value}"
+                            )
                 else:
                     print(
                         "ERROR: nie znaleziono właściwości 'instance of' w instancji Wkibase."
@@ -1093,9 +1096,10 @@ class WDHItem:
                         value=self.purl_identifier, prop_nr=purl_qid, references=None
                     )
                     item_is_changed = True
-                    print(
-                        f"DODANO deklarację: 'purl identifier' ({purl_qid}) o wartości: {self.purl_identifier}"
-                    )
+                    if mode == 'ZAKTUALIZOWANO: ':
+                        print(
+                            f"DODANO deklarację: 'purl identifier' ({purl_qid}) o wartości: {self.purl_identifier}"
+                        )
 
             else:
                 print(
@@ -1138,8 +1142,7 @@ class WDHItem:
                     )
                     wd_statement.write(login_instance, entity_type="item")
 
-                #print(mode + new_id + f" ({self.label_en})")
-                if item_is_changed:
+                if mode == 'ZAKTUALIZOWANO: ':
                     print(f"ZAKTUALIZOWANO element: {new_id} ({self.label_en}/{self.label_pl})")
                 else:
                     print(f"DODANO element: {new_id} ({self.label_en}/{self.label_pl})")
@@ -2911,27 +2914,29 @@ if __name__ == "__main__":
     unique_error = False
     for wb_item in dane:
         # angielski
-        lbl_desc_en = wb_item.label_en + "|" + wb_item.description_en
-        if lbl_desc_en in unique_item_en:
-            print("ERROR: etykieta i opis w języku ang powtarzają się: ", lbl_desc_en)
-            unique_error = True
-        else:
-            unique_item_en.append(lbl_desc_en)
+        if wb_item.label_en or wb_item.description_en:
+            lbl_desc_en = wb_item.label_en + "|" + wb_item.description_en
+            if lbl_desc_en in unique_item_en:
+                print("ERROR: etykieta i opis w języku ang powtarzają się: ", lbl_desc_en)
+                unique_error = True
+            else:
+                unique_item_en.append(lbl_desc_en)
 
         # polski
-        lbl_desc_pl = wb_item.label_pl + "|" + wb_item.description_pl
-        if lbl_desc_pl in unique_item_pl:
-            print("ERROR: etykieta i opis w języku pl powtarzają się: ", lbl_desc_pl)
-            unique_error = True
-        else:
-            unique_item_pl.append(lbl_desc_pl)
+        if wb_item.label_pl or wb_item.description_pl:
+            lbl_desc_pl = wb_item.label_pl + "|" + wb_item.description_pl
+            if lbl_desc_pl in unique_item_pl:
+                print("ERROR: etykieta i opis w języku pl powtarzają się: ", lbl_desc_pl)
+                unique_error = True
+            else:
+                unique_item_pl.append(lbl_desc_pl)
 
     if unique_error:
         sys.exit(1)
 
     dane_count = len(dane)
     for index, wb_item in enumerate(dane, start=1):
-        print(f"ITEM ({index}/{dane_count}): {wb_item.label_en}")
+        print(f"ITEM ({index}/{dane_count}): {wb_item.label_en}/{wb_item.label_pl}")
         wb_item.write_to_wikibase()
 
     # dodatkowe deklaracje dla elementów strukturalnych/definicyjnych
