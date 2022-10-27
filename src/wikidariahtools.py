@@ -459,9 +459,11 @@ def statement_value_fix(s_value, s_type) -> str:
     return s_value
 
 
-def element_search_adv(search_string: str, lang: str, parameters: list) -> tuple:
-    """ wyszukiwanie zaawansowane elementów (item): tekst
-        i listy z parami właściwość-wartość np.
+def element_search_adv(search_string: str, lang: str, parameters: list, description: str = '') -> tuple:
+    """ wyszukiwanie zaawansowane elementów (item):
+        tekst do wyszukania (w etykiecie, opisie, aliasach)
+        język
+        i lista z parami właściwość-wartość np.
         'województwo poznańskie', [('P202','test')]
     """
 
@@ -482,6 +484,8 @@ def element_search_adv(search_string: str, lang: str, parameters: list) -> tuple
     for qid in results:
         wb_item = wbi_core.ItemEngine(item_id=qid)
         label = wb_item.get_label(lang)
+        if description:
+            item_description = wb_item.get_description(lang)
         if label == search_string:
             for par in parameters:
                 property_nr, property_value = par
@@ -491,7 +495,37 @@ def element_search_adv(search_string: str, lang: str, parameters: list) -> tuple
                         statement_value = statement.get_value()
                         statement_type = get_property_type(statement_property)
                         statement_value = statement_value_fix(statement_value, statement_type)
-                        if statement_value == property_value:
+                        if (statement_value == property_value and
+                            (description == '' or item_description == description)):
                             return True, qid
 
     return False, "NOT FOUND"
+
+
+def get_coord(value: str) -> str:
+    """ funkcja przyjmuje współrzędne w formie stopni, minut i sekund (długość i szerokość
+        geograficzna) np. # 56°30'00" N, 23°30'00" E
+        a zwraca współrzędne w formie oczekiwanej przez wikibase (stopnie
+        w formie liczby zmiennoprzecinkowej np.: 56.5, 23.5.
+    """
+    if value.strip() == '':
+        return ''
+
+    tmp_tab = value.split(',')
+    char = "'"
+    latitude = tmp_tab[0].split(char)[0].replace('°','.')
+    stopnie = float(latitude.split('.')[0])
+    minuty = float(latitude.split('.')[1])/60.0
+    latitude = str(stopnie + minuty)
+    if 'S' in tmp_tab[0]:
+        latitude = '-' + latitude
+
+    tmp_tab[1] = tmp_tab[1].strip()
+    longitude = tmp_tab[1].split(char)[0].replace('°','.')
+    stopnie = float(longitude.split('.')[0])
+    minuty = float(longitude.split('.')[1])/60.0
+    longitude = str(stopnie + minuty)
+    if 'W' in tmp_tab[1]:
+        longitude = '-' + longitude
+
+    return f'{latitude},{longitude}'
