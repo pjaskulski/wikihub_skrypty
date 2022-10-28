@@ -476,7 +476,7 @@ def element_search_adv(search_string: str, lang: str, parameters: list, descript
         search_string = search_string[:241]
 
     results = search_entities(search_string, language=lang,
-                              search_type='item', max_results=50)
+                              search_type='item', max_results=10)
 
     if len(results) == 0:
         return False, "NOT FOUND"
@@ -514,16 +514,24 @@ def get_coord(value: str) -> str:
     tmp_tab = value.split(',')
     char = "'"
     latitude = tmp_tab[0].split(char)[0].replace('°','.')
+    latitude_sekundy = tmp_tab[0].split(char)[1].replace('"','').replace('N','').replace('S','').strip()
+    sekundy = float(latitude_sekundy)
+    if sekundy > 0:
+        sekundy = sekundy/60.0
     stopnie = float(latitude.split('.')[0])
-    minuty = float(latitude.split('.')[1])/60.0
+    minuty = (float(latitude.split('.')[1]) + sekundy)/60.0
     latitude = str(stopnie + minuty)
     if 'S' in tmp_tab[0]:
         latitude = '-' + latitude
 
     tmp_tab[1] = tmp_tab[1].strip()
     longitude = tmp_tab[1].split(char)[0].replace('°','.')
+    longitude_sekundy = tmp_tab[1].split(char)[1].replace('"','').replace('E','').replace('W','').strip()
+    sekundy = float(longitude_sekundy)
+    if sekundy > 0:
+        sekundy = sekundy/60.0
     stopnie = float(longitude.split('.')[0])
-    minuty = float(longitude.split('.')[1])/60.0
+    minuty = (float(longitude.split('.')[1]) + sekundy)/60.0
     longitude = str(stopnie + minuty)
     if 'W' in tmp_tab[1]:
         longitude = '-' + longitude
