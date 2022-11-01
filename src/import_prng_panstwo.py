@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, element_search_adv
+from wikidariahtools import find_name_qid, element_search_adv, get_coord
 from property_import import create_statement_data
 
 
@@ -78,32 +78,6 @@ q_country = 'Q86557'
 # wspólna referencja dla wszystkich deklaracji z PRNG
 references = {}
 references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
-
-
-def get_coord(value: str) -> str:
-    """ funkcja przyjmuje współrzędne w formie stopni, minut i sekund (długość i szerokość
-        geograficzna) np. # 56°30'00" N, 23°30'00" E
-        a zwraca współrzędne w formie oczekiwanej przez wikibase (stopnie
-        w formie liczby zmienno przecinkowej: 56.5, 23.5.
-    """
-    if value.strip() == '':
-        return ''
-
-    tmp_tab = value.split(',')
-    char = "'"
-    latitude = tmp_tab[0].split(char)[0].replace('°','.')
-    stopnie = float(latitude.split('.')[0])
-    minuty = float(latitude.split('.')[1])/60.0
-    latitude = str(stopnie + minuty)
-
-    tmp_tab[1] = tmp_tab[1].strip()
-    longitude = tmp_tab[1].split(char)[0].replace('°','.')
-    stopnie = float(longitude.split('.')[0])
-    minuty = float(longitude.split('.')[1])/60.0
-    longitude = str(stopnie + minuty)
-
-    return f'{latitude},{longitude}'
-
 
 
 # ----------------------------------- MAIN -------------------------------------

@@ -54,7 +54,7 @@ if not ok:
     sys.exit(1)
 
 # czy zapsywać do wikibase, czy tylko test
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 # --------------------------------- MAIN ---------------------------------------
@@ -144,9 +144,9 @@ if __name__ == "__main__":
             # jeżeli są dane do uzupełnienia
             if data:
                 licznik += 1
+                wb_update = wbi_core.ItemEngine(item_id=item, data=data, debug=False)
                 if WIKIBASE_WRITE:
                     try:
-                        wb_update = wbi_core.ItemEngine(item_id=item, data=data, debug=False)
                         wb_update.write(login_instance, entity_type='item')
                         print(f'{item} ({label_pl}) - uzupełniono deklaracje {p_located_in_country}/{p_located_in_string}')
                     except (MWApiError, KeyError) as err_update:
