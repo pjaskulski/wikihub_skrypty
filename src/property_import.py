@@ -1994,7 +1994,6 @@ def create_statement(
                 if len(tmp) > 2:
                     precision = float(tmp[2])
                 else:
-                    precision = 0.016666666666667
                     precision = 0.001666666666667
             except ValueError:
                 print(f"ERROR: invalid value for globe-coordinate type: {value}.")

@@ -1,12 +1,12 @@
 """ funkcje pomocniczne do obsługi skryptów wikibase """
 
 import re
+import sys
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikibaseintegrator.wbi_functions import search_entities
 from wikibaseintegrator.wbi_functions import execute_sparql_query
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
-
 
 def element_exists(element_id: str) -> bool:
     """
@@ -354,8 +354,12 @@ def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
         output.append(result["item"]["value"])
 
     # wynik to lista adresów http://prunus-208.man.poznan.pl/entity/Q357
+    #                     lub https://prunus-208.man.poznan.pl/entity/Q95773
     if len(output) == 1:
-        search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
+        if 'https' in output[0].strip():
+            search_result = output[0].strip().replace('https://prunus-208.man.poznan.pl/entity/', '')
+        else:
+            search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
         return True, search_result
 
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
@@ -405,6 +409,14 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
 
 def get_property_type(p_id: str) -> str:
     """Funkcja zwraca typ właściwości na podstawie jej identyfikatora"""
+    # weryfikacja czy typ jest w słowniku typów właściwości, jeżeli jest już taki słownik 
+    if hasattr(get_property_type, "PROPERTY_TYPES"):
+        if p_id in get_property_type.PROPERTY_TYPES:
+            return get_property_type.PROPERTY_TYPES[p_id]
+    else:
+        # zainicjowanie słownika typów właściwości
+        get_property_type.PROPERTY_TYPES = {}
+
     params = {"action": "wbgetentities", "ids": p_id, "props": "datatype"}
 
     search_results = mediawiki_api_call_helper(
@@ -417,6 +429,8 @@ def get_property_type(p_id: str) -> str:
     data_type = None
     if search_results:
         data_type = search_results["entities"][p_id]["datatype"]
+        # uzupełnienie słownik typów właściwości
+        get_property_type.PROPERTY_TYPES[p_id] = data_type
 
     return data_type
 
@@ -537,3 +551,42 @@ def get_coord(value: str) -> str:
         longitude = '-' + longitude
 
     return f'{latitude},{longitude}'
+
+
+def get_properties(prop_list: list) -> dict:
+    """ pobiera identyfikatory właściwości z wikibase, zwraca słownik """
+    result = {}
+    for prop_name in prop_list:
+        ok, p_qid = find_name_qid(prop_name, 'property', strict=True)
+        if not ok:
+            print(f"ERROR: brak właściwości '{prop_name}' w instancji Wikibase")
+            sys.exit(1)
+        else:
+            result[prop_name] = p_qid
+
+    return result
+
+
+def get_elements(item_list: list) -> dict:
+    """ pobiera identyfikatory elementów definicyjnych z wikibase, zwraca słownik """
+    result = {}
+    for item_name in item_list:
+        ok, q_qid = find_name_qid(item_name, 'item', strict=True)
+        if not ok:
+            print(f"ERROR: brak elementu '{item_name}' w instancji Wikibase")
+            sys.exit(1)
+        else:
+            result[item_name] = q_qid
+
+    return result
+
+
+def read_qid_from_text(value: str) -> str:
+    """ szuka QID w przekazanym tekście """
+    result = ''
+    pattern = r'Item:Q\d{1,6}' # Item:Q79324
+    match = re.search(pattern, value)
+    if match:
+        result = match.group().split(':')[1]
+
+    return result
