@@ -1886,15 +1886,19 @@ def create_statement(
             # języka to przyjmujemy 'en'
             if snak_type != "value":
                 value = None
-            if value and value[2] == ":":
+            if value and (value[2] == ":" or value[3] == ":"):
+                if value[3] == ":":
+                    lang_code_len = 3
+                else:
+                    lang_code_len = 2
                 # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
                 if "”" in value:
                     value = value.replace("”", '"')
-                prop_lang = value[:2]  # zakładamy na razie 2 znakowe kody jęzków
+                prop_lang = value[:lang_code_len]  #
                 if value.startswith(f'{prop_lang}:"'):
-                    value = value[4:-1]  # bez cudzysłowów
+                    value = value[len(prop_lang)+2:-1]  # bez cudzysłowów
                 elif value.startswith(f'{prop_lang}: "'):
-                    value = value[5:-1]  # bez cudzysłowów
+                    value = value[len(prop_lang)+3:-1]  # bez cudzysłowów
                 else:
                     print(
                         f"ERROR: błędna zawartość dla wartości typu monoligualtext ({prop})."

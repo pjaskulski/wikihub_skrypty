@@ -1,6 +1,8 @@
 """ import miejscowosci z pliku miejscowosciU.xlsx z danymi z PRG"""
 import os
 import time
+import sys
+from datetime import datetime
 from pathlib import Path
 import openpyxl
 from dotenv import load_dotenv
@@ -30,52 +32,54 @@ start_time = time.time()
 
 WIKIBASE_WRITE = False
 
-# standardowe właściwości
-properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                            'id SDI', 'part of', 'has part or parts', 'TERYT', 'settlement type',
-                            'coordinate location', 'located in the administrative territorial entity',
-                            'name status', 'inflectional ending', 'adjective form'
-                            ])
-
-# elementy definicyjne
-elements = get_elements([ 'official name', 'human settlement',
-    'part of a colony', 'part of a city', 'part of a settlement', 'part of a village',
-    'colony', 'colony of a colony', 'colony of a settlement', 'colony of a village',
-    'city/town', 'settlement', 'settlement of a colony', 'forest settlement',
-    'forest settlement of a village', 'settlement of a settlement', 'settlement of a village',
-    'housing developments', 'housing estate of a village', 'hamlet', 'hamlet of a colony',
-    'hamlet of a settlement', 'hamlet of a village', 'tourist shelter', 'village'
-                         ])
-
-settlement_type_map = {}
-settlement_type_map['część kolonii'] = 'part of a colony'
-settlement_type_map['część miasta'] = 'part of a city'
-settlement_type_map['część osady'] = 'part of a settlement'
-settlement_type_map['część wsi'] = 'part of a village'
-settlement_type_map['kolonia'] = 'colony'
-settlement_type_map['kolonia kolonii'] = 'colony of a colony'
-settlement_type_map['kolonia osady'] = 'colony of a settlement'
-settlement_type_map['kolonia wsi'] = 'colony of a village'
-settlement_type_map['miasto'] = 'city/town'
-settlement_type_map['osada'] = 'settlement'
-settlement_type_map['osada kolonii'] = 'settlement of a colony'
-settlement_type_map['osada leśna'] = 'forest settlement'
-settlement_type_map['osada leśna wsi'] = 'forest settlement of a village'
-settlement_type_map['osada osady'] = 'settlement of a settlement'
-settlement_type_map['osada wsi'] = 'settlement of a village'
-settlement_type_map['osiedle'] = 'housing developments'
-settlement_type_map['osiedle wsi'] = 'housing estate of a village'
-settlement_type_map['przysiółek'] = 'hamlet'
-settlement_type_map['przysiółek kolonii'] = 'hamlet of a colony'
-settlement_type_map['przysiółek osady'] = 'hamlet of a settlement'
-settlement_type_map['przysiółek wsi'] = 'hamlet of a village'
-settlement_type_map['schronisko turystyczne'] = 'tourist shelter'
-settlement_type_map['wieś'] = 'village'
-
-
 # ----------------------------------- MAIN -------------------------------------
 
 if __name__ == '__main__':
+    # standardowe właściwości
+    print('Przygotowanie właściwości...')
+    properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
+                                'id SDI', 'part of', 'has part or parts', 'TERYT', 'settlement type',
+                                'coordinate location', 'located in the administrative territorial entity',
+                                'name status', 'inflectional ending', 'adjective form',
+                                'located in the administrative territorial entity'
+                                ])
+
+    # elementy definicyjne
+    print('Przygotowanie elementów definicyjnych...')
+    elements = get_elements([ 'official name', 'human settlement',
+        'part of a colony', 'part of a city', 'part of a settlement', 'part of a village',
+        'colony', 'colony of a colony', 'colony of a settlement', 'colony of a village',
+        'city/town', 'settlement', 'settlement of a colony', 'forest settlement',
+        'forest settlement of a village', 'settlement of a settlement', 'settlement of a village',
+        'housing developments', 'housing estate of a village', 'hamlet', 'hamlet of a colony',
+        'hamlet of a settlement', 'hamlet of a village', 'tourist shelter', 'village'
+                            ])
+
+    settlement_type_map = {}
+    settlement_type_map['część kolonii'] = 'part of a colony'
+    settlement_type_map['część miasta'] = 'part of a city'
+    settlement_type_map['część osady'] = 'part of a settlement'
+    settlement_type_map['część wsi'] = 'part of a village'
+    settlement_type_map['kolonia'] = 'colony'
+    settlement_type_map['kolonia kolonii'] = 'colony of a colony'
+    settlement_type_map['kolonia osady'] = 'colony of a settlement'
+    settlement_type_map['kolonia wsi'] = 'colony of a village'
+    settlement_type_map['miasto'] = 'city/town'
+    settlement_type_map['osada'] = 'settlement'
+    settlement_type_map['osada kolonii'] = 'settlement of a colony'
+    settlement_type_map['osada leśna'] = 'forest settlement'
+    settlement_type_map['osada leśna wsi'] = 'forest settlement of a village'
+    settlement_type_map['osada osady'] = 'settlement of a settlement'
+    settlement_type_map['osada wsi'] = 'settlement of a village'
+    settlement_type_map['osiedle'] = 'housing developments'
+    settlement_type_map['osiedle wsi'] = 'housing estate of a village'
+    settlement_type_map['przysiółek'] = 'hamlet'
+    settlement_type_map['przysiółek kolonii'] = 'hamlet of a colony'
+    settlement_type_map['przysiółek osady'] = 'hamlet of a settlement'
+    settlement_type_map['przysiółek wsi'] = 'hamlet of a village'
+    settlement_type_map['schronisko turystyczne'] = 'tourist shelter'
+    settlement_type_map['wieś'] = 'village'
+
 
     # wspólna referencja dla wszystkich deklaracji z PRG
     references = {}
@@ -83,7 +87,7 @@ if __name__ == '__main__':
     references[properties['retrieved']] = '2022-09-23'
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=28800)
+    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=3600)
 
     xlsx_input = '../data_prng/miejscowosciU.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -95,11 +99,10 @@ if __name__ == '__main__':
         col_names[column[0].value] = nr_col
         nr_col += 1
 
+    unique_item = {}
     parts = {}
+
     for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
-        # testowo tylko 100 wierszy
-        if index > 100:
-            break
         # wczytanie danych z xlsx
         nazwa = row[col_names['NAZWAGLOWN']].value
         if not nazwa:
@@ -113,17 +116,24 @@ if __name__ == '__main__':
         nazwy_dodat = row[col_names['NAZWYDODAT']].value
         nd_jezyk = row[col_names['ND_jezyk']].value
         nazwy_histo = row[col_names['NAZWYHISTO']].value
+        nazwa_miejsc = row[col_names['NAZWAMIEJS']].value
         rodzajobie = row[col_names['RODZAJOBIE']].value
         wgs84 = row[col_names['WGS84']].value
         identyfi_2 = row[col_names['IDENTYFI_2']].value
         gmina = row[col_names['GMINA']].value
         if gmina:
-            gmina = gmina.split('-')[0]
+            gmina = gmina.split('-gmina')[0]
         powiat = row[col_names['POWIAT']].value
         wojewodztw = row[col_names['WOJEWODZTW']].value
 
-        description_pl = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
-        description_en = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+        rodzaje_czesci_miejscowosci = ['część wsi', 'przysiółek osady', 'kolonia wsi',
+                                       'część miasta', 'część kolonii', 'przysiółek wsi']
+        if rodzajobie in rodzaje_czesci_miejscowosci:
+            description_pl = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+        else:
+            description_pl = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
 
         # przygotowanie struktur wikibase
         data = []
@@ -152,6 +162,7 @@ if __name__ == '__main__':
         if nazwy_obocz:
             tmp = nazwy_obocz.split(',')
             for tmp_item in tmp:
+                tmp_item = tmp_item.strip()
                 if 'pl' in aliasy:
                     aliasy['pl'].append(tmp_item)
                 else:
@@ -176,6 +187,7 @@ if __name__ == '__main__':
         if nazwy_histo:
             tmp = nazwy_histo.split(',')
             for tmp_item in tmp:
+                tmp_item = tmp_item.strip()
                 if 'pl' in aliasy:
                     aliasy['pl'].append(tmp_item)
                 else:
@@ -203,11 +215,30 @@ if __name__ == '__main__':
             if statement:
                 data.append(statement)
 
+        # IDENTYFI_2
+        if identyfi_2:
+            parameters = [(properties['TERYT'], identyfi_2)]
+            ok, gmina_qid = element_search_adv(gmina, 'en', parameters)
+            if ok:
+                statement = create_statement_data(properties['located in the administrative territorial entity'],
+                    gmina_qid, None, None, add_ref_dict=references)
+                if statement:
+                    data.append(statement)
+
+        label_desc = f"{label_en}|{description_en}"
+        if label_desc not in unique_item:
+            unique_item[label_desc] = index
+        else:
+            description_en = f'{description_en} [{coordinate}]'
+            description_pl = f'{description_pl} [{coordinate}]'
+            label_desc = f"{label_en}|{description_en}"
+            unique_item[label_desc] = index
+            print(f'{index}/{ws.max_row - 1}, {label_en}, rozszerzony opis: {description_en}')
+
         # etykiety, description, aliasy
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
         wb_item.set_label(label_en, lang='en')
         wb_item.set_label(label_pl, lang='pl')
-
 
         wb_item.set_description(description_en, 'en')
         wb_item.set_description(description_pl, 'pl')
@@ -228,6 +259,11 @@ if __name__ == '__main__':
                 if 'already has label' in message and err_code == 'modification-failed':
                     match_qid = read_qid_from_text(message)
                     print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
+                elif err_code == 'assertuserfailed':
+                    now = datetime.now()
+                    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+                    print(f'{date_time} ERROR: {wbdelreference_error.error_msg}')
+                    sys.exit(1)
                 else:
                     print(f'ERROR: {wbdelreference_error.error_msg}')
         else:
