@@ -301,23 +301,28 @@ if __name__ == '__main__':
                     wb_item.set_aliases(alias_item, alias_lang)
 
         if WIKIBASE_WRITE:
-            try:
-                new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                if new_id:
+            test = 1
+            while True:
+                try:
+                    new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
                     print(f'{index}/{max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
-            except MWApiError as wbdelreference_error:
-                err_code = wbdelreference_error.error_msg['error']['code']
-                message = wbdelreference_error.error_msg['error']['info']
-                if 'already has label' in message and err_code == 'modification-failed':
-                    match_qid = read_qid_from_text(message)
-                    print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
-                elif err_code == 'assertuserfailed':
-                    now = datetime.now()
-                    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-                    print(f'{date_time} ERROR: {wbdelreference_error.error_msg}')
-                    sys.exit(1)
-                else:
-                    print(f'ERROR: {wbdelreference_error.error_msg}')
+                    break
+                except MWApiError as wbdelreference_error:
+                    err_code = wbdelreference_error.error_msg['error']['code']
+                    message = wbdelreference_error.error_msg['error']['info']
+                    print(f'ERROR: {err_code}, {message}')
+                    if 'already has label' in message and err_code == 'modification-failed':
+                        match_qid = read_qid_from_text(message)
+                        print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
+                        break
+                    else:
+                        if err_code in ['assertuserfailed', 'badtoken']:
+                            if test == 1:
+                                print('Generate edit credentials...')
+                                login_instance.generate_edit_credentials()
+                                test += 1
+                                continue
+                        sys.exit(1)
         else:
             # wyszukiwanie po etykiecie, właściwości instance of oraz po opisie
             parameters = [(properties['instance of'], elements['human settlement'])]
