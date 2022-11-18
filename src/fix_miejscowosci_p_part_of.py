@@ -34,6 +34,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
+# czy zapis do wikibase czy tylko test
 WIKIBASE_WRITE = True
 
 
