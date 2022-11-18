@@ -1,4 +1,4 @@
-""" import miejscowosci z pliku miejscowosciU.xlsx z danymi z PRG"""
+""" import miejscowosci z pliku miejscowosciU.xlsx z danymi z PRNG"""
 import os
 import time
 import sys
@@ -24,8 +24,11 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
-BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+# OAuth
+WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
 # pomiar czasu wykonania
 start_time = time.time()
@@ -87,12 +90,18 @@ if __name__ == '__main__':
     references[properties['retrieved']] = '2022-09-23'
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=3600)
+    if WIKIBASE_WRITE:
+        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                         token_renew_period=14400)
 
     xlsx_input = '../data_prng/miejscowosciU.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["miejscowosciU"]
 
+    # nazy kolumn w xlsx
     col_names = {}
     nr_col = 0
     for column in ws.iter_cols(1, ws.max_column):
@@ -102,7 +111,10 @@ if __name__ == '__main__':
     unique_item = {}
     parts = {}
 
-    for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
+    index = 0
+    max_row = ws.max_row
+    for row in ws.iter_rows(2, max_row):
+        index += 1
         # wczytanie danych z xlsx
         nazwa = row[col_names['NAZWAGLOWN']].value
         if not nazwa:
@@ -125,6 +137,8 @@ if __name__ == '__main__':
             gmina = gmina.split('-gmina')[0]
         powiat = row[col_names['POWIAT']].value
         wojewodztw = row[col_names['WOJEWODZTW']].value
+        row_prng = row[col_names['IDENTYFIKA']].value
+        row_simc = row[col_names['IDENTYFI_1']].value
 
         rodzaje_czesci_miejscowosci = ['część wsi', 'przysiółek osady', 'kolonia wsi',
                                        'część miasta', 'część kolonii', 'przysiółek wsi']
@@ -225,6 +239,20 @@ if __name__ == '__main__':
                 if statement:
                     data.append(statement)
 
+        # identyfikator PRNG
+        if row_prng:
+            statement = create_statement_data(properties['prng id'], row_prng,
+                None, None, add_ref_dict=references)
+            if statement:
+                data.append(statement)
+
+        # identyfikator SIMC
+        if row_simc:
+            statement = create_statement_data(properties['SIMC place ID'], row_simc,
+                None, None, add_ref_dict=references)
+            if statement:
+                data.append(statement)
+
         label_desc = f"{label_en}|{description_en}"
         if label_desc not in unique_item:
             unique_item[label_desc] = index
@@ -233,7 +261,6 @@ if __name__ == '__main__':
             description_pl = f'{description_pl} [{coordinate}]'
             label_desc = f"{label_en}|{description_en}"
             unique_item[label_desc] = index
-            print(f'{index}/{ws.max_row - 1}, {label_en}, rozszerzony opis: {description_en}')
 
         # etykiety, description, aliasy
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
@@ -252,13 +279,13 @@ if __name__ == '__main__':
             try:
                 new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
                 if new_id:
-                    print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                    print(f'{index}/{max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
             except MWApiError as wbdelreference_error:
                 err_code = wbdelreference_error.error_msg['error']['code']
                 message = wbdelreference_error.error_msg['error']['info']
                 if 'already has label' in message and err_code == 'modification-failed':
                     match_qid = read_qid_from_text(message)
-                    print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
+                    print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
                 elif err_code == 'assertuserfailed':
                     now = datetime.now()
                     date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
@@ -272,9 +299,9 @@ if __name__ == '__main__':
             ok, item_id = element_search_adv(label_en, 'en', parameters, description_en)
             if not ok:
                 new_id = 'TEST'
-                print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"{index}/{max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
             else:
-                print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
+                print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
 
     end_time = time.time()
     elapsed_time = end_time - start_time
