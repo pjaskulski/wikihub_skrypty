@@ -2,11 +2,16 @@
 
 import re
 import sys
+import sqlite3
+from sqlite3 import Error
+import geopy.distance
 from wikibaseintegrator import wbi_core
-from wikibaseintegrator.wbi_exceptions import (MWApiError)
+from wikibaseintegrator.wbi_exceptions import MWApiError, SearchError
 from wikibaseintegrator.wbi_functions import search_entities
 from wikibaseintegrator.wbi_functions import execute_sparql_query
 from wikibaseintegrator.wbi_functions import mediawiki_api_call_helper
+from wikibaseintegrator.wbi_config import config
+
 
 def element_exists(element_id: str) -> bool:
     """
@@ -473,45 +478,143 @@ def statement_value_fix(s_value, s_type) -> str:
     return s_value
 
 
-def element_search_adv(search_string: str, lang: str, parameters: list, description: str = '') -> tuple:
+def search_entities_test(search_string, language=None, strict_language=True, search_type='item', mediawiki_api_url=None, max_results=500, dict_result=False, login=None,
+                    allow_anonymous=True, user_agent=None):
+    """
+    Performs a search for entities in the Wikibase instance using labels and aliases.
+    :param search_string: a string which should be searched for in the Wikibase instance (labels and aliases)
+    :type search_string: str
+    :param language: The language in which to perform the search.
+    :type language: str
+    :param strict_language: Whether to disable language fallback
+    :type strict_language: bool
+    :param search_type: Search for this type of entity. One of the following values: form, item, lexeme, property, sense
+    :type search_type: str
+    :param mediawiki_api_url: Specify the mediawiki_api_url.
+    :type mediawiki_api_url: str
+    :param max_results: The maximum number of search results returned. Default 500
+    :type max_results: int
+    :param dict_result:
+    :type dict_result: boolean
+    :param login: The object containing the login credentials and cookies. An instance of wbi_login.Login.
+    :param allow_anonymous: Allow anonymous edit to the MediaWiki API. Disabled by default.
+    :type allow_anonymous: bool
+    :param user_agent: The user agent string transmitted in the http header
+    :type user_agent: str
+    :return: list
+    """
+
+    language = config['DEFAULT_LANGUAGE'] if language is None else language
+
+    params = {
+        'action': 'wbsearchentities',
+        'search': search_string,
+        'language': language,
+        'strict_language': strict_language,
+        'type': search_type,
+        'limit': 50,
+        'format': 'json'
+    }
+
+    cont_count = 0
+    results = []
+
+    while True:
+        params.update({'continue': cont_count})
+
+        search_results = mediawiki_api_call_helper(data=params, login=login,
+                                                   mediawiki_api_url=mediawiki_api_url,
+                                                   user_agent=user_agent,
+                                                   allow_anonymous=allow_anonymous)
+        #print(search_results)
+
+        if search_results['success'] != 1:
+            raise SearchError('Wikibase API wbsearchentities failed')
+        else:
+            #print('search_results:', len(search_results['search']))
+            ile = len(search_results['search'])
+            if not ile:
+                break
+            for i in search_results['search']:
+                if dict_result:
+                    description = i['description'] if 'description' in i else None
+                    aliases = i['aliases'] if 'aliases' in i else None
+                    #label = i['label'] if 'label' in i else None
+                    #print(label, description)
+                    results.append({
+                        'id': i['id'],
+                        'label': i['label'],
+                        'match': i['match'],
+                        'description': description,
+                        'aliases': aliases
+                    })
+                else:
+                    results.append(i['id'])
+
+        #if 'search-continue' not in search_results:
+        #    break
+        #else:
+        cont_count += ile
+        #print('cont_count:', cont_count)
+
+        if cont_count >= max_results:
+            break
+    #print('search_entities_test results:' ,len(results))
+    return results
+
+
+def element_search_adv(search_string: str, lang: str, parameters: list, description: str = '', max_results_to_verify=10) -> tuple:
     """ wyszukiwanie zaawansowane elementów (item):
         tekst do wyszukania (w etykiecie, opisie, aliasach)
         język
         i lista z parami właściwość-wartość np.
         'województwo poznańskie', [('P202','test')]
+        może być pusta (None), wówczas wyszukianie tylko po etykiecie i aliasie
+        opcjonalnie maksymalna liczba wyników do wertyfikacji
     """
 
-    if not parameters:
-        print('ERROR - brak dodatkowych parametrów wyszukiwania.')
-        return False, "NOT FOUND"
-
-    # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
+    # jeżeli search_string jest zbyt długi to tylko 241 pierwszych znaków
     if len(search_string) > 240:
         search_string = search_string[:241]
 
-    results = search_entities(search_string, language=lang,
-                              search_type='item', max_results=10)
+    # obejście problemu z continue w api 'wbsearchentities'
+    if max_results_to_verify > 100:
+        results = search_entities_test(search_string, language=lang,
+                                search_type='item',
+                                dict_result=True,
+                                max_results=max_results_to_verify)
+    else:
+        results = search_entities(search_string, language=lang,
+                                search_type='item',
+                                dict_result=True,
+                                max_results=max_results_to_verify)
 
     if len(results) == 0:
         return False, "NOT FOUND"
 
-    for qid in results:
-        wb_item = wbi_core.ItemEngine(item_id=qid)
-        label = wb_item.get_label(lang)
-        if description:
-            item_description = wb_item.get_description(lang)
-        if label == search_string:
-            for par in parameters:
-                property_nr, property_value = par
-                for statement in wb_item.statements:
-                    statement_property = statement.get_prop_nr()
-                    if statement_property == property_nr:
-                        statement_value = statement.get_value()
-                        statement_type = get_property_type(statement_property)
-                        statement_value = statement_value_fix(statement_value, statement_type)
-                        if (statement_value == property_value and
-                            (description == '' or item_description == description)):
-                            return True, qid
+    for result in results:
+        qid = result['id']
+        item_label = result['label']
+        item_description = result['description']
+        if item_label == search_string:
+            if description:
+                if item_description != description:
+                    continue
+            if parameters:
+                wb_item = wbi_core.ItemEngine(item_id=qid, search_only=True)
+                for par in parameters:
+                    property_nr, property_value = par
+                    for statement in wb_item.statements:
+                        statement_property = statement.get_prop_nr()
+                        if statement_property == property_nr:
+                            statement_value = statement.get_value()
+                            statement_type = get_property_type(statement_property)
+                            statement_value = statement_value_fix(statement_value, statement_type)
+                            if (statement_value == property_value):
+                                return True, qid
+            else:
+                return True, qid
+
 
     return False, "NOT FOUND"
 
@@ -588,5 +691,71 @@ def read_qid_from_text(value: str) -> str:
     match = re.search(pattern, value)
     if match:
         result = match.group().split(':')[1]
+
+    return result
+
+
+def create_connection(db_file):
+    """ tworzy połączenie z bazą SQLite
+        db_file - ścieżka do pliku bazy
+    """
+
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+
+    except Error as sql_error:
+        print(sql_error)
+
+    return conn
+
+
+def field_strip(value) -> str:
+    """ funkcja przetwarza wartość pola z bazy/arkusza """
+    if value:
+        value = value.strip()
+    else:
+        value = ''
+
+    return value
+
+def search_sql(db_m, sql: str, latitude: float, longitude: float) -> str:
+    """ wyszukiwanie w bazie sqlite,
+        db_m - connection do bazy
+        sql - zapytanie
+        latitude - szerokość geograficzna miejscowości dla której szukamy miejscowości
+                   nadrzędnej, w formie dziesiętnej
+        longitude - długość geograficzna dla której szukamy miejscowości
+                   nadrzędnej, w formie dziesiętnej
+        szerokość i długość, służą do obliczania odległości od miejscowości dla której szukamy
+        miejscowości nadrzędnej do kandydata na taką miejscowość - w przypadku gdy zapytanie
+        zwraca kilka wyników
+    """
+    result = ''
+
+    cur = db_m.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    if rows:
+        if len(rows) == 1:
+            result = field_strip(rows[0][1])
+        elif len(rows) > 1:
+            coords_1 = (latitude, longitude)
+            best_qid = ''
+            best_dist = 999999
+            for item in rows:
+                wgs84 = field_strip(item[3])
+                wgs84 = wgs84.replace('Point', '').replace('(', '').replace(')','').strip()
+                tmp = wgs84.split(' ')
+                item_longitude = float(tmp[0])
+                item_latitude = float(tmp[1])
+                coords_2 = (item_longitude, item_latitude)
+                dist = geopy.distance.geodesic(coords_1, coords_2).km
+                if dist < best_dist:
+                    best_dist = dist
+                    best_qid = field_strip(item[1])
+            if best_dist < 999999:
+                result = best_qid
 
     return result
