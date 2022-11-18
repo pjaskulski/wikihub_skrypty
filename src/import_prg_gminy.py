@@ -1,6 +1,7 @@
 """ import gmin z pliku gminy.xlsx z danymi z PRG"""
 import os
 import time
+import sys
 from pathlib import Path
 import openpyxl
 from dotenv import load_dotenv
@@ -22,8 +23,11 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
-BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+# OAuth
+WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
 # pomiar czasu wykonania
 start_time = time.time()
@@ -86,12 +90,18 @@ if __name__ == '__main__':
     onto_references[properties['reference URL']] = 'https://ontohgis.pl'
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=28800)
+    if WIKIBASE_WRITE:
+        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                         token_renew_period=14400)
 
     xlsx_input = '../data_prng/gminy.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["gminy"]
 
+    # nazwy kolumn w xlsx
     col_names = {}
     nr_col = 0
     for column in ws.iter_cols(1, ws.max_column):
@@ -99,8 +109,10 @@ if __name__ == '__main__':
         nr_col += 1
 
     parts = {}
-    for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
-
+    index = 0
+    max_row = ws.max_row
+    for row in ws.iter_rows(2, max_row):
+        index += 1
         # wczytanie danych z xlsx
         nazwa = row[col_names['JPT_NAZWA_']].value
         if not nazwa:
@@ -181,37 +193,50 @@ if __name__ == '__main__':
                 wb_item.set_aliases(value_alias, 'pl')
 
         if WIKIBASE_WRITE:
-            try:
-                new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                if new_id:
-                    print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
-                    if pow_qid:
-                        if pow_qid in parts:
-                            parts[pow_qid].append(new_id)
-                        else:
-                            parts[pow_qid] = [new_id]
-            except MWApiError as wbdelreference_error:
-                err_code = wbdelreference_error.error_msg['error']['code']
-                message = wbdelreference_error.error_msg['error']['info']
-                if 'already has label' in message and err_code == 'modification-failed':
-                    match_qid = read_qid_from_text(message)
-                    print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
-                else:
-                    print(f'ERROR: {wbdelreference_error.error_msg}')
+            test = 1
+            while True:
+                try:
+                    new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
+                    if new_id:
+                        print(f'{index}/{max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        if pow_qid:
+                            if pow_qid in parts:
+                                parts[pow_qid].append(new_id)
+                            else:
+                                parts[pow_qid] = [new_id]
+                    break
+                except MWApiError as wb_error:
+                    err_code = wb_error.error_msg['error']['code']
+                    message = wb_error.error_msg['error']['info']
+                    if 'already has label' in message and err_code == 'modification-failed':
+                        match_qid = read_qid_from_text(message)
+                        print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje {match_qid}.')
+                        break
+                    else:
+                        # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+                        # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+                        if err_code in ['assertuserfailed', 'badtoken']:
+                            if test == 1:
+                                print('Generate edit credentials...')
+                                login_instance.generate_edit_credentials()
+                                test += 1
+                                continue
+                        print(err_code, message)
+                        sys.exit(1)
         else:
             # wyszukiwanie po etykiecie, właściwości instance of oraz po opisie
             parameters = [(properties['instance of'], q_gmina)]
             ok, item_id = element_search_adv(label_en, 'en', parameters, f"{description_en} ({pow_label_pl}, {typ_gminy_text[typ_gm]})")
             if not ok:
                 new_id = 'TEST'
-                print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"{index}/{max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
                 if pow_qid:
                     if pow_qid in parts:
                         parts[pow_qid].append(new_id)
                     else:
                         parts[pow_qid] = [new_id]
             else:
-                print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
+                print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
 
     # uzupełnienie właściwości 'has part or parts' dla powiatów
     if parts:
