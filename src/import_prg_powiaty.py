@@ -1,12 +1,14 @@
 """ import powiatów z pliku powiaty.xlsx z danymi z PRG"""
 import os
 import time
+import sys
 from pathlib import Path
 import openpyxl
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
+from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikidariahtools import element_search_adv, search_by_purl, get_properties, get_elements
 from property_import import create_statement_data, has_statement
 
@@ -20,12 +22,16 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
-BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+# OAuth
+WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
 # pomiar czasu wykonania
 start_time = time.time()
 
+# czy zapisywać dane w wikibase, czy tylko test
 WIKIBASE_WRITE = False
 
 # standardowe właściwości
@@ -50,12 +56,18 @@ if __name__ == '__main__':
     onto_references[properties['reference URL']] = 'https://ontohgis.pl'
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=28800)
+    if WIKIBASE_WRITE:
+        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                         token_renew_period=14400)
 
     xlsx_input = '../data_prng/powiaty.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["powiaty"]
 
+    # nazwy kolumn z xlsx
     col_names = {}
     nr_col = 0
     for column in ws.iter_cols(1, ws.max_column):
@@ -63,8 +75,11 @@ if __name__ == '__main__':
         nr_col += 1
 
     parts = {}
-    for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
 
+    index = 0
+    max_row = ws.max_row
+    for row in ws.iter_rows(2, max_row):
+        index += 1
         # wczytanie danych z xlsx
         nazwa = row[col_names['JPT_NAZWA_']].value
         if not nazwa:
@@ -137,14 +152,30 @@ if __name__ == '__main__':
 
         if not ok:
             if WIKIBASE_WRITE:
-                new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                if new_id:
-                    print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
-                    if woj_qid:
-                        if woj_qid in parts:
-                            parts[woj_qid].append(new_id)
-                        else:
-                            parts[woj_qid] = [new_id]
+                test = 1
+                while True:
+                    try:
+                        new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
+                        print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        if woj_qid:
+                            if woj_qid in parts:
+                                parts[woj_qid].append(new_id)
+                            else:
+                                parts[woj_qid] = [new_id]
+                        break
+                    except MWApiError as wb_error:
+                        err_code = wb_error.error_msg['error']['code']
+                        message = wb_error.error_msg['error']['info']
+                        print(f'ERROR: {err_code}, {message}')
+                        # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+                        # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+                        if err_code in ['assertuserfailed', 'badtoken']:
+                            if test == 1:
+                                print('Generate edit credentials...')
+                                login_instance.generate_edit_credentials()
+                                test += 1
+                                continue
+                        sys.exit(1)
             else:
                 new_id = 'TEST'
                 print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
@@ -171,13 +202,30 @@ if __name__ == '__main__':
                     else:
                         print(f"Przygotowano dodanie do elementu {item_qid} właściwości {properties['has part or parts']} o wartości {part_qid}")
 
-            if WIKIBASE_WRITE:
-                if data:
-                    wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
-                    wd_item.write(login_instance, entity_type='item')
-                    print(f"Do elementu {item_qid} dodano właściwości {properties['has part or parts']}.")
-                else:
-                    print(f"ERROR: {item_qid}. wystąpił problem z przygotowaniem danych dla właściwości 'has part or parts'")
+            if data:
+                if WIKIBASE_WRITE:
+                    test = 1
+                    while True:
+                        try:
+                            wd_item = wbi_core.ItemEngine(item_id=item_qid, data=data, debug=False)
+                            wd_item.write(login_instance, entity_type='item')
+                            print(f"Do elementu {item_qid} dodano właściwości {properties['has part or parts']}.")
+                            break
+                        except MWApiError as wb_error:
+                            err_code = wb_error.error_msg['error']['code']
+                            message = wb_error.error_msg['error']['info']
+                            print(f'ERROR: {err_code}, {message}')
+                            # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+                            # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+                            if err_code in ['assertuserfailed', 'badtoken']:
+                                if test == 1:
+                                    print('Generate edit credentials...')
+                                    login_instance.generate_edit_credentials()
+                                    test += 1
+                                    continue
+                            sys.exit(1)
+            else:
+                print(f"ERROR: {item_qid}, wystąpił problem z przygotowaniem danych dla właściwości 'has part or parts'")
 
     end_time = time.time()
     elapsed_time = end_time - start_time
