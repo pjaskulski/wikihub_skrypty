@@ -2,14 +2,15 @@
 import os
 import sys
 import time
-from datetime import timedelta
 from pathlib import Path
 import openpyxl
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, element_search_adv, get_property_type
+from wikibaseintegrator.wbi_exceptions import (MWApiError)
+from wikidariahtools import element_search_adv
+from wikidariahtools import get_properties, get_elements
 from property_import import create_statement_data
 
 
@@ -22,73 +23,33 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
-BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+# OAuth
+WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
 # pomiar czasu wykonania
 start_time = time.time()
 
+# czy zapis w wikibase czy tylko test
 WIKIBASE_WRITE = False
 
-# standardowe właściwości i elementy
-ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'instance of' w instancji Wikibase")
-    sys.exit(1)
+# standardowe właściwości
+properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
+                            'id SDI', 'part of', 'has part or parts', 'TERYT'])
 
-ok, p_stated_as = find_name_qid('stated as', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'stated as' w instancji Wikibase")
-    sys.exit(1)
-
-ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
-    sys.exit(1)
-
-ok, p_retrieved = find_name_qid('retrieved', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'retrieved' w instancji Wikibase")
-    sys.exit(1)
-
-ok, p_id_sdi = find_name_qid('id SDI', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'id SDI' w instancji Wikibase")
-    sys.exit(1)
-
-ok, p_part_of = find_name_qid('part of', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'part of' w instancji Wikibase")
-    sys.exit(1)
-
-ok, p_teryt = find_name_qid('TERYT', 'property', strict=True)
-if not ok:
-    print("ERROR: brak właściwości 'TERYT' w instancji Wikibase")
-    sys.exit(1)
-
-# elementy definicyjne
-# symbol QID elementu definicyjnego 'administrative unit', w wersji testowej: 'Q79096'
-ok, q_administrative_unit = find_name_qid('administrative unit', 'item', strict=True)
-if not ok:
-    print("ERROR: brak elementu 'administrative unit' w instancji Wikibase")
-    sys.exit(1)
-
-# symbol QID elementu definicyjnego 'voivodship (The Republic of Poland (1999-2016))',
-# wyszukiwanie po purl, w wersji testowej: Q80001
-ok, q_voivodship = find_name_qid('http://purl.org/ontohgis#administrative_type_47', 'item',
-                                 strict=True)
-if not ok:
-    print("ERROR: brak elementu 'http://purl.org/ontohgis#administrative_type_47' w instancji Wikibase")
-    sys.exit(1)
+# elementy definicyjne (purl to voivodship (The Republic of Poland (1999-2016))
+elements = get_elements(['administrative unit', 'http://purl.org/ontohgis#administrative_type_47'])
 
 # wspólna referencja dla wszystkich deklaracji z PRG
 references = {}
-references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries'
-references[p_retrieved] = '2022-09-05'
+references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries'
+references[properties['retrieved']] = '2022-09-05'
 
 # wspólna referencja dla wszystkich deklaracji z PRG
 onto_references = {}
-onto_references[p_reference_url] = 'https://ontohgis.pl'
+onto_references[properties['reference URL']] = 'https://ontohgis.pl'
 
 
 def get_label_en(qid: str) -> str:
@@ -105,21 +66,28 @@ def get_label_en(qid: str) -> str:
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD, token_renew_period=28800)
+    if WIKIBASE_WRITE:
+        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                         token_renew_period=14400)
 
     xlsx_input = '../data_prng/wojewodztwa.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["wojewodztwa"]
 
+    # nazwy kolumn z xlsx
     col_names = {}
     nr_col = 0
     for column in ws.iter_cols(1, ws.max_column):
         col_names[column[0].value] = nr_col
         nr_col += 1
 
-    for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
-        #time_00 = time.time()
-
+    index = 0
+    max_row = ws.max_row
+    for row in ws.iter_rows(2, max_row):
+        index += 1
         # wczytanie danych z xlsx
         nazwa = row[col_names['JPT_NAZWA_']].value
         if not nazwa:
@@ -137,53 +105,30 @@ if __name__ == '__main__':
         data = []
         aliasy = []
 
-        # time_01 = time.time()
-        # time_diff = time_01 - time_00
-        # time_01_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('przed statements :', time_01_len)
-
         # instance of
-        statement = create_statement_data(p_instance_of, q_voivodship, None, None, add_ref_dict=onto_references)
+        statement = create_statement_data(properties['instance of'],
+                                          properties['http://purl.org/ontohgis#administrative_type_47'],
+                                          None, None, add_ref_dict=onto_references)
         if statement:
             data.append(statement)
-
-        # time_02 = time.time()
-        # time_diff = time_02 - time_01
-        # time_02_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('instance of      :', time_02_len)
 
         # id SDI
         if idiip:
-            statement = create_statement_data(p_id_sdi, idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['id SDI'], idiip, None, None, add_ref_dict=references)
             if statement:
                 data.append(statement)
-
-        # time_03 = time.time()
-        # time_diff = time_03 - time_02
-        # time_03_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('idiip            :', time_03_len)
 
         # TERYT
         if teryt:
-            statement = create_statement_data(p_teryt, teryt, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['TERYT'], teryt, None, None, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
-        # time_04 = time.time()
-        # time_diff = time_04 - time_03
-        # time_04_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('teryt            :', time_04_len)
-
         # JPT_NAZWA_
         aliasy.append(nazwa)
-        statement = create_statement_data(p_stated_as, f'pl:"{nazwa}"', None, None, add_ref_dict=references)
+        statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, None, add_ref_dict=references)
         if statement:
             data.append(statement)
-
-        # time_05 = time.time()
-        # time_diff = time_05 - time_04
-        # time_05_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('stated as        :', time_05_len)
 
         # etykiety, description, aliasy
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
@@ -194,39 +139,40 @@ if __name__ == '__main__':
         wb_item.set_description(description_en, 'en')
         wb_item.set_description(description_pl, 'pl')
 
-        # time_06 = time.time()
-        # time_diff = time_06 - time_05
-        # time_06_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('label/description:', time_06_len)
-
         if aliasy:
             for value_alias in aliasy:
                 wb_item.set_aliases(value_alias, 'pl')
 
-        # time_07 = time.time()
-        # time_diff = time_07 - time_06
-        # time_07_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('aliasy           :', time_07_len)
-
         # wyszukiwanie po etykiecie, właściwości instance of oraz po opisie
-        parameters = [(p_instance_of, q_voivodship)]
+        parameters = [(properties['instance of'], properties['http://purl.org/ontohgis#administrative_type_47'])]
         ok, item_id = element_search_adv(label_en, 'en', parameters, description_en)
-
-        # time_08 = time.time()
-        # time_diff = time_08 - time_07
-        # time_08_len = timedelta(seconds=time_diff, milliseconds=time_diff)
-        # print('element search   :', time_08_len)
 
         if not ok:
             if WIKIBASE_WRITE:
-                new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                if new_id:
-                    print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                test = 1
+                while True:
+                    try:
+                        new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
+                        print(f'{index}/{max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        break
+                    except MWApiError as wb_error:
+                        err_code = wb_error.error_msg['error']['code']
+                        message = wb_error.error_msg['error']['info']
+                        print(f'ERROR: {err_code}, {message}')
+                        # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+                        # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+                        if err_code in ['assertuserfailed', 'badtoken']:
+                            if test == 1:
+                                print('Generate edit credentials...')
+                                login_instance.generate_edit_credentials()
+                                test += 1
+                                continue
+                        sys.exit(1)
             else:
                 new_id = 'TEST'
-                print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"{index}/{max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
         else:
-            print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
+            print(f'{index}/{max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
 
     end_time = time.time()
     elapsed_time = end_time - start_time

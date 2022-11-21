@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-    start = 95395
-    stop = 95772
+    start = 223391
+    stop = 223451
 
     for i in range(start, stop + 1):
         item = f'Q{i}'
