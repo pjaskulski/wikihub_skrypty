@@ -2866,10 +2866,17 @@ if __name__ == "__main__":
     env_path = Path(".") / ".env"
     load_dotenv(dotenv_path=env_path)
 
-    BOT_LOGIN = os.environ.get("WIKIDARIAH_USER")
-    BOT_PASSWORD = os.environ.get("WIKIDARIAH_PWD")
+    # OAuth
+    WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+    WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+    WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+    WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                         token_renew_period=14400)
 
     # podstawowe właściwości Wikibase
     wikibase_prop = BasicProp()
