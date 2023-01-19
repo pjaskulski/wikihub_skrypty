@@ -9,6 +9,7 @@ import copy
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
+from langdetect import detect
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
@@ -35,7 +36,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 print('Przygotowanie słownika właściwości...')
@@ -122,6 +123,7 @@ obiekty['karczma doroczna'] = elements['rental tavern']
 obiekty['karczma dziedziczna'] = elements['hereditary tavern']
 obiekty['kotły gorzałczane'] = elements['cauldron sauce']
 obiekty['kocioł gorzałczany'] = elements['cauldron sauce']
+obiekty['garniec gorzałczany'] = elements['cauldron sauce']
 obiekty['kuźnia'] = elements['smithy']
 obiekty['kuźnica'] = elements['ironwork']
 obiekty['młyn'] = elements['mill']
@@ -142,6 +144,7 @@ obiekty['wtr'] = elements['windmill']
 obiekty['wiatrak doroczny'] = elements['rental windmill']
 obiekty['wiatrak dziedziczny'] = elements['hereditary windmill']
 obiekty['wyszynk'] = elements['wyszynk']
+obiekty['wyszynk gorzałki'] = elements['wyszynk']
 
 gospodarcze_wiele = {
                     'młyny doroczne':'młyn doroczny',
@@ -152,6 +155,7 @@ gospodarcze_wiele = {
                     'młyny dziedziczne':'młyn dziedziczny',
                     'młyny dziedzine':'młyn dziedziczny',
                     'młyny korzeczne':'młyn korzeczny',
+                    'młyny doroczny':'młyn doroczny',
                     'młynów korzecznych':'młyn korzeczny',
                     'karczmy doroczne':'karczma doroczna',
                     'garnce gorzałczane':'kotły gorzałczane',
@@ -166,6 +170,7 @@ fun_centaralne_panstw = {}
 fun_centaralne_panstw['kasztelania'] = elements["castellan's residence"]
 fun_centaralne_panstw['księstwo'] = elements['capital of the duchy']
 fun_centaralne_panstw['starostwo grodowe'] = elements['seat of the town starost']
+fun_centaralne_panstw['starostwo grodowo'] = elements['seat of the town starost']
 fun_centaralne_panstw['miejsce popisu rycerstwa'] = elements['the place where the knighthood was held']
 fun_centaralne_panstw['okazowanie rycerstwa'] = elements['the place where the knighthood was held']
 fun_centaralne_panstw['powiat'] = elements['the capital of a county']
@@ -232,27 +237,28 @@ if __name__ == '__main__':
         lines = f.readlines()
     lines = [line.strip() for line in lines]
 
-    # struktura pliku csv:
-    # id_miejscowosci, nazwa_slownikowa, nazwa_wspolczesna, nazwa_odmianki,
-    # nazwa_16w, charakter_osady, rodzaj_wlasnosci, parafia, obiekty_gospodarcze,
-    # rodzaj_lokalizacji, komentarz_do_lokalizacji, funkcje_centralne_panstwowe,
-    # funkcje_centralne_koscielne, m_nadrz, powiat_p, woj_p, wielkosc_karto,
-    # klasa_obiektow, simc, wikidata, ahp_pkt_WGS84, zbiorcza_sgh_id, zbiorcza_prng
-
     references = {}
     references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
     qualifiers = {}
     qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
 
+    # czy to pierwsze ładowanie danych? - wówczas bez dodatkowej weryfikacji
+    first_load = True
+
     line_number = 0
     for line in lines:
         line_number +=1
-        if line_number < 3630:
-            continue
+        # if line_number < 22310:
+        #     continue
 
         t_line = line.split('@')
-
         id_miejscowosci = t_line[0].strip()
+
+        # tylko testowe
+        test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl']
+        if id_miejscowosci not in test_rec:
+            continue
+
         nazwa_slownikowa = t_line[1].strip()
         nazwa_wspolczesna = t_line[2].strip()
         nazwa_odmianki = t_line[3].strip()
@@ -308,13 +314,33 @@ if __name__ == '__main__':
             # w szczególnych przypadkach dodać własność do description?
             if not ok:
                 element_qid = '' # czyszczenie, może zawierać zapis 'NOT FOUND' z funkcji wyszukującej
+
+                # utworzenie przynależności administracyjnej dla description
+                desc_add_pl = []
+                desc_add_en = []
+                if parafia:
+                    desc_add_pl.append(f"parafia {parafia}")
+                    desc_add_en.append(f"parish {parafia}")
+                if powiat_p:
+                    desc_add_pl.append(f"powiat {powiat_p}")
+                    desc_add_en.append(f"district {powiat_p}")
+                if woj_p:
+                    if woj_p.startswith('ziemia') or woj_p.startswith('Ziemia'):
+                        desc_add_pl.append(f"{woj_p}")
+                        desc_add_en.append(f"{woj_p}")
+                    else:
+                        desc_add_pl.append(f"województwo {woj_p}")
+                        desc_add_en.append(f"palatinate {woj_p}")
+
                 if not nazwa_16w:
-                    label_pl = label_en = 'bez nazwy'
-                    description_pl = description_en = id_miejscowosci
+                    label_pl = 'bez nazwy'
+                    label_en = 'name missing'
+                    description_pl = f"osada historyczna z Atlasu Historycznego Polski [id: {id_miejscowosci}] ({', '.join(desc_add_pl)})"
+                    description_en = f"historical settlement from the Historical Atlas of Poland [id: {id_miejscowosci}] ({', '.join(desc_add_en)})"
                 else:
                     label_pl = label_en = nazwa_16w
-                    description_pl = f"osada historyczna z Atlasu Historycznego Polski (parafia {parafia}, powiat {powiat_p}, województwo {woj_p})"
-                    description_en = f"historical settlement from the Historical Atlas of Poland (parish {parafia}, district {powiat_p}, palatinate {woj_p})"
+                    description_pl = f"osada historyczna z Atlasu Historycznego Polski ({', '.join(desc_add_pl)})"
+                    description_en = f"historical settlement from the Historical Atlas of Poland ({', '.join(desc_add_en)})"
 
                 # testowanie unikalności pary label-description
                 identyfikator = label_en + ' : ' + description_en
@@ -327,7 +353,7 @@ if __name__ == '__main__':
 
         # przygotowanie struktur wikibase
         data = []
-        aliasy = []
+        aliasy = {}
 
         # ===== instance of =====
         if instance_of:
@@ -339,30 +365,51 @@ if __name__ == '__main__':
 
         # ===== stated as - nazwa 16w =====
         if nazwa_16w:
-            if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_16w}"'):
+            if not element_qid or first_load or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_16w}"'):
+                # rozpoznawanie języka
+                lang = detect(nazwa_16w)
+                if lang != 'de':
+                    lang = 'pl'
+                if 'neu' in nazwa_16w.lower() and lang != 'de':
+                    lang = 'de'
+
+                if element_qid:
+                    if lang in aliasy:
+                        aliasy[lang].append(nazwa_16w)
+                    else:
+                        aliasy[lang] = [nazwa_16w]
+
                 statement = create_statement_data(properties['stated as'],
-                                                  f'pl:"{nazwa_16w}"',
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  f'{lang}:"{nazwa_16w}"',
+                                                  None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== stated as - nazwa słownikowa =====
         if nazwa_slownikowa:
-            if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_slownikowa}"'):
-                aliasy.append(nazwa_slownikowa)
+            if not element_qid or first_load or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_slownikowa}"'):
+                if 'pl' in aliasy:
+                    aliasy['pl'].append(nazwa_slownikowa)
+                else:
+                    aliasy['pl'] = [nazwa_slownikowa]
+                shg_references = {}
+                shg_references[properties['reference URL']] = 'http://www.slownik.ihpan.edu.pl/'
                 statement = create_statement_data(properties['stated as'],
                                                   f'pl:"{nazwa_slownikowa}"',
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  shg_references, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== stated as - nazwa wspolczesna =====
         if nazwa_wspolczesna:
             if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_wspolczesna}"'):
-                aliasy.append(nazwa_wspolczesna)
+                if 'pl' in aliasy:
+                    aliasy['pl'].append(nazwa_wspolczesna)
+                else:
+                    aliasy['pl'] = [nazwa_wspolczesna]
                 statement = create_statement_data(properties['stated as'],
                                                   f'pl:"{nazwa_wspolczesna}"',
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
@@ -371,11 +418,14 @@ if __name__ == '__main__':
             t_odmianki = nazwa_odmianki.split(",")
             for t_odm in t_odmianki:
                 t_odm = t_odm.strip()
-                if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{t_odm}"'):
-                    aliasy.append(t_odm)
+                if not element_qid or first_load or not has_statement(element_qid, properties['stated as'], f'pl:"{t_odm}"'):
+                    if 'pl' in aliasy:
+                        aliasy['pl'].append(t_odm)
+                    else:
+                        aliasy['pl'] = [t_odm]
                     statement = create_statement_data(properties['stated as'],
                                                   f'pl:"{t_odm}"',
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
@@ -388,16 +438,18 @@ if __name__ == '__main__':
                 # wyjąteczki
                 if t_char == 'młyńska':
                     t_char = 'osada młyńska'
+                if t_char == 'staw':
+                    continue
 
                 if t_char not in s_type_map:
                     print('ERROR: nieznany charakter osady:', charakter_osady)
                     sys.exit(1)
 
                 settlement_type = s_type_map[t_char]
-                if not element_qid or not has_statement(element_qid, properties['settlement type'], elements[settlement_type]):
+                if not element_qid or first_load or not has_statement(element_qid, properties['settlement type'], elements[settlement_type]):
                     statement = create_statement_data(properties['settlement type'],
                                                  elements[settlement_type],
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
@@ -405,21 +457,22 @@ if __name__ == '__main__':
         if rodzaj_wlasnosci:
             for ch in rodzaj_wlasnosci:
                 if ch in wlasnosc:
-                    if not element_qid or not has_statement(element_qid, properties['settlement ownership type'], wlasnosc[ch]):
+                    if not element_qid or first_load or not has_statement(element_qid, properties['settlement ownership type'], wlasnosc[ch]):
                         statement = create_statement_data(properties['settlement ownership type'],
                                                   wlasnosc[ch],
-                                                  None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                         if statement:
                             data.append(statement)
 
         # ===== economic object =====
         if obiekty_gospodarcze:
-            if ';' in obiekty_gospodarcze:
-                t_obiekty = obiekty_gospodarcze.split(';')
-            elif ',' in obiekty_gospodarcze:
-                t_obiekty = obiekty_gospodarcze.split(',')
-            elif obiekty_gospodarcze == '6 młynów (w tym folusz)':
+            if ',' in obiekty_gospodarcze:
+                obiekty_gospodarcze = obiekty_gospodarcze.replace(',',';')
+
+            if obiekty_gospodarcze == '6 młynów (w tym folusz)':
                 t_obiekty = ['6 młynów', 'folusz']
+            else:
+                t_obiekty = obiekty_gospodarcze.split(';')
 
             for t_ob in t_obiekty:
                 t_ob = t_ob.strip()
@@ -448,33 +501,35 @@ if __name__ == '__main__':
                 # dodanie kwalifikatora 'count'
                 ob_qualifiers = copy.deepcopy(qualifiers)
                 ob_qualifiers[properties['count']] = liczba
-                if not element_qid or not has_statement(element_qid, properties['economic object'], obiekty[t_ob]):
+                if not element_qid or first_load or not has_statement(element_qid, properties['economic object'], obiekty[t_ob]):
                     statement = create_statement_data(properties['economic object'],
                                                 obiekty[t_ob],
-                                                None, qualifier_dict=ob_qualifiers, add_ref_dict=references)
+                                                None, qualifier_dict=ob_qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
         # ===== rodzaj lokalizacji =====
         if rodzaj_lokalizacji and rodzaj_lokalizacji in ['location unknown', 'approximate location']:
-            if not element_qid or not has_statement(element_qid, properties['type of location'], elements[rodzaj_lokalizacji]):
+            if not element_qid or first_load or not has_statement(element_qid, properties['type of location'], elements[rodzaj_lokalizacji]):
                 statement = create_statement_data(properties['type of location'],
                                                 elements[rodzaj_lokalizacji],
-                                                None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== funkcje centralne państwowe =====
         if funkcje_centralne_panstwowe:
+            if ';' in funkcje_centralne_panstwowe:
+                funkcje_centralne_panstwowe = funkcje_centralne_panstwowe.replace(';', ',')
             t_funkcje = funkcje_centralne_panstwowe.split(',')
             for t_fun in t_funkcje:
                 t_fun = t_fun.strip()
                 if t_fun in fun_centaralne_panstw:
                     funkcja_panstwowa = fun_centaralne_panstw[t_fun]
-                    if not element_qid or not has_statement(element_qid, properties['central state functions'], funkcja_panstwowa):
+                    if not element_qid or first_load or not has_statement(element_qid, properties['central state functions'], funkcja_panstwowa):
                         statement = create_statement_data(properties['central state functions'],
                                                 funkcja_panstwowa,
-                                                None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                         if statement:
                             data.append(statement)
                 else:
@@ -482,15 +537,17 @@ if __name__ == '__main__':
 
         # ===== funkcje centralne kościelne (central church functions) =====
         if funkcje_centralne_koscielne:
+            if ';' in funkcje_centralne_koscielne:
+                funkcje_centralne_koscielne = funkcje_centralne_koscielne.replace(';', ',')
             t_funkcje = funkcje_centralne_koscielne.split(',')
             for t_fun in t_funkcje:
                 t_fun = t_fun.strip()
                 if t_fun in fun_centralne_koscielne:
                     funkcja_koscielna = fun_centralne_koscielne[t_fun]
-                    if not element_qid or not has_statement(element_qid, properties['central church functions'], funkcja_koscielna):
+                    if not element_qid or first_load or not has_statement(element_qid, properties['central church functions'], funkcja_koscielna):
                         statement = create_statement_data(properties['central church functions'],
                                                 funkcja_koscielna,
-                                                None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                         if statement:
                             data.append(statement)
                 else:
@@ -504,43 +561,45 @@ if __name__ == '__main__':
             longitude = tmp[0]
             latitude = tmp[1]
             coordinate = f'{latitude},{longitude}'
-            if not element_qid or not has_statement(element_qid, properties['coordinate location'], coordinate):
+            if not element_qid or first_load or not has_statement(element_qid, properties['coordinate location'], coordinate):
                 statement = create_statement_data(properties['coordinate location'],
-                                                  coordinate, None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  coordinate, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== SIMC place ID ======
         if simc:
-            if not element_qid or not has_statement(element_qid, properties['SIMC place ID'], simc):
+            if not element_qid or first_load or not has_statement(element_qid, properties['SIMC place ID'], simc):
                 statement = create_statement_data(properties['SIMC place ID'],
-                                                  simc, None, None, add_ref_dict=references)
+                                                  simc, None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== wikidata =====
         # np. http://www.wikidata.org/entity/Q7848867
         if wikidata:
-            wikidata = wikidata.replace('http://www.wikidata.org/entity/','').strip()
-            if not element_qid or not has_statement(element_qid, properties['Wikidata ID'], wikidata):
+            q_wikidata = wikidata.replace('http://www.wikidata.org/entity/','').strip()
+            if not element_qid or first_load or not has_statement(element_qid, properties['Wikidata ID'], q_wikidata):
+                wiki_ref = {}
+                wiki_ref[properties['reference URL']] = wikidata
                 statement = create_statement_data(properties['Wikidata ID'],
-                                                  wikidata, None, None, add_ref_dict=references)
+                                                  q_wikidata, wiki_ref, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== AHP id =====
         if id_miejscowosci:
-            if not element_qid or not has_statement(element_qid, properties['AHP id'], id_miejscowosci):
+            if not element_qid or first_load or not has_statement(element_qid, properties['AHP id'], id_miejscowosci):
                 statement = create_statement_data(properties['AHP id'],
-                                                  id_miejscowosci, None, None, add_ref_dict=references)
+                                                  id_miejscowosci, None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== shg_id =====
         if zbiorcza_sgh_id:
-            if not element_qid or not has_statement(element_qid, properties['ID SHG'], zbiorcza_sgh_id):
+            if not element_qid or first_load or not has_statement(element_qid, properties['ID SHG'], zbiorcza_sgh_id):
                 statement = create_statement_data(properties['ID SHG'],
-                                                  zbiorcza_sgh_id, None, None, add_ref_dict=references)
+                                                  zbiorcza_sgh_id, None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
@@ -549,9 +608,9 @@ if __name__ == '__main__':
             parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
             ok, powiat_qid = element_search_adv(f"district {powiat_p}", 'en', parameters)
             if ok:
-                if not element_qid or not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
+                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
                     statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  powiat_qid, None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  powiat_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
@@ -560,9 +619,9 @@ if __name__ == '__main__':
             parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
             ok, woj_qid = element_search_adv(f"palatinate {woj_p}", 'en', parameters)
             if ok:
-                if not element_qid or not has_statement(element_qid, properties['located in the administrative territorial entity'], woj_qid):
+                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], woj_qid):
                     statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  woj_qid, None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  woj_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
@@ -571,9 +630,9 @@ if __name__ == '__main__':
             parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
             ok, parafia_qid = element_search_adv(f"parish {parafia}", 'en', parameters)
             if ok:
-                if not element_qid or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
+                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
                     statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  parafia_qid, None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                                  parafia_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
@@ -596,8 +655,10 @@ if __name__ == '__main__':
 
         # ===== aliasy =====
         if aliasy:
-            for value_alias in aliasy:
-                wb_item.set_aliases(value_alias, 'pl')
+            for alias_lang, alias_value in aliasy.items():
+                for alias_item in alias_value:
+                    wb_item.set_aliases(alias_item, alias_lang)
+
 
         if WIKIBASE_WRITE:
             test = 1
