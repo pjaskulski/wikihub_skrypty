@@ -306,12 +306,13 @@ def get_claim_id(qid: str, claim_property: str, claim_value: str) -> list:
         return None
 
 
-def get_claim_value(qid: str, claim_property: str) -> list:
-    """ zwraca identyfikator deklaracji """
+def get_claim_value(qid: str, claim_property: str, wikibase_item = None) -> list:
+    """ zwraca wartość deklaracji """
     claim_value = []
 
     try:
-        wikibase_item = wbi_core.ItemEngine(item_id=qid)
+        if not wikibase_item:
+            wikibase_item = wbi_core.ItemEngine(item_id=qid)
         property_list = wikibase_item.get_property_list()
         if claim_property not in property_list:
             return None
@@ -370,9 +371,10 @@ def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
 
 
-def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
+def find_name_qid(name: str, elem_type: str, strict: bool = False, lang: str = 'en') -> tuple:
     """Funkcja sprawdza czy przekazany argument jest identyfikatorem właściwości/elementu
-    jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang) równej argumentowi
+    jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang chyba że przekazano
+    parametr lang z kodem języka) równej argumentowi
     (jeżeli strict=True to dokładnie równej) i zwraca jej id
     """
     output = (True, name)  # zakładamy, że w name jest id (np. P47)
@@ -405,7 +407,7 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
                 output = (False, f"ERROR: {purl_qid}")
         # zwykłe wyszukiwanie
         else:
-            output = element_search(name, elem_type, "en", strict=strict)
+            output = element_search(name, elem_type, lang, strict=strict)
             if not output[0]:
                 output = (False, f"INVALID DATA, {elem_type}: {name}, {output[1]}")
 
@@ -602,6 +604,8 @@ def element_search_adv(search_string: str, lang: str, parameters: list, descript
                     continue
             if parameters:
                 wb_item = wbi_core.ItemEngine(item_id=qid, search_only=True)
+                parameters_count = len(parameters)
+                parameters_match = 0
                 for par in parameters:
                     property_nr, property_value = par
                     for statement in wb_item.statements:
@@ -611,7 +615,9 @@ def element_search_adv(search_string: str, lang: str, parameters: list, descript
                             statement_type = get_property_type(statement_property)
                             statement_value = statement_value_fix(statement_value, statement_type)
                             if (statement_value == property_value):
-                                return True, qid
+                                parameters_match +=1
+                if parameters_match == parameters_count:
+                    return True, qid
             else:
                 return True, qid
 
@@ -676,10 +682,13 @@ def get_elements(item_list: list) -> dict:
     for item_name in item_list:
         ok, q_qid = find_name_qid(item_name, 'item', strict=True)
         if not ok:
-            print(f"ERROR: brak elementu '{item_name}' w instancji Wikibase")
-            sys.exit(1)
-        else:
-            result[item_name] = q_qid
+            # alternatywnie szukanie polskiej wersji etykiety
+            ok, q_qid = find_name_qid(item_name, 'item', strict=True, lang='pl')
+            if not ok:
+                print(f"ERROR: brak elementu '{item_name}' w instancji Wikibase")
+                sys.exit(1)
+
+        result[item_name] = q_qid
 
     return result
 
@@ -759,3 +768,52 @@ def search_sql(db_m, sql: str, latitude: float, longitude: float) -> str:
                 result = best_qid
 
     return result
+
+
+def search_by_unique_id(prop_id: str, id_value: str) -> tuple:
+    """ wyszukiwanie elementu na podstawie wartości deklaracji będącej jednoznacznym
+        identyfikatorem, zwraca krotkę (True/False, qid) """
+    query = f'SELECT ?item WHERE {{ ?item wdt:{prop_id} "{id_value}". }} LIMIT 5'
+
+    results = execute_sparql_query(query)
+    output = []
+    for result in results["results"]["bindings"]:
+        output.append(result["item"]["value"])
+
+    # wynik to lista adresów http://prunus-208.man.poznan.pl/entity/Q357
+    #                     lub https://prunus-208.man.poznan.pl/entity/Q95773
+    if len(output) == 1:
+        if 'https' in output[0].strip():
+            search_result = output[0].strip().replace('https://prunus-208.man.poznan.pl/entity/', '')
+        else:
+            search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
+        return True, search_result
+
+    return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem (znaleziono: {len(output)}).'
+
+
+def write_or_exit(login_instance, qid: str, data: list, logger, message:str):
+    """ zapis danych do wikibase lub zakończenie programu """
+    loop_num = 1
+    while True:
+        try:
+            wb_item = wbi_core.ItemEngine(item_id=qid, data=data)
+            wb_item.write(login_instance, entity_type='item')
+            logger.info(message)
+            break
+        except (MWApiError, KeyError) as wb_error:
+            err_code = wb_error.error_msg['error']['code']
+            message = wb_error.error_msg['error']['info']
+            logger.info(f'ERROR: {err_code}, {message}')
+            # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+            # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+            if err_code in ['assertuserfailed', 'badtoken']:
+                if loop_num == 1:
+                    logger.info('Generate edit credentials...')
+                    login_instance.generate_edit_credentials()
+                    loop_num += 1
+                    continue
+            sys.exit(1)
+        except BaseException as wb_err:
+            logger.info(f'ERROR {wb_err}')
+            sys.exit(1)

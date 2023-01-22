@@ -79,10 +79,6 @@ elements = get_elements(['human settlement', 'demesne settlement',
                          'parish (Roman Catholic Church)'
                          ])
 
-# wspólna referencja dla wszystkich deklaracji
-references = {}
-references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
-
 # settlement type map
 s_type_map = {}
 s_type_map['dworzec'] = 'manor'
@@ -208,7 +204,6 @@ if __name__ == '__main__':
 
     # tworzenie obiektu loggera
     file_log = Path('..') / 'log' / 'ahp_zbiorcza_pkt_prng.log'
-
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     c_handler = logging.StreamHandler()
@@ -220,6 +215,9 @@ if __name__ == '__main__':
     f_handler.setLevel(logging.INFO)
     logger.addHandler(c_handler)
     logger.addHandler(f_handler)
+
+    # plik pomocniczy z indeksem nr lini -> QID
+    file_index = Path('..') / 'data' / 'ahp_line_qid.csv'
 
     logger.info('POCZĄTEK IMPORTU')
 
@@ -255,7 +253,8 @@ if __name__ == '__main__':
         id_miejscowosci = t_line[0].strip()
 
         # tylko testowe
-        test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl']
+        #test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl']
+        test_rec = ['Babimost_ksc_pzn']
         if id_miejscowosci not in test_rec:
             continue
 
@@ -293,6 +292,7 @@ if __name__ == '__main__':
             else:
                 ok_prng, element_qid = search_by_unique_id(properties['prng id'], zbiorcza_prng)
 
+            # rekordy z prng którego nie udało się znaleźć w wikibase są na razie pomijane
             if not ok_prng:
                 logger.error(f'ERROR: Nie znaleziono elementu dla PRNG {zbiorcza_prng}, {element_qid}')
                 continue
@@ -300,9 +300,8 @@ if __name__ == '__main__':
         else:
             # szukanie czy aby nie istnieje
             if not nazwa_16w:
-                # nie ma nazwy z 16 wieku
-                parameters = [(properties['instance of'], elements['human settlement'])]
-                ok, element_qid = element_search_adv("bez nazwy", 'en', parameters, description=id_miejscowosci)
+                # nie ma nazwy z 16 wieku - obecnie pomijamy
+                continue
             else:
                 # jest nazwa z 16 wieku
                 parameters = [(properties['instance of'], elements['human settlement']),
@@ -393,25 +392,28 @@ if __name__ == '__main__':
                 else:
                     aliasy['pl'] = [nazwa_slownikowa]
                 shg_references = {}
-                shg_references[properties['reference URL']] = 'http://www.slownik.ihpan.edu.pl/'
+                if zbiorcza_sgh_id:
+                    shg_references[properties['reference URL']] = f'http://www.slownik.ihpan.edu.pl/search.php?id={zbiorcza_sgh_id}'
+                else:
+                    shg_references[properties['reference URL']] = 'http://www.slownik.ihpan.edu.pl/'
                 statement = create_statement_data(properties['stated as'],
                                                   f'pl:"{nazwa_slownikowa}"',
                                                   shg_references, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
-        # ===== stated as - nazwa wspolczesna =====
-        if nazwa_wspolczesna:
-            if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_wspolczesna}"'):
-                if 'pl' in aliasy:
-                    aliasy['pl'].append(nazwa_wspolczesna)
-                else:
-                    aliasy['pl'] = [nazwa_wspolczesna]
-                statement = create_statement_data(properties['stated as'],
-                                                  f'pl:"{nazwa_wspolczesna}"',
-                                                  None, None, add_ref_dict=references, if_exists='APPEND')
-                if statement:
-                    data.append(statement)
+        # # ===== stated as - nazwa wspolczesna =====
+        # if nazwa_wspolczesna:
+        #     if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_wspolczesna}"'):
+        #         if 'pl' in aliasy:
+        #             aliasy['pl'].append(nazwa_wspolczesna)
+        #         else:
+        #             aliasy['pl'] = [nazwa_wspolczesna]
+        #         statement = create_statement_data(properties['stated as'],
+        #                                           f'pl:"{nazwa_wspolczesna}"',
+        #                                           None, None, add_ref_dict=references, if_exists='APPEND')
+        #         if statement:
+        #             data.append(statement)
 
         # ===== stated as - nazwa odmianki =====
         if nazwa_odmianki:
@@ -567,6 +569,7 @@ if __name__ == '__main__':
                 if statement:
                     data.append(statement)
 
+
         # ===== SIMC place ID ======
         if simc:
             if not element_qid or first_load or not has_statement(element_qid, properties['SIMC place ID'], simc):
@@ -672,6 +675,11 @@ if __name__ == '__main__':
                         if data:
                             wb_item.write(login_instance, bot_account=True, entity_type='item')
                             logger.info(f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}')
+
+                    # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
+                    if element_qid:
+                        with open(file_index, 'a', encoding='utf-8') as fi:
+                            fi.write(f'{line_number},{element_qid}')
 
                     break
                 except MWApiError as wb_error:
