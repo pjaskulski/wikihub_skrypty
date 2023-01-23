@@ -231,6 +231,7 @@ if __name__ == '__main__':
         t_line = map_line.split(',')
         prng_qid_map[t_line[0].strip()] = t_line[1].strip()
 
+    # wczytanie głównych danych
     file_name = Path('..') / 'data' / 'ahp_zbiorcza_pkt_prng.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -243,6 +244,7 @@ if __name__ == '__main__':
     references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
     references[properties['retrieved']] = retrieved
 
+    # kwalifikator z punktem czasowym
     qualifiers = {}
     qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
 
@@ -258,7 +260,7 @@ if __name__ == '__main__':
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
 
-        # tylko testowe
+        # tylko testowe, w docelowym imporcie zakomentować!
         test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl', 'Babimost_ksc_pzn']
         if id_miejscowosci not in test_rec:
             continue
