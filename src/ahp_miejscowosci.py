@@ -7,14 +7,15 @@ import time
 import re
 import copy
 import logging
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from langdetect import detect
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikibaseintegrator.wbi_exceptions import (MWApiError)
-from wikidariahtools import element_search_adv, get_properties, get_elements, search_by_unique_id
+from wikidariahtools import element_search_adv, get_properties, get_elements
+from wikidariahtools import search_by_unique_id, write_or_exit
 from property_import import create_statement_data, has_statement
 
 
@@ -235,8 +236,13 @@ if __name__ == '__main__':
         lines = f.readlines()
     lines = [line.strip() for line in lines]
 
+    # referencje globalne
+    now = datetime.now()
+    retrieved = now.strftime("%Y-%m-%d")
     references = {}
     references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
+    references[properties['retrieved']] = retrieved
+
     qualifiers = {}
     qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
 
@@ -253,8 +259,7 @@ if __name__ == '__main__':
         id_miejscowosci = t_line[0].strip()
 
         # tylko testowe
-        #test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl']
-        test_rec = ['Babimost_ksc_pzn']
+        test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl', 'Babimost_ksc_pzn']
         if id_miejscowosci not in test_rec:
             continue
 
@@ -402,19 +407,6 @@ if __name__ == '__main__':
                 if statement:
                     data.append(statement)
 
-        # # ===== stated as - nazwa wspolczesna =====
-        # if nazwa_wspolczesna:
-        #     if not element_qid or not has_statement(element_qid, properties['stated as'], f'pl:"{nazwa_wspolczesna}"'):
-        #         if 'pl' in aliasy:
-        #             aliasy['pl'].append(nazwa_wspolczesna)
-        #         else:
-        #             aliasy['pl'] = [nazwa_wspolczesna]
-        #         statement = create_statement_data(properties['stated as'],
-        #                                           f'pl:"{nazwa_wspolczesna}"',
-        #                                           None, None, add_ref_dict=references, if_exists='APPEND')
-        #         if statement:
-        #             data.append(statement)
-
         # ===== stated as - nazwa odmianki =====
         if nazwa_odmianki:
             t_odmianki = nazwa_odmianki.split(",")
@@ -471,6 +463,7 @@ if __name__ == '__main__':
             if ',' in obiekty_gospodarcze:
                 obiekty_gospodarcze = obiekty_gospodarcze.replace(',',';')
 
+            # najpierw wyjątki
             if obiekty_gospodarcze == '6 młynów (w tym folusz)':
                 t_obiekty = ['6 młynów', 'folusz']
             else:
@@ -662,39 +655,19 @@ if __name__ == '__main__':
                 for alias_item in alias_value:
                     wb_item.set_aliases(alias_item, alias_lang)
 
-
         if WIKIBASE_WRITE:
-            test = 1
-            while True:
-                try:
-                    if not element_qid:
-                        element_qid = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                        logger.info(f'Dodano nowy element: {label_en} / {label_pl} = {element_qid}')
-                    else:
-                        # tylko jak jest coś do uzupełnienia
-                        if data:
-                            wb_item.write(login_instance, bot_account=True, entity_type='item')
-                            logger.info(f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}')
+            if not element_qid:
+                message = f'Dodano nowy element: {label_en} / {label_pl} = {element_qid}'
+            else:
+                message = f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}'
 
-                    # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
-                    if element_qid:
-                        with open(file_index, 'a', encoding='utf-8') as fi:
-                            fi.write(f'{line_number},{element_qid}')
+            write_or_exit(login_instance, wb_item, logger, message)
 
-                    break
-                except MWApiError as wb_error:
-                    err_code = wb_error.error_msg['error']['code']
-                    message = wb_error.error_msg['error']['info']
-                    logger.info(f'ERROR: {err_code}, {message}')
-                    # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
-                    # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
-                    if err_code in ['assertuserfailed', 'badtoken']:
-                        if test == 1:
-                            logger.info('Generate edit credentials...')
-                            login_instance.generate_edit_credentials()
-                            test += 1
-                            continue
-                    sys.exit(1)
+            # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
+            if element_qid:
+                with open(file_index, 'a', encoding='utf-8') as fi:
+                    fi.write(f'{line_number},{element_qid}')
+
         else:
             if not element_qid:
                 element_qid = 'TEST'

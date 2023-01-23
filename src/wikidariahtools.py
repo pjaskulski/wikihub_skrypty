@@ -792,12 +792,11 @@ def search_by_unique_id(prop_id: str, id_value: str) -> tuple:
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem (znaleziono: {len(output)}).'
 
 
-def write_or_exit(login_instance, qid: str, data: list, logger, message:str):
+def write_or_exit(login_instance, wb_item, logger, message:str):
     """ zapis danych do wikibase lub zakończenie programu """
     loop_num = 1
     while True:
         try:
-            wb_item = wbi_core.ItemEngine(item_id=qid, data=data)
             wb_item.write(login_instance, entity_type='item')
             logger.info(message)
             break
