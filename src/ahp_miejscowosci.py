@@ -39,6 +39,21 @@ start_time = time.time()
 
 WIKIBASE_WRITE = True
 
+
+def get_palatinate(value: str):
+    """ zwraca QID województwa """
+    result = ''
+    palatinate_parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+    if value.startswith('ziemia'):
+        label = value
+    else:
+        label = f"palatinate {value}"
+    ok, qid = element_search_adv(label, 'en', palatinate_parameters)
+    if ok:
+        result = qid
+    return result
+
+
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 print('Przygotowanie słownika właściwości...')
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
@@ -187,6 +202,29 @@ fun_centralne_koscielne['parafia'] = elements['the seat of a parish']
 fun_centralne_koscielne['diecezja'] = elements['the capital of a diocese']
 fun_centralne_koscielne['opactwo'] = elements['the seat of an abbey/ monastery']
 
+# wojewodztwa
+palatinates = {}
+palatinates['brzeskie'] = get_palatinate('brzeskie')
+palatinates['chełmińskie'] = get_palatinate('chełmińskie')
+palatinates['dobrzyńskie'] = get_palatinate('dobrzyńskie')
+palatinates['inowrocławskie'] = get_palatinate('inowrocławskie')
+palatinates['kaliskie'] = get_palatinate('kaliskie')
+palatinates['krakowskie'] = get_palatinate('krakowskie')
+palatinates['łęczyckie'] = get_palatinate('łęczyckie')
+palatinates['lubelskie'] = get_palatinate('lubelskie')
+palatinates['malborskie'] = get_palatinate('malborskie')
+palatinates['mazowieckie'] = get_palatinate('mazowieckie')
+palatinates['płockie'] = get_palatinate('płockie')
+palatinates['podlaskie'] = get_palatinate('podlaskie')
+palatinates['pomorskie'] = get_palatinate('pomorskie')
+palatinates['poznańskie'] = get_palatinate('poznańskie')
+palatinates['rawskie'] = get_palatinate('rawskie')
+palatinates['ruskie'] = get_palatinate('ruskie')
+palatinates['sandomierskie'] = get_palatinate('sandomierskie')
+palatinates['sieradzkie'] = get_palatinate('sieradzkie')
+palatinates['trockie'] = get_palatinate('trockie')
+palatinates['ziemia dobrzyńska'] = get_palatinate('ziemia dobrzyńska')
+
 unikalne = []
 prng_qid_map = {}
 
@@ -254,14 +292,17 @@ if __name__ == '__main__':
     line_number = 0
     for line in lines:
         line_number +=1
-        # if line_number < 22310:
-        #     continue
 
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
 
         # tylko testowe, w docelowym imporcie zakomentować!
-        test_rec = ['Nowa_Karczma_prz_gdn_pmr', 'Ogony_rpn_dbr', 'Augustow_blk_pdl', 'Babimost_ksc_pzn']
+        test_rec = [
+                    #'Nowa_Karczma_prz_gdn_pmr',
+                    #'Ogony_rpn_dbr',
+                    'Augustow_blk_pdl',
+                    #'Babimost_ksc_pzn'
+                    ]
         if id_miejscowosci not in test_rec:
             continue
 
@@ -604,22 +645,13 @@ if __name__ == '__main__':
         # ===== located in the administrative territorial entity =====
         if powiat_p:
             parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+            if woj_p:
+                parameters.append((properties['part of'], palatinates[woj_p]))
             ok, powiat_qid = element_search_adv(f"district {powiat_p}", 'en', parameters)
             if ok:
                 if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
                     statement = create_statement_data(properties['located in the administrative territorial entity'],
                                                   powiat_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
-                    if statement:
-                        data.append(statement)
-
-        # ===== located in the administrative territorial entity =====
-        if woj_p:
-            parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
-            ok, woj_qid = element_search_adv(f"palatinate {woj_p}", 'en', parameters)
-            if ok:
-                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], woj_qid):
-                    statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  woj_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
