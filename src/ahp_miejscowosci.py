@@ -310,8 +310,8 @@ if __name__ == '__main__':
                     # 'Babimost_ksc_pzn',
 
                     # 'Dobrzyn_dbr_dbr',
-                    'Szpetal_Dolny_dbr_dbr',
-                    # 'Czaple_Jarki_drh_pdl',
+                    # 'Szpetal_Dolny_dbr_dbr',
+                    'Czaple_Jarki_drh_pdl',
                     # 'Bielony_Borysy_drh_pdl',
                     # 'Czechowo_gzn_kls'
                     ]
@@ -340,6 +340,12 @@ if __name__ == '__main__':
         ahp_pkt_WGS84 = t_line[20].strip()
         zbiorcza_sgh_id = t_line[21].strip()
         zbiorcza_prng = t_line[22].strip()
+
+        # modyfikacja niektórych wartości
+        if rodzaj_lokalizacji == 'przybliżona':
+            rodzaj_lokalizacji = 'approximate location'
+        elif rodzaj_lokalizacji == 'nieznana':
+            rodzaj_lokalizacji = 'location unknown'
 
         # szukanie w wiki po identyfikatorze prng
         element_qid = ''
@@ -681,6 +687,7 @@ if __name__ == '__main__':
         # ===== etykiety, description =====
         if not zbiorcza_prng:
             # nowy element - osada historyczna
+            new_element = True
             wb_item = wbi_core.ItemEngine(new_item=True, data=data)
             wb_item.set_label(label_en, lang='en')
             wb_item.set_label(label_pl,lang='pl')
@@ -689,6 +696,7 @@ if __name__ == '__main__':
             wb_item.set_description(description_pl, 'pl')
         else:
             # istniejący już element
+            new_element = False
             wb_item = wbi_core.ItemEngine(item_id=element_qid, data=data)
             label_pl = wb_item.get_label('pl')
             label_en = wb_item.get_label('en')
@@ -702,12 +710,14 @@ if __name__ == '__main__':
                     wb_item.set_aliases(alias_item, alias_lang)
 
         if WIKIBASE_WRITE:
-            if not element_qid:
+            element_qid = write_or_exit(login_instance, wb_item, logger)
+
+            if new_element:
                 message = f'Dodano nowy element: {label_en} / {label_pl} = {element_qid}'
             else:
                 message = f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}'
 
-            element_qid = write_or_exit(login_instance, wb_item, logger, message)
+            logger.info(message)
 
             # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
             if element_qid:
