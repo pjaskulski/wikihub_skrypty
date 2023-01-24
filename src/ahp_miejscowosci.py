@@ -43,23 +43,43 @@ WIKIBASE_WRITE = True
 def get_palatinate(value: str):
     """ zwraca QID województwa """
     result = ''
-    palatinate_parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+
     if value.startswith('ziemia'):
-        label = value
+        label = value.replace('ziemia', 'land')
+        palatinate_parameters = [(properties['instance of'], elements['land (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+
     else:
         label = f"palatinate {value}"
+        palatinate_parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+
     ok, qid = element_search_adv(label, 'en', palatinate_parameters)
     if ok:
         result = qid
+    else:
+        logger.info(f'ERROR: nie znaleziono QID dla {value}')
+
     return result
 
+ # tworzenie obiektu loggera
+file_log = Path('..') / 'log' / 'ahp_zbiorcza_pkt_prng.log'
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+c_handler = logging.StreamHandler()
+f_handler = logging.FileHandler(file_log)
+log_format = logging.Formatter('%(asctime)s - %(message)s')
+c_handler.setFormatter(log_format)
+f_handler.setFormatter(log_format)
+c_handler.setLevel(logging.DEBUG)
+f_handler.setLevel(logging.INFO)
+logger.addHandler(c_handler)
+logger.addHandler(f_handler)
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 print('Przygotowanie słownika właściwości...')
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts', 'coordinate location',
                              'settlement type', 'settlement ownership type', 'prng id',
-                             'economic object', 'type of location',
+                             'contains an object type', 'type of location',
                              'central state functions', 'central church functions',
                              'SIMC place ID', 'Wikidata ID', 'AHP id',
                              'located in the administrative territorial entity',
@@ -92,7 +112,8 @@ elements = get_elements(['human settlement', 'demesne settlement',
                          'the capital of the land',
                          'district (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
-                         'parish (Roman Catholic Church)'
+                         'parish (Roman Catholic Church)',
+                         'land (The Polish-Lithuanian Commonwealth (1569-1795))'
                          ])
 
 # settlement type map
@@ -206,7 +227,6 @@ fun_centralne_koscielne['opactwo'] = elements['the seat of an abbey/ monastery']
 palatinates = {}
 palatinates['brzeskie'] = get_palatinate('brzeskie')
 palatinates['chełmińskie'] = get_palatinate('chełmińskie')
-palatinates['dobrzyńskie'] = get_palatinate('dobrzyńskie')
 palatinates['inowrocławskie'] = get_palatinate('inowrocławskie')
 palatinates['kaliskie'] = get_palatinate('kaliskie')
 palatinates['krakowskie'] = get_palatinate('krakowskie')
@@ -240,20 +260,6 @@ if __name__ == '__main__':
                                          access_token=WIKIDARIAH_ACCESS_TOKEN,
                                          access_secret=WIKIDARIAH_ACCESS_SECRET,
                                          token_renew_period=14400)
-
-    # tworzenie obiektu loggera
-    file_log = Path('..') / 'log' / 'ahp_zbiorcza_pkt_prng.log'
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler(file_log)
-    log_format = logging.Formatter('%(asctime)s - %(message)s')
-    c_handler.setFormatter(log_format)
-    f_handler.setFormatter(log_format)
-    c_handler.setLevel(logging.DEBUG)
-    f_handler.setLevel(logging.INFO)
-    logger.addHandler(c_handler)
-    logger.addHandler(f_handler)
 
     # plik pomocniczy z indeksem nr lini -> QID
     file_index = Path('..') / 'data' / 'ahp_line_qid.csv'
@@ -298,10 +304,16 @@ if __name__ == '__main__':
 
         # tylko testowe, w docelowym imporcie zakomentować!
         test_rec = [
-                    #'Nowa_Karczma_prz_gdn_pmr',
-                    #'Ogony_rpn_dbr',
-                    'Augustow_blk_pdl',
-                    #'Babimost_ksc_pzn'
+                    # 'Nowa_Karczma_prz_gdn_pmr',
+                    # 'Ogony_rpn_dbr',
+                    # 'Augustow_blk_pdl',
+                    # 'Babimost_ksc_pzn',
+
+                    # 'Dobrzyn_dbr_dbr',
+                    'Szpetal_Dolny_dbr_dbr',
+                    # 'Czaple_Jarki_drh_pdl',
+                    # 'Bielony_Borysy_drh_pdl',
+                    # 'Czechowo_gzn_kls'
                     ]
         if id_miejscowosci not in test_rec:
             continue
@@ -374,7 +386,7 @@ if __name__ == '__main__':
                 if woj_p:
                     if woj_p.startswith('ziemia') or woj_p.startswith('Ziemia'):
                         desc_add_pl.append(f"{woj_p}")
-                        desc_add_en.append(f"{woj_p}")
+                        desc_add_en.append(f"{woj_p.replace('ziemia', 'land')}")
                     else:
                         desc_add_pl.append(f"województwo {woj_p}")
                         desc_add_en.append(f"palatinate {woj_p}")
@@ -501,7 +513,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
 
-        # ===== economic object =====
+        # ===== contains an object type =====
         if obiekty_gospodarcze:
             if ',' in obiekty_gospodarcze:
                 obiekty_gospodarcze = obiekty_gospodarcze.replace(',',';')
@@ -539,8 +551,8 @@ if __name__ == '__main__':
                 # dodanie kwalifikatora 'count'
                 ob_qualifiers = copy.deepcopy(qualifiers)
                 ob_qualifiers[properties['count']] = liczba
-                if not element_qid or first_load or not has_statement(element_qid, properties['economic object'], obiekty[t_ob]):
-                    statement = create_statement_data(properties['economic object'],
+                if not element_qid or first_load or not has_statement(element_qid, properties['contains an object type'], obiekty[t_ob]):
+                    statement = create_statement_data(properties['contains an object type'],
                                                 obiekty[t_ob],
                                                 None, qualifier_dict=ob_qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
@@ -695,7 +707,7 @@ if __name__ == '__main__':
             else:
                 message = f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}'
 
-            write_or_exit(login_instance, wb_item, logger, message)
+            element_qid = write_or_exit(login_instance, wb_item, logger, message)
 
             # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
             if element_qid:
