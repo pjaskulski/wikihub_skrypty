@@ -397,15 +397,9 @@ if __name__ == '__main__':
                         desc_add_pl.append(f"województwo {woj_p}")
                         desc_add_en.append(f"palatinate {woj_p}")
 
-                if not nazwa_16w:
-                    label_pl = 'bez nazwy'
-                    label_en = 'name missing'
-                    description_pl = f"osada historyczna z Atlasu Historycznego Polski [id: {id_miejscowosci}] ({', '.join(desc_add_pl)})"
-                    description_en = f"historical settlement from the Historical Atlas of Poland [id: {id_miejscowosci}] ({', '.join(desc_add_en)})"
-                else:
-                    label_pl = label_en = nazwa_16w
-                    description_pl = f"osada historyczna z Atlasu Historycznego Polski ({', '.join(desc_add_pl)})"
-                    description_en = f"historical settlement from the Historical Atlas of Poland ({', '.join(desc_add_en)})"
+                label_pl = label_en = nazwa_16w
+                description_pl = f"osada historyczna z Atlasu Historycznego Polski ({', '.join(desc_add_pl)})"
+                description_en = f"historical settlement from the Historical Atlas of Poland ({', '.join(desc_add_en)})"
 
                 # testowanie unikalności pary label-description
                 identyfikator = label_en + ' : ' + description_en
