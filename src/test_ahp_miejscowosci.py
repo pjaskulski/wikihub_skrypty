@@ -2,22 +2,19 @@
 # pylint: disable=logging-fstring-interpolation
 
 import os
-import sys
 import time
-import re
-import copy
 import logging
-from datetime import datetime
+import warnings
 from pathlib import Path
 from dotenv import load_dotenv
-from langdetect import detect
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
 from wikidariahtools import element_search_adv, get_properties, get_elements
-from wikidariahtools import search_by_unique_id, write_or_exit
-from property_import import create_statement_data, has_statement
+from wikidariahtools import search_by_unique_id
+from property_import import has_statement
 
+warnings.filterwarnings("ignore")
 
 # adresy wikibase
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
@@ -75,7 +72,7 @@ logger.addHandler(c_handler)
 logger.addHandler(f_handler)
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
-print('Przygotowanie słownika właściwości...')
+logger.info('Przygotowanie słownika właściwości...')
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts', 'coordinate location',
                              'settlement type', 'settlement ownership type', 'prng id',
@@ -86,7 +83,7 @@ properties = get_properties(['instance of', 'stated as', 'reference URL', 'retri
                              'count', 'ID SHG'
                             ])
 
-print('Przygotowanie słownika elementów definicyjnych...')
+logger.info('Przygotowanie słownika elementów definicyjnych...')
 elements = get_elements(['human settlement', 'demesne settlement',
                          'manor', 'demesne', 'castle', 'glassworks', 'mining settlement',
                          'city/town', 'abbey', 'inn', 'ironworks',
@@ -260,117 +257,108 @@ if __name__ == '__main__':
                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
                                         token_renew_period=14400)
 
-    # tylko testowe
+    # dane pomocnicze
+    parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+    parameters.append((properties['part of'], palatinates['podlaskie']))
+    ok, powiat_qid = element_search_adv("district bielski", 'en', parameters)
+    if not ok:
+        logger.error('ERROR: brak powiatu bielskiego w województwie podlaskim')
+
+    parafia = fun_centralne_koscielne['parafia']
+    powiat = fun_centaralne_panstw['powiat']
+    wojewodztwo = fun_centaralne_panstw['województwo']
+    starostwo_niegrodowe = fun_centaralne_panstw['starostwo niegrodowe']
+    kasztelania = fun_centaralne_panstw['kasztelania']
+    archidiakonat = fun_centralne_koscielne['archidiakonat']
+    dekanat = fun_centralne_koscielne['dekanat']
+    wiatrak = obiekty['wiatrak']
+
+    # przypadki testowe na razie jak lista krotek,
+    # każda krotka zawiera:
+    #   - identyfikator elementu, obecnie poprzez statement z unikalnym identyfikatorem
+    #   - rodzaj informacji do sprawdzenia, obecnie: STATEMENT, ALIAS, DESCRIPTION
+    #   - nazwa właściwości w przypadku STATEMENT, lub kod języka w przypadku ALIAS lub DESCRIPTION
+    #   - wartość, w przypadku STATEMENT może to być tekst dla właściwości typu string ('example'),
+    #     lub item jeżeli jest w obsługiwanych elementach, wówczas przed etykietą identyfikującą element
+    #     powinno znaleźć się słowo ITEM: np. 'ITEM:fulling mill'
+    #     w przypadku ALIAS powinien to być pełny tekst aliasu, w przypadku DESCRIPTION
+    #     może to być fragment opisu elementu.
+
     test_rec = [
-                'Nowa_Karczma_prz_gdn_pmr',
-                'Ogony_rpn_dbr',
-                'Augustow_blk_pdl',
-                'Babimost_ksc_pzn',
-                'Dobrzyn_dbr_dbr',
-                'Szpetal_Dolny_dbr_dbr',
-                'Czaple_Jarki_drh_pdl',
-                'Bielony_Borysy_drh_pdl',
-                'Czechowo_gzn_kls'
+                ('STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr', 'STATEMENT','stated as','de:"Neukrug"'),
+                ('STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr', 'ALIAS','de','Neukrug'),
+                ('STATEMENT:AHP id|VALUE:Ogony_rpn_dbr', 'DESCRIPTION','pl','osada historyczna'),
+                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:fulling mill'),
+                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:tavern'),
+                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:mill'),
+                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'located in the administrative territorial entity', powiat_qid),
+                ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'settlement ownership type', 'ITEM:royal property'),
+                ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'central church functions', parafia),
+                ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'ID SHG', '15704'),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', powiat),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', wojewodztwo),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', starostwo_niegrodowe),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', kasztelania),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central church functions', parafia),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central church functions', archidiakonat),
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central church functions', dekanat),
+                ('STATEMENT:AHP id|VALUE:Szpetal_Dolny_dbr_dbr','STATEMENT','stated as', 'pl:"Spital"'),
+                ('STATEMENT:AHP id|VALUE:Szpetal_Dolny_dbr_dbr','STATEMENT','stated as', 'pl:"Szpital"'),
+                ('STATEMENT:AHP id|VALUE:Szpetal_Dolny_dbr_dbr','STATEMENT','settlement ownership type','ITEM:church property'),
+                ('STATEMENT:AHP id|VALUE:Szpetal_Dolny_dbr_dbr','STATEMENT','settlement ownership type','ITEM:noble property'),
+                ('STATEMENT:AHP id|VALUE:Czaple_Jarki_drh_pdl','DESCRIPTION', 'pl', 'osada historyczna'),
+                ('STATEMENT:AHP id|VALUE:Czaple_Jarki_drh_pdl','STATEMENT','type of location', 'ITEM:approximate location'),
+                ('STATEMENT:AHP id|VALUE:Bielony_Borysy_drh_pdl','STATEMENT','settlement ownership type','ITEM:noble property'),
+                ('STATEMENT:AHP id|VALUE:Czechowo_gzn_kls', 'STATEMENT', 'contains an object type', wiatrak)
+
                 ]
 
-    for id_miejscowosci in test_rec:
+    logger.info('Uruchomienie testów...')
 
-        ok, element_qid = search_by_unique_id(properties['AHP id'], id_miejscowosci)
-        if not ok:
-            logger.error(f'ERROR: nie znaleziono elementu dla identyfikatora: {id_miejscowosci}')
+    for identyfikator, cmd_type, cmd_prop, cmd_value in test_rec:
+        # obecnie obsługa tylko identyfikatorów w formie jednoznacznie
+        # identyfikującej deklaracji np. 'AHP id' = 'Czechowo_gzn_kls'
+
+        property_id = value_id = ''
+        t_identyfikator = identyfikator.split('|')
+        typ_id = t_identyfikator[0].strip()
+        if typ_id.split(':')[0].strip() == 'STATEMENT':
+            property_id = typ_id.split(':')[1].strip()
+        value_id = t_identyfikator[1].strip()
+        if value_id.split(':')[0].strip() == 'VALUE':
+            value_id = value_id.split(':')[1].strip()
+
+        if not property_id or not value_id:
+            logger.error(f'ERROR: nieprawidłowa definicja danych testowych {identyfikator}')
             continue
-        else:
-            logger.info(f'INFO: weryfikacja miejscowości: {id_miejscowosci} ({element_qid})')
+
+        ok, element_qid = search_by_unique_id(properties[property_id], value_id)
+        if not ok:
+            logger.error(f'ERROR: nie znaleziono elementu dla identyfikatora: {identyfikator}')
+            continue
 
         wb_item = wbi_core.ItemEngine(item_id=element_qid)
 
-        if id_miejscowosci == 'Nowa_Karczma_prz_gdn_pmr':
-            # alias i stated as w j. niemieckim
-            if not has_statement(element_qid, properties['stated as'], 'de:"Neukrug"'):
-                logger.error("ERROR: brak właściwości 'stated as' = 'Neukrug' (dla języka niemieckiego)")
-            aliasy = wb_item.get_aliases('de')
-            if not 'Neukrug' in aliasy:
-                logger.error(f"ERROR: {id_miejscowosci} - brak aliasu 'Neukrug' (dla języka niemieckiego)")
-
-        if id_miejscowosci == 'Ogony_rpn_dbr':
-            # przykład osady historycznej, bez prng
-            description = wb_item.get_description('pl')
-            if not 'osada historyczna' in description:
-                logger.error(f"ERROR: {id_miejscowosci} - brak opisu 'osada historyczna'")
-
-        if id_miejscowosci == 'Augustow_blk_pdl':
-            # przykład miejscowości z obiektami gospodarczymi, w powiecie bielskim (woj. podlaskie)
-            parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
-            parameters.append((properties['part of'], palatinates['podlaskie']))
-            ok, powiat_qid = element_search_adv("district bielski", 'en', parameters)
-            if not ok:
-                logger.error('ERROR: brak powiatu bielskiego w województwie podlaskim')
+        if cmd_type == 'STATEMENT':
+            if cmd_value.startswith('ITEM:'):
+                cmd_value_text = f"('{cmd_value[5:]}')"
+                cmd_value = elements[cmd_value[5:]]
             else:
-                if not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
-                    logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'located in the administrative territorial entity' = {powiat_qid} (powiat bielski)")
-            if not has_statement(element_qid, properties['contains an object type'], elements['fulling mill']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'contains an object type' = {elements['fulling mill']} (folusz, fulling mill)")
-            if not has_statement(element_qid, properties['contains an object type'], elements['tavern']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'contains an object type' = {elements['tavern']} (karczma, tavern)")
-            if not has_statement(element_qid, properties['contains an object type'], elements['mill']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'contains an object type' = {elements['mill']} (młyn, mill)")
+                cmd_value_text = ''
 
-        if id_miejscowosci == 'Babimost_ksc_pzn':
-            # własność królewska, funkcja centralna kościelna - siedziba parafii, ma identyfikator SHG i 'stated as' z nazwą z SHG
-            if not has_statement(element_qid, properties['settlement ownership type'], elements['royal property']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'settlement ownership type' = {elements['royal property']} (własność królewska)")
-
-            if not has_statement(element_qid, properties['central church functions'], fun_centralne_koscielne['parafia']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central church functions' = {fun_centralne_koscielne['parafia']} (parafia)")
-
-            if not has_statement(element_qid, properties['ID SHG'], '15704'):
-                logger.error(f"ERROR: {id_miejscowosci} - brak identyfikatora 'ID SHG' = 15704")
-
-        if id_miejscowosci == 'Dobrzyn_dbr_dbr':
-            # Dobrzyn_dbr_dbr - nietypowe woj.: funkcje państowe:województwo, powiat, starostwo niegrodowe, kasztelania,
-            # funkcje kościelne: archidiakonat, dekanat, parafia
-            if not has_statement(element_qid, properties['central state functions'], fun_centaralne_panstw['powiat']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central state functions' = {fun_centaralne_panstw['powiat']} (powiat)")
-            if not has_statement(element_qid, properties['central state functions'], fun_centaralne_panstw['województwo']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central state functions' = {fun_centaralne_panstw['województwo']} (województwo)")
-            if not has_statement(element_qid, properties['central state functions'], fun_centaralne_panstw['starostwo niegrodowe']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central state functions' = {fun_centaralne_panstw['starostwo niegrodowe']} (starostwo niegrodowe)")
-            if not has_statement(element_qid, properties['central state functions'], fun_centaralne_panstw['kasztelania']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central state functions' = {fun_centaralne_panstw['kasztelania']} (kasztelania)")
-
-            if not has_statement(element_qid, properties['central church functions'], fun_centralne_koscielne['parafia']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central church functions' = {fun_centralne_koscielne['parafia']} (parafia)")
-            if not has_statement(element_qid, properties['central church functions'], fun_centralne_koscielne['archidiakonat']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central church functions' = {fun_centralne_koscielne['archidiakonat']} (archidiakonat)")
-            if not has_statement(element_qid, properties['central church functions'], fun_centralne_koscielne['dekanat']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'central church functions' = {fun_centralne_koscielne['dekanat']} (dekanat)")
-
-        if id_miejscowosci == 'Szpetal_Dolny_dbr_dbr':
-            # Szpetal_Dolny_dbr_dbr - dwie odmianki nazw, dwa rodzaje własności: duchowna, szlachecka
-            if not has_statement(element_qid, properties['stated as'], 'pl:"Spital"'):
-                logger.error("ERROR: brak właściwości 'stated as' = 'Spital' (dla języka polskiego)")
-            if not has_statement(element_qid, properties['stated as'], 'pl:"Szpital"'):
-                logger.error("ERROR: brak właściwości 'stated as' = 'Szpital' (dla języka polskiego)")
-
-            if not has_statement(element_qid, properties['settlement ownership type'], elements['church property']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'settlement ownership type' = {elements['church property']} (własność duchowna)")
-            if not has_statement(element_qid, properties['settlement ownership type'], elements['noble property']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'settlement ownership type' = {elements['noble property']} (własność szlachecka)")
-
-        if id_miejscowosci == 'Czaple_Jarki_drh_pdl':
-            # Czaple_Jarki_drh_pdl - osada historyczna, rodzaj lokalizacji: przybliżona
-            description = wb_item.get_description('pl')
-            if 'osada historyczna' not in description:
-                logger.error(f"ERROR: {id_miejscowosci} - brak opisu 'osada historyczna'")
-            if not has_statement(element_qid, properties['type of location'], elements['approximate location']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'type of location' = {elements['approximate location']} (przybliżona)")
-
-        if id_miejscowosci == 'Bielony_Borysy_drh_pdl':
-            # Bielony_Borysy_drh_pdl - własność szlachecka
-            if not has_statement(element_qid, properties['settlement ownership type'], elements['noble property']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'settlement ownership type' = {elements['noble property']} (własność szlachecka)")
-
-        if id_miejscowosci == 'Czechowo_gzn_kls':
-            # Czechowo_gzn_kls - obiekty gospodarcze z liczbą: 2 wiatraki, link do wikidata
-            if not has_statement(element_qid, properties['contains an object type'], obiekty['wiatrak']):
-                logger.error(f"ERROR: {id_miejscowosci} - brak właściwości 'contains an object type' = {obiekty['wiatrak']} (wiatraki)")
+            if not has_statement(element_qid, properties[cmd_prop], cmd_value):
+                logger.error(f"ERROR: brak właściwości '{cmd_prop}' = {cmd_value} {cmd_value_text}")
+            else:
+                logger.info(f"OK: [{value_id}] - poprawna właściwość '{cmd_prop}' = {cmd_value} {cmd_value_text}")
+        elif cmd_type == 'ALIAS':
+            aliasy = wb_item.get_aliases(cmd_prop)
+            if cmd_value not in aliasy:
+                logger.error(f"ERROR: [{value_id}] - brak aliasu '{cmd_value}'")
+            else:
+                logger.info(f"OK: [{value_id}] - poprawny alias '{cmd_value}'")
+        elif cmd_type == 'DESCRIPTION':
+            description = wb_item.get_description(cmd_prop)
+            if cmd_value not in description:
+                logger.error(f"ERROR: [{value_id}] - brak opisu '{cmd_value}'")
+            else:
+                logger.info(f"OK: [{value_id}] - poprawny opis, zawiera tekst '{cmd_value}'")
