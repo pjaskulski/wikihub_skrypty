@@ -7,6 +7,7 @@ import time
 import re
 import copy
 import logging
+import warnings
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -18,6 +19,7 @@ from wikidariahtools import element_search_adv, get_properties, get_elements
 from wikidariahtools import search_by_unique_id, write_or_exit
 from property_import import create_statement_data, has_statement
 
+warnings.filterwarnings("ignore")
 
 # adresy wikibase
 wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
