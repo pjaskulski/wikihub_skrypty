@@ -316,6 +316,11 @@ if __name__ == '__main__':
     logger.info('Uruchomienie testów...')
 
     for identyfikator, cmd_type, cmd_prop, cmd_value in test_rec:
+        # identyfikator - służy do wyszukania elementu do sprawdzenia
+        # cmd_type - rodzaj danych do sprawdzenia: STATEMENT, ALIAS, DESCRIPTION
+        # cmp_prop - właściwość (dla STATEMENT), kod języka (dla ALIAS, DESCRIPTION)
+        # cmd_value - wartość do sprawdzenia, dla STATEMENT może to być wskazanie na item
+        #             dla DESCRIPTION może to być tylko fragment opisu
         # obecnie obsługa tylko identyfikatorów w formie jednoznacznie
         # identyfikującej deklaracji np. 'AHP id' = 'Czechowo_gzn_kls'
 
