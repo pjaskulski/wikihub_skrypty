@@ -39,7 +39,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 def get_palatinate(value: str):
@@ -49,7 +49,9 @@ def get_palatinate(value: str):
     if value.startswith('ziemia'):
         label = value.replace('ziemia', 'land')
         palatinate_parameters = [(properties['instance of'], elements['land (The Polish-Lithuanian Commonwealth (1569-1795))'])]
-
+    elif value == 'księstwo siewierskie':
+        label = 'The Duchy of Siewierz'
+        palatinate_parameters = [(properties['instance of'], elements['duchy (The Duchy of Siewierz (1443-1790))'])]
     else:
         label = f"palatinate {value}"
         palatinate_parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
@@ -62,19 +64,22 @@ def get_palatinate(value: str):
 
     return result
 
+
  # tworzenie obiektu loggera
 file_log = Path('..') / 'log' / 'ahp_zbiorcza_pkt_prng.log'
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-c_handler = logging.StreamHandler()
-f_handler = logging.FileHandler(file_log)
 log_format = logging.Formatter('%(asctime)s - %(message)s')
+c_handler = logging.StreamHandler()
 c_handler.setFormatter(log_format)
-f_handler.setFormatter(log_format)
 c_handler.setLevel(logging.DEBUG)
-f_handler.setLevel(logging.INFO)
 logger.addHandler(c_handler)
-logger.addHandler(f_handler)
+# zapis logów do pliku tylko jeżeli uruchomiono z zapisem do wiki
+if WIKIBASE_WRITE or 1:
+    f_handler = logging.FileHandler(file_log)
+    f_handler.setFormatter(log_format)
+    f_handler.setLevel(logging.INFO)
+    logger.addHandler(f_handler)
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 print('Przygotowanie słownika właściwości...')
@@ -85,7 +90,7 @@ properties = get_properties(['instance of', 'stated as', 'reference URL', 'retri
                              'central state functions', 'central church functions',
                              'SIMC place ID', 'Wikidata ID', 'AHP id',
                              'located in the administrative territorial entity',
-                             'count', 'ID SHG'
+                             'count', 'ID SHG', 'refine date'
                             ])
 
 print('Przygotowanie słownika elementów definicyjnych...')
@@ -115,7 +120,9 @@ elements = get_elements(['human settlement', 'demesne settlement',
                          'district (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'parish (Roman Catholic Church)',
-                         'land (The Polish-Lithuanian Commonwealth (1569-1795))'
+                         'land (The Polish-Lithuanian Commonwealth (1569-1795))',
+                         'duchy (The Duchy of Siewierz (1443-1790))',
+                         'second half'
                          ])
 
 # settlement type map
@@ -178,6 +185,7 @@ obiekty['wiatrak'] = elements['windmill']
 obiekty['wtr'] = elements['windmill']
 obiekty['wiatrak doroczny'] = elements['rental windmill']
 obiekty['wiatrak dziedziczny'] = elements['hereditary windmill']
+obiekty['wiatrak dziedziny'] = elements['hereditary windmill']
 obiekty['wyszynk'] = elements['wyszynk']
 obiekty['wyszynk gorzałki'] = elements['wyszynk']
 
@@ -201,6 +209,7 @@ gospodarcze_wiele = {
                     'wiatraki dziedziczne':'wiatrak dziedziczny'
                 }
 
+# słownik mapujący funkcje państwowe na identyfikatory QID
 fun_centaralne_panstw = {}
 fun_centaralne_panstw['kasztelania'] = elements["castellan's residence"]
 fun_centaralne_panstw['księstwo'] = elements['capital of the duchy']
@@ -218,6 +227,7 @@ fun_centaralne_panstw['województwo'] = elements['the capital of the province']
 fun_centaralne_panstw['starostwo generalne Małopolski'] = elements['general starosty of Małopolska']
 fun_centaralne_panstw['ziemia'] = elements['the capital of the land']
 
+# słownik mapujący funkcje kościelne na identyfikatory QID
 fun_centralne_koscielne = {}
 fun_centralne_koscielne['archidiakonat'] = elements['the capital of an archdeaconry']
 fun_centralne_koscielne['dekanat'] = elements['the capital of a deanery']
@@ -225,9 +235,9 @@ fun_centralne_koscielne['parafia'] = elements['the seat of a parish']
 fun_centralne_koscielne['diecezja'] = elements['the capital of a diocese']
 fun_centralne_koscielne['opactwo'] = elements['the seat of an abbey/ monastery']
 
-# wojewodztwa
+# województwa - słownik identyfikatorów QID dla województw, ziemi i księstw
 palatinates = {}
-palatinates['brzeskie'] = get_palatinate('brzeskie')
+palatinates['brzeskie kujawskie'] = get_palatinate('brzeskie kujawskie')
 palatinates['chełmińskie'] = get_palatinate('chełmińskie')
 palatinates['inowrocławskie'] = get_palatinate('inowrocławskie')
 palatinates['kaliskie'] = get_palatinate('kaliskie')
@@ -246,6 +256,41 @@ palatinates['sandomierskie'] = get_palatinate('sandomierskie')
 palatinates['sieradzkie'] = get_palatinate('sieradzkie')
 palatinates['trockie'] = get_palatinate('trockie')
 palatinates['ziemia dobrzyńska'] = get_palatinate('ziemia dobrzyńska')
+palatinates['księstwo siewierskie'] = get_palatinate('księstwo siewierskie')
+
+# mapowanie skrótowych nazw parafii na nazwy pełne
+wyjatki_parafie = {}
+wyjatki_parafie['Sandomierz - Paweł Ap'] = 'Sandomierz - pod wezwaniem Pawła Apostoła'
+wyjatki_parafie['Ostrów - NMP'] = 'Ostrów - pod wezwaniem Najświętszej Maryi Panny'
+wyjatki_parafie['Łęgonice - Jan Ch'] = 'Łęgonice - pod wezwaniem Jana Chrzciciela'
+wyjatki_parafie['Rokitno - Wojciech Bp'] = 'Rokitno - pod wezwaniem Wojciecha Biskupa'
+wyjatki_parafie['Kraków - Szczepan M'] = 'Kraków - pod wezwaniem Szczepana Męczennika'
+wyjatki_parafie['Łowicz - NMP'] = 'Łowicz - pod wezwaniem Najświętszej Maryi Panny'
+wyjatki_parafie['Czemierniki - town'] = 'Czemierniki'
+wyjatki_parafie['Kazimierz - Stanisław Bp, Michał A'] = 'Kazimierz - pod wezwaniem Stanisława Biskupa i Michała Archanioła'
+wyjatki_parafie['Gniezno - Piotr Ap'] = 'Gniezno - pod wezwaniem św. Piotra Apostoła'
+wyjatki_parafie['Kazimierz - Jakub W Ap'] = 'Kazimierz - pod wezwaniem Jakuba Większego Apostoła'
+wyjatki_parafie['Sandomierz - Piotr Ap'] = 'Sandomierz - pod wezwaniem Piotra Apostoła'
+wyjatki_parafie['Łowicz - Św. Duch'] = 'Łowicz - pod wezwaniem Św. Ducha'
+wyjatki_parafie['Kraków - NMP'] = 'Kraków - pod wezwaniem Najświętszej Maryi Panny'
+wyjatki_parafie['Poznań - Mikołaj Bp'] = 'Poznań -  pod wezwaniem Mikołaja Biskupa'
+wyjatki_parafie['Rokitno - Jakub W Ap'] = 'Rokitno - pod wezwaniem Jakuba Większego Apostoła'
+wyjatki_parafie['Kalisz - Mikołaj Bp'] = 'Kalisz - pod wezwaniem Mikołaja Biskupa'
+wyjatki_parafie['Gniezno - Michał A'] = 'Gniezno - pod wezwaniem Michała Archanioła'
+wyjatki_parafie['Kraków - Mikołaj Bp'] = 'Kraków - pod wezwaniem Mikołaja Biskupa'
+wyjatki_parafie['Gniezno - Św. Trójca'] = 'Gniezno - pod wezwaniem Św. Trójcy'
+wyjatki_parafie['Kalisz - NMP'] = 'Kalisz -  pod wezwaniem Najświętszej Maryi Panny'
+wyjatki_parafie['Gniezno - Wawrzyniec M'] = 'Gniezno - pod wezwaniem Wawrzyńca Męczennika'
+wyjatki_parafie['Ostrów - Jan Ch'] = 'Ostrów - pod wezwaniem Jana Chrzciciela'
+wyjatki_parafie['Żerków - Stanisław Bp'] = 'Żerków - pod wezwaniem Stanisława Biskupa'
+wyjatki_parafie['Żerków - Mikołaj Bp'] = 'Żerków - pod wezwaniem Mikołaja Biskupa'
+wyjatki_parafie['Poznań - Jan Ch'] = 'Poznań - pod wezwaniem Jana Chrzciciela'
+wyjatki_parafie['Poznań - Marcin Bp'] = 'Poznań - pod wezwaniem Marcina Biskupa'
+wyjatki_parafie['Poznań - Wojciech Bp'] = 'Poznań -  pod wezwaniem Wojciecha Biskupa'
+wyjatki_parafie['Kraków - Wszyscy Św'] = 'Kraków - pod wezwaniem Wszystkich Świętych'
+wyjatki_parafie['Poznań - Maria Magdalena'] = 'Poznań - pod wezwaniem Marii Magdaleny'
+wyjatki_parafie['Kraków - Św. Krzyż'] = 'Kraków - pod wezwaniem św. Krzyża'
+
 
 unikalne = []
 prng_qid_map = {}
@@ -292,7 +337,8 @@ if __name__ == '__main__':
 
     # kwalifikator z punktem czasowym
     qualifiers = {}
-    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
+    qualifiers[properties['point in time']] = '+1501-00-00T00:00:00Z/7' # XVI wiek
+    qualifiers[properties['refine date']] = elements['second half'] # XVI wiek
 
     # czy to pierwsze ładowanie danych? - wówczas bez dodatkowej weryfikacji
     first_load = True
@@ -301,11 +347,14 @@ if __name__ == '__main__':
     for line in lines:
         line_number +=1
 
+        if line_number <= 18578:
+            continue
+
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
 
         # tylko testowe, w docelowym imporcie zakomentować!
-        test_rec = [
+        # test_rec = [
                     # 'Nowa_Karczma_prz_gdn_pmr',
                     # 'Ogony_rpn_dbr',
                     # 'Augustow_blk_pdl',
@@ -313,12 +362,13 @@ if __name__ == '__main__':
 
                     # 'Dobrzyn_dbr_dbr',
                     # 'Szpetal_Dolny_dbr_dbr',
-                    'Czaple_Jarki_drh_pdl',
+                    #'Czaple_Jarki_drh_pdl',
                     # 'Bielony_Borysy_drh_pdl',
                     # 'Czechowo_gzn_kls'
-                    ]
-        if id_miejscowosci not in test_rec:
-            continue
+                    # ]
+
+        #if id_miejscowosci not in test_rec:
+        #    continue
 
         nazwa_slownikowa = t_line[1].strip()
         nazwa_wspolczesna = t_line[2].strip()
@@ -657,28 +707,87 @@ if __name__ == '__main__':
                     data.append(statement)
 
         # ===== located in the administrative territorial entity =====
-        if powiat_p:
-            parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
-            if woj_p:
-                parameters.append((properties['part of'], palatinates[woj_p]))
-            ok, powiat_qid = element_search_adv(f"district {powiat_p}", 'en', parameters)
-            if ok:
-                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
-                    statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  powiat_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
-                    if statement:
-                        data.append(statement)
+        if powiat_p and powiat_p != 'księstwo siewierskie':
+            if ' i ' in powiat_p:
+                t_powiaty = powiat_p.split(' i ')
+            elif powiat_p == 'brzeski kujawski lub przedecki':
+                t_powiaty = ['brzeski kujawski', 'przedecki']
+            else:
+                t_powiaty = [powiat_p]
+
+            for t_powiat in t_powiaty:
+                t_powiat = t_powiat.strip()
+
+                parameters = [(properties['instance of'], elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+                if woj_p:
+                    # specjalna obsługa dla dziwnych przypadków
+                    if woj_p == 'rawskie i brzeskie kujawskie':
+                        if t_powiat == 'kowalski':
+                            woj_powiat = 'brzeskie kujawskie'
+                        elif t_powiat == 'gostyniński':
+                            woj_powiat = 'rawskie'
+                    elif woj_p == 'brzeskie kujawskie i inowrocławskie':
+                        if t_powiat == 'kruszwicki':
+                            woj_powiat = 'brzeskie kujawskie'
+                        elif t_powiat == 'inowrocławski':
+                            woj_powiat = 'inowrocławskie'
+                    else:
+                        woj_powiat = woj_p
+
+                    parameters.append((properties['part of'], palatinates[woj_powiat]))
+                ok, powiat_qid = element_search_adv(f"district {t_powiat}", 'en', parameters)
+                if ok:
+                    if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], powiat_qid):
+                        statement = create_statement_data(properties['located in the administrative territorial entity'],
+                                                    powiat_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
+                        if statement:
+                            data.append(statement)
+                else:
+                    logger.error(f'ERROR: nie znaleziono powiatu: {t_powiat}')
+
+        # jeżeli nie ma powiatu to jednostką jest województwo
+        if not powiat_p and woj_p:
+            woj_qid = palatinates[woj_p]
+            if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], woj_qid):
+                statement = create_statement_data(properties['located in the administrative territorial entity'],
+                                                  woj_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
+                if statement:
+                    data.append(statement)
 
         # ===== located in the administrative territorial entity =====
-        if parafia:
-            parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
-            ok, parafia_qid = element_search_adv(f"parish {parafia}", 'en', parameters)
-            if ok:
-                if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
-                    statement = create_statement_data(properties['located in the administrative territorial entity'],
-                                                  parafia_qid, None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
-                    if statement:
-                        data.append(statement)
+        if parafia and parafia != '[nieznana]':
+            if ';' in parafia:
+                t_parafie = parafia.split(';')
+            elif ' i ' in parafia:
+                t_parafie = parafia.split(' i ')
+            elif ' lub ' in parafia:
+                t_parafie = parafia.split(' lub ')
+            else:
+                t_parafie = [parafia]
+
+            for t_parafia in t_parafie:
+                t_parafia = t_parafia.strip()
+                if t_parafia in wyjatki_parafie:
+                    t_parafia = wyjatki_parafie[t_parafia]
+
+                qualifiers_parafia = copy.deepcopy(qualifiers)
+                if t_parafia.endswith('?'):
+                    qualifiers_parafia['information status'] = 'uncertain'
+                    t_parafia = t_parafia[:-1]
+                elif ' lub ' in parafia:
+                    qualifiers_parafia['information status'] = 'uncertain'
+
+                parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
+                ok, parafia_qid = element_search_adv(f"parish {t_parafia}", 'en', parameters)
+                if ok:
+                    if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
+
+                        statement = create_statement_data(properties['located in the administrative territorial entity'],
+                                                    parafia_qid, None, qualifier_dict=qualifiers_parafia, add_ref_dict=references, if_exists='APPEND')
+                        if statement:
+                            data.append(statement)
+                else:
+                    logger.error(f'ERROR: nie znaleziono parafii: {t_parafia}')
 
         # ===== etykiety, description =====
         if not zbiorcza_prng:
@@ -709,16 +818,16 @@ if __name__ == '__main__':
             element_qid = write_or_exit(login_instance, wb_item, logger)
 
             if new_element:
-                message = f'Dodano nowy element: {label_en} / {label_pl} = {element_qid}'
+                message = f'Dodano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
             else:
-                message = f'Zaktualizowano element: {label_en} / {label_pl} = {element_qid}'
+                message = f'Zaktualizowano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
 
             logger.info(message)
 
-            # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości part of
+            # zapis pomocniczego indeksu który posłuży do uzupełniania właściwości 'okolic'
             if element_qid:
                 with open(file_index, 'a', encoding='utf-8') as fi:
-                    fi.write(f'{line_number},{element_qid}')
+                    fi.write(f'{line_number},{element_qid}\n')
 
         else:
             if not element_qid:
