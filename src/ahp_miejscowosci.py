@@ -39,7 +39,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 def get_palatinate(value: str):
@@ -75,7 +75,7 @@ c_handler.setFormatter(log_format)
 c_handler.setLevel(logging.DEBUG)
 logger.addHandler(c_handler)
 # zapis logów do pliku tylko jeżeli uruchomiono z zapisem do wiki
-if WIKIBASE_WRITE or 1:
+if WIKIBASE_WRITE:
     f_handler = logging.FileHandler(file_log)
     f_handler.setFormatter(log_format)
     f_handler.setLevel(logging.INFO)
@@ -122,7 +122,7 @@ elements = get_elements(['human settlement', 'demesne settlement',
                          'parish (Roman Catholic Church)',
                          'land (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'duchy (The Duchy of Siewierz (1443-1790))',
-                         'second half'
+                         'second half', 'parish (Orthodox Church)'
                          ])
 
 # settlement type map
@@ -189,6 +189,7 @@ obiekty['wiatrak dziedziny'] = elements['hereditary windmill']
 obiekty['wyszynk'] = elements['wyszynk']
 obiekty['wyszynk gorzałki'] = elements['wyszynk']
 
+# obiekty gospodarcze l. mnoga -> l. pojedyncza
 gospodarcze_wiele = {
                     'młyny doroczne':'młyn doroczny',
                     'karczmy':'karczma',
@@ -290,6 +291,9 @@ wyjatki_parafie['Poznań - Wojciech Bp'] = 'Poznań -  pod wezwaniem Wojciecha B
 wyjatki_parafie['Kraków - Wszyscy Św'] = 'Kraków - pod wezwaniem Wszystkich Świętych'
 wyjatki_parafie['Poznań - Maria Magdalena'] = 'Poznań - pod wezwaniem Marii Magdaleny'
 wyjatki_parafie['Kraków - Św. Krzyż'] = 'Kraków - pod wezwaniem św. Krzyża'
+wyjatki_parafie['Kraków - Anna'] = 'Kraków - pod wezwaniem św. Anny'
+wyjatki_parafie['Łęgonice - Maria Magdalena'] = 'Łęgonice - pod wezwaniem Marii Magdaleny'
+wyjatki_parafie['Kazimierz - Boże Ciało'] = 'Kazimierz - pod wezwaniem Bożego Ciała'
 
 
 unikalne = []
@@ -347,7 +351,7 @@ if __name__ == '__main__':
     for line in lines:
         line_number +=1
 
-        if line_number <= 18578:
+        if line_number <= 12822: # pierwszych 31 miejscowości było już zaimportowanych
             continue
 
         t_line = line.split('@')
@@ -359,7 +363,6 @@ if __name__ == '__main__':
                     # 'Ogony_rpn_dbr',
                     # 'Augustow_blk_pdl',
                     # 'Babimost_ksc_pzn',
-
                     # 'Dobrzyn_dbr_dbr',
                     # 'Szpetal_Dolny_dbr_dbr',
                     #'Czaple_Jarki_drh_pdl',
@@ -412,7 +415,7 @@ if __name__ == '__main__':
 
             # rekordy z prng którego nie udało się znaleźć w wikibase są na razie pomijane
             if not ok_prng:
-                logger.error(f'ERROR: Nie znaleziono elementu dla PRNG {zbiorcza_prng}, {element_qid}')
+                logger.error(f'ERROR: ({id_miejscowosci}) Nie znaleziono elementu dla PRNG {zbiorcza_prng}, {element_qid}')
                 continue
         # nie ma prng, należy dodać nowy element z miejscowością historyczną, o ile już nie istnieje
         else:
@@ -458,7 +461,7 @@ if __name__ == '__main__':
                 if identyfikator not in unikalne:
                     unikalne.append(identyfikator)
                 else:
-                    logger.error(f'ERROR: Brak unikalności pary label-description, {identyfikator}')
+                    logger.error(f'ERROR: ({id_miejscowosci}) Brak unikalności pary label-description, {identyfikator}')
 
                 instance_of = elements['human settlement']
 
@@ -519,6 +522,8 @@ if __name__ == '__main__':
             t_odmianki = nazwa_odmianki.split(",")
             for t_odm in t_odmianki:
                 t_odm = t_odm.strip()
+                if not t_odm: # pomijanie pustych
+                    continue
                 if not element_qid or first_load or not has_statement(element_qid, properties['stated as'], f'pl:"{t_odm}"'):
                     if 'pl' in aliasy:
                         aliasy['pl'].append(t_odm)
@@ -543,7 +548,7 @@ if __name__ == '__main__':
                     continue
 
                 if t_char not in s_type_map:
-                    print('ERROR: nieznany charakter osady:', charakter_osady)
+                    print(f'ERROR: ({id_miejscowosci}) nieznany charakter osady:', charakter_osady)
                     sys.exit(1)
 
                 settlement_type = s_type_map[t_char]
@@ -635,7 +640,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
                 else:
-                    logger.info(f'ERROR: nieznana funkcja państwowa {t_fun}')
+                    logger.info(f'ERROR: ({id_miejscowosci}) nieznana funkcja państwowa {t_fun}')
 
         # ===== funkcje centralne kościelne (central church functions) =====
         if funkcje_centralne_koscielne:
@@ -653,7 +658,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
                 else:
-                    logger.info(f'ERROR: nieznana funkcja kościelna {t_fun}')
+                    logger.info(f'ERROR: ({id_miejscowosci}) nieznana funkcja kościelna {t_fun}')
 
         # ===== współrzędne miejscowości =====
         # np. Point (23.29833332 52.68194448)
@@ -743,7 +748,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
                 else:
-                    logger.error(f'ERROR: nie znaleziono powiatu: {t_powiat}')
+                    logger.error(f'ERROR: ({id_miejscowosci}) nie znaleziono powiatu: {t_powiat}')
 
         # jeżeli nie ma powiatu to jednostką jest województwo
         if not powiat_p and woj_p:
@@ -777,8 +782,14 @@ if __name__ == '__main__':
                 elif ' lub ' in parafia:
                     qualifiers_parafia['information status'] = 'uncertain'
 
-                parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
-                ok, parafia_qid = element_search_adv(f"parish {t_parafia}", 'en', parameters)
+                if 'prawosławna' in t_parafia:
+                    parameters = [(properties['instance of'], elements['parish (Orthodox Church)'])]
+                    label_to_search = f"orthodox parish {t_parafia}"
+                else:
+                    parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
+                    label_to_search = f"parish {t_parafia}"
+
+                ok, parafia_qid = element_search_adv(label_to_search, 'en', parameters)
                 if ok:
                     if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
 
@@ -787,7 +798,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
                 else:
-                    logger.error(f'ERROR: nie znaleziono parafii: {t_parafia}')
+                    logger.error(f'ERROR: ({id_miejscowosci}) nie znaleziono parafii: {t_parafia}')
 
         # ===== etykiety, description =====
         if not zbiorcza_prng:
@@ -818,9 +829,9 @@ if __name__ == '__main__':
             element_qid = write_or_exit(login_instance, wb_item, logger)
 
             if new_element:
-                message = f'Dodano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
+                message = f'({line_number}, {id_miejscowosci}) Dodano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
             else:
-                message = f'Zaktualizowano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
+                message = f'({line_number}, {id_miejscowosci}) Zaktualizowano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
 
             logger.info(message)
 
@@ -832,4 +843,8 @@ if __name__ == '__main__':
         else:
             if not element_qid:
                 element_qid = 'TEST'
-            logger.info(f"({line_number}) Przygotowano dodanie/uzupełnienie danych miejscowości - {label_en} / {label_pl}  = {element_qid}")
+            logger.info(f"({line_number}, {id_miejscowosci}) Przygotowano dodanie/uzupełnienie - {label_en} / {label_pl}  = {element_qid}")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')
