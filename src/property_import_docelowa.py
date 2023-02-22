@@ -5,6 +5,7 @@ import sys
 import re
 import json
 import time
+import warnings
 from pathlib import Path
 from typing import Union
 from openpyxl import load_workbook
@@ -16,17 +17,19 @@ from wikibaseintegrator.wbi_exceptions import MWApiError
 from dotenv import load_dotenv
 from wikidariahtools import element_search, search_by_purl, get_property_type, statement_value_fix
 
+warnings.filterwarnings("ignore")
 
 # adresy dla API Wikibase
-wbi_config["MEDIAWIKI_API_URL"] = "https://prunus-208.man.poznan.pl/api.php"
-wbi_config["SPARQL_ENDPOINT_URL"] = "https://prunus-208.man.poznan.pl/bigdata/sparql"
-wbi_config["WIKIBASE_URL"] = "https://prunus-208.man.poznan.pl"
+wbi_config['MEDIAWIKI_API_URL'] = 'https://wikihum.lab.dariah.pl/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'https://wikihum.lab.dariah.pl/bigdata/sparql'
+wbi_config['WIKIBASE_URL'] = 'https://wikihum.lab.dariah.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
 # słowniki dodawanych/modyfikowanych właściwości i elementów
 GLOBAL_PROPERTY = {}
 GLOBAL_ITEM = {}
+
 # do trybu testowego
 #QID_LICZNIK = 0
 #TEST_QID = {}
@@ -1265,7 +1268,6 @@ class WDHStatementItem:
             "Asv",
             "Afi",
             "Ahe",
-            "Aund"
         ):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
@@ -1276,9 +1278,8 @@ class WDHStatementItem:
                         f"SKIP: element: '{p_id}' ({self.label_en}) już posiada alias: '{self.statement_value}' dla języka: {lang}."
                     )
                 else:
-                    lang_len = -1 * len(lang)
                     wd_item.set_aliases(
-                        self.statement_value, lang=self.statement_property[lang_len:]
+                        self.statement_value, lang=self.statement_property[-2:]
                     )
                     if WIKIBASE_WRITE:
                         wd_item.write(login_instance, entity_type="item")
@@ -1341,9 +1342,9 @@ class WDHStatementItem:
                                 f"INVALID DATA, {p_id} ({self.label_en}): {prop_id} -> {p_value}"
                             )
 
-            except (MWApiError, KeyError, ValueError) as e:
+            except (MWApiError, KeyError, ValueError):
                 print(
-                    f"ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}, {e}"
+                    f"ERROR: item {p_id} ({self.label_en}): {self.statement_property} -> {self.statement_value}"
                 )
 
         # jeżeli to etykieta
@@ -2630,7 +2631,7 @@ def verify_reference(
 
 
 def monolingual_text_fix(text_value: str) -> str:
-    """korekta wartości tesktowej jeżeli to wygląda na monolingual text"""
+    """korekta wartości tekstowej jeżeli to wygląda na monolingual text"""
     if len(text_value) > 3:
         if text_value[2] == ":" and "”" in text_value:
             # jeżeli nietypowy cudzysłów w wartości z arkusza xlsx
@@ -2886,7 +2887,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # login i hasło ze zmiennych środowiskowych
-    env_path = Path(".") / ".env"
+    env_path = Path(".") / ".env_wikihum"
     load_dotenv(dotenv_path=env_path)
 
     # OAuth
