@@ -42,7 +42,6 @@ def get_best(text, min_dist, ahp_prng_WGS84):
     """ get_best """
     best_prng = ''
     result = process.extract(text, df_prng['NAZWAGLOWN'], score_cutoff=90)
-    #result = process.extractBests(text, df_prng['NAZWAGLOWN'], score_cutoff=90)
     for item in result:
         name, score, line_number = item
         prng = df_prng['PRNG'][line_number]
