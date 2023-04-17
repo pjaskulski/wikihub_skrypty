@@ -571,8 +571,11 @@ def element_search_adv(search_string: str, lang: str, parameters: list, descript
         język
         i lista z parami właściwość-wartość np.
         'województwo poznańskie', [('P202','test')]
-        może być pusta (None), wówczas wyszukianie tylko po etykiecie i aliasie
-        opcjonalnie maksymalna liczba wyników do wertyfikacji
+        może być pusta (None), wówczas wyszukiwanie tylko po etykiecie i aliasie
+        opcjonalnie maksymalna liczba wyników do weryfikacji
+        Uwaga: funkcja wyszukuje pierwszy pasujący element, jeżeli w wikibase
+        jest więcej elementów pasujących do warunków nie zostaną one znalezione.
+        Należy stosować kombinacje jednoznacznych warunków wyszukiwania.
     """
 
     # jeżeli search_string jest zbyt długi to tylko 241 pierwszych znaków
@@ -704,7 +707,7 @@ def read_qid_from_text(value: str) -> str:
     return result
 
 
-def create_connection(db_file):
+def create_connection(db_file, with_extension=False):
     """ tworzy połączenie z bazą SQLite
         db_file - ścieżka do pliku bazy
     """
@@ -712,6 +715,11 @@ def create_connection(db_file):
     conn = None
     try:
         conn = sqlite3.connect(db_file)
+        if with_extension:
+            conn.enable_load_extension(True)
+            conn.load_extension("../fuzzy.so")
+            conn.load_extension("../spellfix.so")
+            conn.load_extension("../unicode.so")
 
     except Error as sql_error:
         print(sql_error)
@@ -792,18 +800,18 @@ def search_by_unique_id(prop_id: str, id_value: str) -> tuple:
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem (znaleziono: {len(output)}).'
 
 
-def write_or_exit(login_instance, wb_item, logger, message:str):
+def write_or_exit(login_instance, wb_item, logger):
     """ zapis danych do wikibase lub zakończenie programu """
     loop_num = 1
     while True:
         try:
-            wb_item.write(login_instance, entity_type='item')
-            logger.info(message)
+            new_id = wb_item.write(login_instance, entity_type='item')
             break
         except (MWApiError, KeyError) as wb_error:
             err_code = wb_error.error_msg['error']['code']
             message = wb_error.error_msg['error']['info']
             logger.info(f'ERROR: {err_code}, {message}')
+
             # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
             # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
             if err_code in ['assertuserfailed', 'badtoken']:
@@ -812,7 +820,54 @@ def write_or_exit(login_instance, wb_item, logger, message:str):
                     login_instance.generate_edit_credentials()
                     loop_num += 1
                     continue
+            # jeżeli błąd zapisu dto druga próba po 5 sekundach
+            elif err_code in ['failed-save']:
+                if loop_num == 1:
+                    logger.info('wait 5 seconds...')
+                    loop_num += 1
+                    continue
+
             sys.exit(1)
-        except BaseException as wb_err:
-            logger.info(f'ERROR {wb_err}')
+        except BaseException:
+            logger.exception('ERROR: an exception was thrown!')
             sys.exit(1)
+
+
+
+    return new_id
+
+
+def delete_property_or_item(l_instance, params) -> bool:
+    """ usuwa wskazany element/właściwość z wikibase
+        return: True - usunięto, False - element/właściwość nie istniał/został usunięty wcześniej
+    """
+    result = False
+    # usuwanie z obsługą błędów tokena
+    test = 1
+    while True:
+        try:
+            delete_results = mediawiki_api_call_helper(data=params, login=l_instance)
+            result = True
+            break
+        except MWApiError as wb_error:
+            err_code = wb_error.error_msg['error']['code']
+            message = wb_error.error_msg['error']['info']
+
+            # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
+            # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
+            if err_code in ['assertuserfailed', 'badtoken']:
+                if test == 1:
+                    print('Generate edit credentials...')
+                    l_instance.generate_edit_credentials()
+                    test += 1
+                    continue
+                else:
+                    print(f'ERROR: {err_code}, {message}')
+            elif err_code == 'missingtitle': # brak podanego QID w wikibase
+                break
+            else:
+                print(f'ERROR: {err_code}, {message}')
+
+            sys.exit(1) # jeżeli nie obłużony błąd to koniec pracy
+
+    return result
