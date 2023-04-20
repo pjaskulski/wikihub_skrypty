@@ -868,6 +868,6 @@ def delete_property_or_item(l_instance, params) -> bool:
             else:
                 print(f'ERROR: {err_code}, {message}')
 
-            sys.exit(1) # jeżeli nie obłużony błąd to koniec pracy
+            sys.exit(1) # jeżeli nie obsłużony błąd to koniec pracy
 
     return result
