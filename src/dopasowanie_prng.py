@@ -96,7 +96,7 @@ def process_rows(result_rows, best_min_dist, org_ahp_prng) -> tuple:
 if __name__ == '__main__':
 
     # wynik w pliku tekstowym (ścieżka do pliku)
-    output_path = Path('..') / 'data' / 'dopasowanie_prng_v3.csv'
+    output_path = Path('..') / 'data' / 'dopasowanie_prng_v5.csv'
     # dane
     miejscowosci_path = Path('..') / 'data' / 'ahp_zbiorcza.sqlite'
     db = create_connection(miejscowosci_path, with_extension=True)
@@ -152,15 +152,18 @@ if __name__ == '__main__':
         find_prng_powiat = ''
 
         # wyszukiwanie w bazie PRNG według nazwy współczesnej w AHP
-        prng_rows = get_rows(db, ahp_nazwa, lev_dist=2)
+        if ahp_nazwa:
+            prng_rows = get_rows(db, ahp_nazwa, lev_dist=1)
 
         # wyszukiwanie w bazie PRNG według nazwy z XVI wieku w AHP
-        prng_rows_2 = get_rows(db, ahp_nazwa16w, lev_dist=2)
-        prng_rows.extend(prng_rows_2)
+        elif ahp_nazwa16w:
+            prng_rows = get_rows(db, ahp_nazwa16w, lev_dist=1)
+            #prng_rows.extend(prng_rows_2)
 
         # wyszukiwanie w bazie PRNG według nazwy słownikowej w PRNG
-        prng_rows_3 = get_rows(db, ahp_nazwa_slow, lev_dist=2)
-        prng_rows.extend(prng_rows_3)
+        elif ahp_nazwa_slow:
+            prng_rows = get_rows(db, ahp_nazwa_slow, lev_dist=1)
+            #prng_rows.extend(prng_rows_3)
 
         # w wynikach wyszukiwanie najbardziej pasujących PRNG wg odległości punktów
         res = process_rows(prng_rows, min_distance, ahp_zbiorcza_prng)

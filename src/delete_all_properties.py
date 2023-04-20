@@ -38,9 +38,17 @@ if __name__ == '__main__':
                                       access_token=WIKIDARIAH_ACCESS_TOKEN,
                                       access_secret=WIKIDARIAH_ACCESS_SECRET,
                                       token_renew_period=14400)
-    start_item = 1
-    end_item = 400
+    start_item = 397
+    end_item = 398
+
+    # właściwości których nie chcemy usunąć
+    wyjatki = [187, 188]
+
     for i in range(start_item, end_item):
+
+        if i in wyjatki:
+            continue
+
         qid = f'P{i}'
         item_params = {
                 'action': 'delete',
