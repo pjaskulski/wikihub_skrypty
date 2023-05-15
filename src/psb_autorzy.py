@@ -3,6 +3,9 @@ import os
 import sys
 import time
 import json
+import logging
+from logging import Logger
+import warnings
 from pathlib import Path
 from dotenv import load_dotenv
 from wikibaseintegrator import WikibaseIntegrator
@@ -13,6 +16,7 @@ from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 from wikibaseintegrator.wbi_exceptions import MWApiError
 
+warnings.filterwarnings("ignore")
 
 # adresy wikibase
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
@@ -43,7 +47,7 @@ WIKIBASE_WRITE = False
 class Autor:
     """ dane autora PSB """
 
-    def __init__(self, author_dict:dict) -> None:
+    def __init__(self, author_dict:dict, logger_object:Logger) -> None:
 
         self.identyfikator = author_dict['ID']
         self.name = author_dict['name']
@@ -91,6 +95,9 @@ class Autor:
         # element
         self.wb_item = None
         self.qid = ''
+        # logi
+        self.logger = logger_object
+
 
 
     def time_from_string(self, value:str, prop: str) -> Time:
@@ -154,8 +161,15 @@ class Autor:
         for item in items:
             wbi_item = t_wbi.item.get(entity_id=item)
             item_description = wbi_item.descriptions.get(language='pl')
-            if item_description == self.description_pl:
+            item_viaf = ''
+            if autor.viaf:
+                tmp_viaf = wbi_item.claims.get(P_VIAF)
+                if tmp_viaf:
+                    item_viaf = tmp_viaf[0]
+            if ((not self.description_pl or item_description == self.description_pl) and
+               (not self.viaf or item_viaf == self.viaf)):
                 f_result = True
+                self.qid = item
                 break
 
         return f_result
@@ -170,21 +184,21 @@ class Autor:
                 break
             except MWApiError as wb_error:
                 err_code = wb_error.code
-                message = wb_error.messages
-                print(f'ERROR: {err_code}, {message}')
+                err_message = wb_error.messages
+                self.logger.error(f'ERROR: {err_code}, {err_message}')
 
                 # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
                 # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
                 if err_code in ['assertuserfailed', 'badtoken']:
                     if loop_num == 1:
-                        print('błąd "badtoken", odświeżenie poświadczenia...')
+                        self.logger.error('błąd "badtoken", odświeżenie poświadczenia...')
                         login.generate_edit_credentials()
                         loop_num += 1
                         continue
                 # jeżeli błąd zapisu dto druga próba po 5 sekundach
                 elif err_code in ['failed-save']:
                     if loop_num == 1:
-                        print('błąd zapisu, czekam 5 sekund...')
+                        self.logger.error('błąd zapisu, czekam 5 sekund...')
                         loop_num += 1
                         continue
 
@@ -199,6 +213,25 @@ if __name__ == '__main__':
     # pomiar czasu wykonania
     start_time = time.time()
 
+    # tworzenie obiektu loggera
+    file_log = Path('..') / 'log' / 'psb_autorzy.log'
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    log_format = logging.Formatter('%(asctime)s - %(message)s')
+    c_handler = logging.StreamHandler()
+    c_handler.setFormatter(log_format)
+    c_handler.setLevel(logging.DEBUG)
+    logger.addHandler(c_handler)
+    # zapis logów do pliku tylko jeżeli skrypt uruchomiono z zapisem do wiki
+    if WIKIBASE_WRITE:
+        f_handler = logging.FileHandler(file_log)
+        f_handler.setFormatter(log_format)
+        f_handler.setLevel(logging.INFO)
+        logger.addHandler(f_handler)
+
+    logger.info('POCZĄTEK IMPORTU')
+
+    # zalogowanie do instancji wikibase
     login_instance = wbi_login.OAuth1(consumer_token=WIKIDARIAH_CONSUMER_TOKEN,
                                       consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
                                       access_token=WIKIDARIAH_ACCESS_TOKEN,
@@ -207,11 +240,12 @@ if __name__ == '__main__':
     wbi = WikibaseIntegrator(login=login_instance)
 
     input_path = Path("..") / "data" / "autorzy.json"
+    output_path = Path("..") / "data" / "autorzy_qid.json"
 
     with open(input_path, "r", encoding='utf-8') as f:
         json_data = json.load(f)
         for i, autor_record in enumerate(json_data['authors']):
-            autor = Autor(autor_record)
+            autor = Autor(autor_record, logger_object=logger)
             if not autor.appears_in_wikibase(wbi):
                 if WIKIBASE_WRITE:
                     autor.create_new_item(wbi)
@@ -219,12 +253,17 @@ if __name__ == '__main__':
                 else:
                     autor.qid = 'TEST'
 
-                print(f'Dodano element: {autor.name} z QID: {autor.qid}')
-
+                message = f'Dodano element: {autor.name} z QID: {autor.qid}'
             else:
-                print(f'Element "{autor.name}" już istnieje w tej instancji Wikibase.')
+                message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase.'
 
+            autor_record['QID'] = autor.qid
+            logger.info(message)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(json_data, f, indent=4, ensure_ascii=False)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.')
+    message = f'Czas wykonania programu: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))} s.'
+    logger.info(message)
