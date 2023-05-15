@@ -60,49 +60,28 @@ class Autor:
 
         self.identyfikator = author_dict['ID']
         self.name = author_dict['name']
-        if 'years' in author_dict:
-            self.description_pl = author_dict['years']
-            self.description_en = author_dict['years']
-        else:
-            self.description_pl = ''
-            self.description_en = ''
 
-        if 'date_of_birth' in author_dict:
-            self.date_of_birth = author_dict['date_of_birth']
-        else:
-            self.date_of_birth = ''
+        self.description_pl = author_dict.get('years', '')
+        self.description_en = author_dict.get('years', '')
 
-        if 'date_of_death' in author_dict:
-            self.date_of_death = author_dict['date_of_death']
-        else:
-            self.date_of_death = ''
+        self.date_of_birth = author_dict.get('date_of_birth', '')
+        self.date_of_death = author_dict.get('date_of_death', '')
 
-        if 'viaf' in author_dict:
-            viaf = str(author_dict['viaf'])
-            if 'https' in viaf:
-                self.viaf = viaf.replace('https://viaf.org/viaf/','').replace(r'/','')
-            else:
-                self.viaf = viaf.replace('http://viaf.org/viaf/','').replace(r'/','')
+        viaf = str(author_dict.get('viaf', ''))
+        if 'https' in viaf:
+            self.viaf = viaf.replace('https://viaf.org/viaf/','').replace(r'/','')
         else:
-            self.viaf = ''
+            self.viaf = viaf.replace('http://viaf.org/viaf/','').replace(r'/','')
 
-        if 'plwabn_id' in author_dict:
-            self.plwabn_id = author_dict['plwabn_id']
-        else:
-            self.plwabn_id = ''
+        self.plwabn_id = author_dict.get('plwabn_id', '')
 
-        if  'bn_opis' in author_dict:
-            self.description_pl += ' ' + author_dict['bn_opis']
-        else:
-            self.description_pl = ''
+        self.description_pl += ' ' + author_dict.get('bn_opis', '')
+        self.description_pl = self.description_pl.strip()
 
-        if "description_en" in author_dict:
-            self.description_en += ' ' + author_dict['description_en']
-        else:
-            self.description_en = ''
+        self.description_en += ' ' + author_dict.get('description_en', '')
+        self.description_en = self.description_en.strip()
 
-        if "aliasy" in author_dict:
-            self.aliasy = author_dict['aliasy']
+        self.aliasy = author_dict.get('aliasy', [])
 
         # element
         self.wb_item = None
@@ -282,8 +261,10 @@ if __name__ == '__main__':
     with open(input_path, "r", encoding='utf-8') as f:
         json_data = json.load(f)
         for i, autor_record in enumerate(json_data['authors']):
+
             autor = Autor(autor_record, logger_object=logger, login_object=login_instance,
                           wbi_object=wbi, references=references_bn)
+
             if not autor.appears_in_wikibase():
                 if WIKIBASE_WRITE:
                     autor.create_new_item()
