@@ -11,10 +11,11 @@ from dotenv import load_dotenv
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikibaseintegrator.datatypes import ExternalID, Time
+from wikibaseintegrator.datatypes import ExternalID, Time, MonolingualText, Item, URL
 from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 from wikibaseintegrator.wbi_exceptions import MWApiError
+from wikibaseintegrator.wbi_enums import ActionIfExists
 
 warnings.filterwarnings("ignore")
 
@@ -39,6 +40,12 @@ P_VIAF = 'P517'
 P_DATE_OF_BIRTH = 'P422'
 P_DATE_OF_DEATH = 'P423'
 P_PLWABN_ID = 'P484'
+P_STATED_AS = 'P505'
+P_INSTANCE_OF = 'P459'
+P_REFERENCE_URL = 'P399'
+
+# elementy definicyjne w instancji wikibase
+Q_HUMAN = 'Q1'
 
 # czy zapis do wikibase czy tylko test
 WIKIBASE_WRITE = False
@@ -47,7 +54,9 @@ WIKIBASE_WRITE = False
 class Autor:
     """ dane autora PSB """
 
-    def __init__(self, author_dict:dict, logger_object:Logger) -> None:
+    def __init__(self, author_dict:dict, logger_object:Logger,
+                 login_object:wbi_login.OAuth1, wbi_object: WikibaseIntegrator,
+                 references:list) -> None:
 
         self.identyfikator = author_dict['ID']
         self.name = author_dict['name']
@@ -92,12 +101,21 @@ class Autor:
         else:
             self.description_en = ''
 
+        if "aliasy" in author_dict:
+            self.aliasy = author_dict['aliasy']
+
         # element
         self.wb_item = None
+        # znaleziony lub utworzony QID
         self.qid = ''
         # logi
         self.logger = logger_object
-
+        # login instance
+        self.login_instance = login_object
+        # WikibaseIntegratorObject
+        self.wbi = wbi_object
+        # referencje
+        self.references = references
 
 
     def time_from_string(self, value:str, prop: str) -> Time:
@@ -117,12 +135,13 @@ class Autor:
 
         format_time =  f'+{year}-{month}-{day}T00:00:00Z'
 
-        return Time(prop_nr=prop, time=format_time, precision=precision)
+        return Time(prop_nr=prop, time=format_time, precision=precision,
+                    references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
 
-    def create_new_item(self, t_wbi:WikibaseIntegrator):
+    def create_new_item(self):
         """ przygotowuje nowy element do dodania """
-        self.wb_item = t_wbi.item.new()
+        self.wb_item = self.wbi.item.new()
 
         self.wb_item.labels.set(language='pl', value=self.name)
         self.wb_item.labels.set(language='en', value=self.name)
@@ -132,7 +151,8 @@ class Autor:
 
         data = []
         if self.viaf:
-            statement = ExternalID(value=self.viaf, prop_nr=P_VIAF)
+            statement = ExternalID(value=self.viaf, prop_nr=P_VIAF,
+                                   references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
             data.append(statement)
 
         if self.date_of_birth:
@@ -144,14 +164,27 @@ class Autor:
             data.append(statement)
 
         if self.plwabn_id:
-            statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID)
+            statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID,
+                                   references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
             data.append(statement)
+
+        if self.aliasy:
+            self.wb_item.aliases.set(language='pl', values=self.aliasy)
+            for alias in self.aliasy:
+                statement = MonolingualText(text=alias, language='pl',
+                                            prop_nr=P_STATED_AS,
+                                            references=self.references,
+                                            action_if_exists=ActionIfExists.FORCE_APPEND)
+                data.append(statement)
+
+        statement = Item(value=Q_HUMAN, prop_nr=P_INSTANCE_OF, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+        data.append(statement)
 
         if data:
             self.wb_item.claims.add(data)
 
 
-    def appears_in_wikibase(self, t_wbi:WikibaseIntegrator) -> bool:
+    def appears_in_wikibase(self) -> bool:
         """ proste wyszukiwanie elementu w wikibase """
         f_result = False
 
@@ -159,7 +192,7 @@ class Autor:
                                              language='pl',
                                              search_type='item')
         for item in items:
-            wbi_item = t_wbi.item.get(entity_id=item)
+            wbi_item = self.wbi.item.get(entity_id=item)
             item_description = wbi_item.descriptions.get(language='pl')
             item_viaf = ''
             if autor.viaf:
@@ -175,7 +208,7 @@ class Autor:
         return f_result
 
 
-    def write_or_exit(self, login):
+    def write_or_exit(self):
         """ zapis danych do wikibase lub zakończenie programu """
         loop_num = 1
         while True:
@@ -192,7 +225,7 @@ class Autor:
                 if err_code in ['assertuserfailed', 'badtoken']:
                     if loop_num == 1:
                         self.logger.error('błąd "badtoken", odświeżenie poświadczenia...')
-                        login.generate_edit_credentials()
+                        self.login_instance.generate_edit_credentials()
                         loop_num += 1
                         continue
                 # jeżeli błąd zapisu dto druga próba po 5 sekundach
@@ -231,6 +264,10 @@ if __name__ == '__main__':
 
     logger.info('POCZĄTEK IMPORTU')
 
+    # referencje globalne (czy referencja do BN będzie URL-em czy Item-em?)
+    references_bn = [[ URL(value='https://data.bn.org.pl/institutions/authorities',
+                           prop_nr=P_REFERENCE_URL) ]]
+
     # zalogowanie do instancji wikibase
     login_instance = wbi_login.OAuth1(consumer_token=WIKIDARIAH_CONSUMER_TOKEN,
                                       consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
@@ -245,14 +282,14 @@ if __name__ == '__main__':
     with open(input_path, "r", encoding='utf-8') as f:
         json_data = json.load(f)
         for i, autor_record in enumerate(json_data['authors']):
-            autor = Autor(autor_record, logger_object=logger)
-            if not autor.appears_in_wikibase(wbi):
+            autor = Autor(autor_record, logger_object=logger, login_object=login_instance,
+                          wbi_object=wbi, references=references_bn)
+            if not autor.appears_in_wikibase():
                 if WIKIBASE_WRITE:
-                    autor.create_new_item(wbi)
-                    autor.write_or_exit(login_instance)
+                    autor.create_new_item()
+                    autor.write_or_exit()
                 else:
                     autor.qid = 'TEST'
-
                 message = f'Dodano element: {autor.name} z QID: {autor.qid}'
             else:
                 message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase.'
