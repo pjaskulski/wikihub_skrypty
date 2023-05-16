@@ -111,7 +111,7 @@ class Autor:
         format_time =  f'+{year}-{month}-{day}T00:00:00Z'
 
         return Time(prop_nr=prop, time=format_time, precision=precision,
-                    references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+                    references=self.references)
 
 
     def create_new_item(self):
@@ -124,39 +124,34 @@ class Autor:
         self.wb_item.descriptions.set(language='pl', value=self.description_pl)
         self.wb_item.descriptions.set(language='en', value=self.description_en)
 
-        data = []
         if self.viaf:
             statement = ExternalID(value=self.viaf, prop_nr=P_VIAF,
-                                   references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-            data.append(statement)
+                                   references=self.references)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.date_of_birth:
             statement = self.time_from_string(self.date_of_birth, P_DATE_OF_BIRTH)
-            data.append(statement)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.date_of_death:
             statement = self.time_from_string(self.date_of_death, P_DATE_OF_DEATH)
-            data.append(statement)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.plwabn_id:
             statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID,
-                                   references=self.references, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-            data.append(statement)
+                                   references=self.references)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.aliasy:
-            self.wb_item.aliases.set(language='pl', values=self.aliasy)
+            self.wb_item.aliases.set(language='pl', values=self.aliasy, action_if_exists=ActionIfExists.FORCE_APPEND)
             for alias in self.aliasy:
                 statement = MonolingualText(text=alias, language='pl',
                                             prop_nr=P_STATED_AS,
-                                            references=self.references,
-                                            action_if_exists=ActionIfExists.FORCE_APPEND)
-                data.append(statement)
+                                            references=self.references)
+                self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.FORCE_APPEND)
 
-        statement = Item(value=Q_HUMAN, prop_nr=P_INSTANCE_OF, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
-        data.append(statement)
-
-        if data:
-            self.wb_item.claims.add(data)
+        statement = Item(value=Q_HUMAN, prop_nr=P_INSTANCE_OF)
+        self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
 
     def appears_in_wikibase(self) -> bool:
@@ -215,6 +210,25 @@ class Autor:
         self.qid = new_id
 
 
+def set_logger(path:str) -> Logger:
+    """ utworzenie loggera """
+    logger_object = logging.getLogger(__name__)
+    logger_object.setLevel(logging.INFO)
+    log_format = logging.Formatter('%(asctime)s - %(message)s')
+    c_handler = logging.StreamHandler()
+    c_handler.setFormatter(log_format)
+    c_handler.setLevel(logging.DEBUG)
+    logger_object.addHandler(c_handler)
+    # zapis logów do pliku tylko jeżeli skrypt uruchomiono z zapisem do wiki
+    if WIKIBASE_WRITE:
+        f_handler = logging.FileHandler(path)
+        f_handler.setFormatter(log_format)
+        f_handler.setLevel(logging.INFO)
+        logger_object.addHandler(f_handler)
+
+    return logger_object
+
+
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
 
@@ -223,19 +237,7 @@ if __name__ == '__main__':
 
     # tworzenie obiektu loggera
     file_log = Path('..') / 'log' / 'psb_autorzy.log'
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    log_format = logging.Formatter('%(asctime)s - %(message)s')
-    c_handler = logging.StreamHandler()
-    c_handler.setFormatter(log_format)
-    c_handler.setLevel(logging.DEBUG)
-    logger.addHandler(c_handler)
-    # zapis logów do pliku tylko jeżeli skrypt uruchomiono z zapisem do wiki
-    if WIKIBASE_WRITE:
-        f_handler = logging.FileHandler(file_log)
-        f_handler.setFormatter(log_format)
-        f_handler.setLevel(logging.INFO)
-        logger.addHandler(f_handler)
+    logger = set_logger(file_log)
 
     logger.info('POCZĄTEK IMPORTU')
 
@@ -262,11 +264,13 @@ if __name__ == '__main__':
                           wbi_object=wbi, references=references_bn)
 
             if not autor.appears_in_wikibase():
+                autor.create_new_item()
+
                 if WIKIBASE_WRITE:
-                    autor.create_new_item()
                     autor.write_or_exit()
                 else:
                     autor.qid = 'TEST'
+
                 message = f'Dodano element: {autor.name} z QID: {autor.qid}'
             else:
                 message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase (QID: {autor.qid}).'
