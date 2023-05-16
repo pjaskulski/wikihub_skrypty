@@ -1,4 +1,6 @@
-""" skrypt do importu autorów biogramów PSB """
+""" skrypt do importu autorów biogramów PSB
+    uwaga: wymaga biblioteki WikibaseIntegrator w wersji 0.12 lub nowszej
+"""
 import os
 import sys
 import time
@@ -64,6 +66,14 @@ class Autor:
         self.description_pl = author_dict.get('years', '')
         self.description_en = author_dict.get('years', '')
 
+        self.description_pl += ' ' + author_dict.get('bn_opis', '')
+        self.description_pl = self.description_pl.strip()
+
+        self.description_en += ' ' + author_dict.get('description_en', '')
+        self.description_en = self.description_en.strip()
+
+        self.aliasy = author_dict.get('aliasy', [])
+
         self.date_of_birth = author_dict.get('date_of_birth', '')
         self.date_of_death = author_dict.get('date_of_death', '')
 
@@ -75,26 +85,12 @@ class Autor:
 
         self.plwabn_id = author_dict.get('plwabn_id', '')
 
-        self.description_pl += ' ' + author_dict.get('bn_opis', '')
-        self.description_pl = self.description_pl.strip()
-
-        self.description_en += ' ' + author_dict.get('description_en', '')
-        self.description_en = self.description_en.strip()
-
-        self.aliasy = author_dict.get('aliasy', [])
-
-        # element
-        self.wb_item = None
-        # znaleziony lub utworzony QID
-        self.qid = ''
-        # logi
-        self.logger = logger_object
-        # login instance
-        self.login_instance = login_object
-        # WikibaseIntegratorObject
-        self.wbi = wbi_object
-        # referencje
-        self.references = references
+        self.wb_item = None                # element
+        self.qid = ''                      # znaleziony lub utworzony QID
+        self.logger = logger_object        # logi
+        self.login_instance = login_object # login instance
+        self.wbi = wbi_object              # WikibaseIntegratorObject
+        self.references = references       # referencje
 
 
     def time_from_string(self, value:str, prop: str) -> Time:
@@ -273,7 +269,7 @@ if __name__ == '__main__':
                     autor.qid = 'TEST'
                 message = f'Dodano element: {autor.name} z QID: {autor.qid}'
             else:
-                message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase.'
+                message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase (QID: {autor.qid}).'
 
             autor_record['QID'] = autor.qid
             logger.info(message)
