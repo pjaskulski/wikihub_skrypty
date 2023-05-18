@@ -5,6 +5,7 @@ import sys
 import re
 import json
 import time
+import warnings
 from pathlib import Path
 from typing import Union
 from openpyxl import load_workbook
@@ -16,6 +17,7 @@ from wikibaseintegrator.wbi_exceptions import MWApiError
 from dotenv import load_dotenv
 from wikidariahtools import element_search, search_by_purl, get_property_type, statement_value_fix
 
+warnings.filterwarnings("ignore")
 
 # adresy dla API Wikibase
 wbi_config["MEDIAWIKI_API_URL"] = "https://prunus-208.man.poznan.pl/api.php"
@@ -1542,7 +1544,7 @@ class WDHStatementItem:
                 # uzupełnianie kwalifikatorów
                 if self.qualifiers:
                     q_list = get_qualifiers(wd_item, prop_id, p_value)
-                    print(q_list)
+                    #print(q_list)
                     for qualifier_key, qualifier_value in self.qualifiers.items():
                         qw_exists = check_if_qw_exists(
                             q_list, qualifier_key, qualifier_value
@@ -1557,7 +1559,7 @@ class WDHStatementItem:
                                         qualifier_key,
                                         qualifier_value,
                                     )
-                                    print('Uzupełnianie kwalifikatorów', add_result)
+                                    #print('Uzupełnianie kwalifikatorów', add_result)
                                 else:
                                     print(
                                         f"ERROR: nie znaleziono GUID deklaracji {prop_id} o wartości {p_value}"
@@ -1757,6 +1759,7 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     jeżeli nie to szuka w wikibase właściwości/elementu o etykiecie (ang) równej argumentowi
     (jeżeli strict=True to dokładnie równej) i zwraca jej id
     """
+    name = name.strip()
     output = (True, name)  # zakładamy, że w name jest id (np. P47)
     # ale jeżeli nie, to szukamy w wikibase
 
@@ -1957,6 +1960,10 @@ def create_statement(
                 value = None
 
             if value:
+                value = value.strip()
+                if len(value) == len('2023-05-15 00:00:00') and value.endswith('00:00:00'):
+                    value = value[:10]
+
                 if "/" in value:
                     tmp = value.split("/")
                 elif len(value) == 4:
@@ -1967,6 +1974,8 @@ def create_statement(
                     tmp = []
                     tmp.append(f"+{value}T00:00:00Z")
                     tmp.append("11")
+                else:
+                    print(f'ERROR: błędny format daty: "{value}"')
             else:
                 tmp = [None, 11]
 
@@ -2915,7 +2924,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = Path(".") / "data/arkusz_import.xlsx"
+        filename = "/home/piotr/ihpan/wikihub_skrypty/data/autorzy_ontohgis_fix.xlsx"
 
     plik_xlsx = WDHSpreadsheet(filename)
     plik_xlsx.open()
