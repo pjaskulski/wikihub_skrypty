@@ -19,6 +19,9 @@ from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 from wikibaseintegrator.wbi_exceptions import MWApiError
 from wikibaseintegrator.wbi_enums import ActionIfExists
 
+# czy zapis do wikibase czy tylko test
+WIKIBASE_WRITE = True
+
 warnings.filterwarnings("ignore")
 
 # adresy wikibase
@@ -47,18 +50,13 @@ P_INSTANCE_OF = 'P459'
 P_REFERENCE_URL = 'P399'
 
 # elementy definicyjne w instancji wikibase
-Q_HUMAN = 'Q1'
-
-# czy zapis do wikibase czy tylko test
-WIKIBASE_WRITE = False
-
+Q_HUMAN = 'Q229050'
 
 class Autor:
     """ dane autora PSB """
 
     def __init__(self, author_dict:dict, logger_object:Logger,
-                 login_object:wbi_login.OAuth1, wbi_object: WikibaseIntegrator,
-                 references:list) -> None:
+                 login_object:wbi_login.OAuth1, wbi_object: WikibaseIntegrator) -> None:
 
         self.identyfikator = author_dict['ID']
         self.name = author_dict['name']
@@ -77,7 +75,7 @@ class Autor:
         self.date_of_birth = author_dict.get('date_of_birth', '')
         self.date_of_death = author_dict.get('date_of_death', '')
 
-        viaf = str(author_dict.get('viaf', ''))
+        viaf = str(author_dict.get('viaf', '')).strip()
         if 'https' in viaf:
             self.viaf = viaf.replace('https://viaf.org/viaf/','').replace(r'/','')
         else:
@@ -90,7 +88,10 @@ class Autor:
         self.logger = logger_object        # logi
         self.login_instance = login_object # login instance
         self.wbi = wbi_object              # WikibaseIntegratorObject
-        self.references = references       # referencje
+        self.references = None             # referencje
+        # referencja do VIAF dla daty urodzenia, daty śmierci
+        if viaf:
+            self.references = [[ URL(value=viaf, prop_nr=P_REFERENCE_URL) ]]
 
 
     def time_from_string(self, value:str, prop: str) -> Time:
@@ -125,8 +126,7 @@ class Autor:
         self.wb_item.descriptions.set(language='en', value=self.description_en)
 
         if self.viaf:
-            statement = ExternalID(value=self.viaf, prop_nr=P_VIAF,
-                                   references=self.references)
+            statement = ExternalID(value=self.viaf, prop_nr=P_VIAF)
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.date_of_birth:
@@ -138,24 +138,55 @@ class Autor:
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.plwabn_id:
-            statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID,
-                                   references=self.references)
+            statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID)
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.aliasy:
             self.wb_item.aliases.set(language='pl', values=self.aliasy, action_if_exists=ActionIfExists.FORCE_APPEND)
             for alias in self.aliasy:
                 statement = MonolingualText(text=alias, language='pl',
-                                            prop_nr=P_STATED_AS,
-                                            references=self.references)
+                                            prop_nr=P_STATED_AS)
                 self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.FORCE_APPEND)
 
         statement = Item(value=Q_HUMAN, prop_nr=P_INSTANCE_OF)
         self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
 
+    def update_item(self, update_qid:str):
+        """ aktualizacja istniejącego elementu """
+
+        self.wb_item = self.wbi.item.get(entity_id=update_qid)
+        description = self.wb_item.descriptions.get(language='pl')
+        if description == '-':
+            self.wb_item.descriptions.set(language='pl', value=self.description_pl)
+            self.wb_item.descriptions.set(language='en', value=self.description_en)
+
+        if self.viaf:
+            statement = ExternalID(value=self.viaf, prop_nr=P_VIAF)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+        if self.date_of_birth:
+            statement = self.time_from_string(self.date_of_birth, P_DATE_OF_BIRTH)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+        if self.date_of_death:
+            statement = self.time_from_string(self.date_of_death, P_DATE_OF_DEATH)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+        if self.plwabn_id:
+            statement = ExternalID(value=self.plwabn_id, prop_nr=P_PLWABN_ID)
+            self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+        if self.aliasy:
+            self.wb_item.aliases.set(language='pl', values=self.aliasy, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+            for alias in self.aliasy:
+                statement = MonolingualText(text=alias, language='pl',
+                                            prop_nr=P_STATED_AS)
+                self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+
+
     def appears_in_wikibase(self) -> bool:
-        """ proste wyszukiwanie elementu w wikibase """
+        """ proste wyszukiwanie elementu w wikibase, tylko dokładna zgodność imienia i nazwiska """
         f_result = False
 
         items = wbi_helpers.search_entities(search_string=self.name,
@@ -163,14 +194,9 @@ class Autor:
                                              search_type='item')
         for item in items:
             wbi_item = self.wbi.item.get(entity_id=item)
-            item_description = wbi_item.descriptions.get(language='pl')
-            item_viaf = ''
-            if autor.viaf:
-                tmp_viaf = wbi_item.claims.get(P_VIAF)
-                if tmp_viaf:
-                    item_viaf = tmp_viaf[0]
-            if ((not self.description_pl or item_description == self.description_pl) and
-               (not self.viaf or item_viaf == self.viaf)):
+            item_label = wbi_item.labels.get(language='pl')
+
+            if item_label == self.name:
                 f_result = True
                 self.qid = item
                 break
@@ -207,7 +233,7 @@ class Autor:
 
                 sys.exit(1)
 
-        self.qid = new_id
+        self.qid = new_id.id
 
 
 def set_logger(path:str) -> Logger:
@@ -241,10 +267,6 @@ if __name__ == '__main__':
 
     logger.info('POCZĄTEK IMPORTU')
 
-    # referencje globalne (czy referencja do BN będzie URL-em czy Item-em?)
-    references_bn = [[ URL(value='https://data.bn.org.pl/institutions/authorities',
-                           prop_nr=P_REFERENCE_URL) ]]
-
     # zalogowanie do instancji wikibase
     login_instance = wbi_login.OAuth1(consumer_token=WIKIDARIAH_CONSUMER_TOKEN,
                                       consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
@@ -254,26 +276,29 @@ if __name__ == '__main__':
     wbi = WikibaseIntegrator(login=login_instance)
 
     input_path = Path("..") / "data" / "autorzy.json"
+    # test: input_path = '/home/piotr/ihpan/psb_import/data/probka.json'
     output_path = Path("..") / "data" / "autorzy_qid.json"
 
     with open(input_path, "r", encoding='utf-8') as f:
         json_data = json.load(f)
         for i, autor_record in enumerate(json_data['authors']):
-
+            # utworzenie instancji obiektu autora
             autor = Autor(autor_record, logger_object=logger, login_object=login_instance,
-                          wbi_object=wbi, references=references_bn)
+                          wbi_object=wbi)
 
             if not autor.appears_in_wikibase():
                 autor.create_new_item()
-
                 if WIKIBASE_WRITE:
                     autor.write_or_exit()
                 else:
                     autor.qid = 'TEST'
 
-                message = f'Dodano element: {autor.name} z QID: {autor.qid}'
+                message = f'Dodano element: # [https://prunus-208.man.poznan.pl/wiki/Item:{autor.qid} {autor.name}]'
             else:
-                message = f'Element "{autor.name}" już istnieje w tej instancji Wikibase (QID: {autor.qid}).'
+                message = f'Element istnieje: # [https://prunus-208.man.poznan.pl/wiki/Item:{autor.qid} {autor.name}]'
+                autor.update_item(autor.qid)
+                if WIKIBASE_WRITE:
+                    autor.write_or_exit()
 
             autor_record['QID'] = autor.qid
             logger.info(message)
