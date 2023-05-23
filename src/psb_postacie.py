@@ -17,7 +17,8 @@ from wikibaseintegrator.datatypes import ExternalID, Time, MonolingualText, Item
 from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 from wikibaseintegrator.wbi_exceptions import MWApiError
-from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_enums import ActionIfExists, WikibaseSnakType
+#from wikibaseintegrator.models.snaks import Snak
 
 # czy zapis do wikibase czy tylko test
 WIKIBASE_WRITE = False
@@ -53,9 +54,13 @@ P_PAGES = 'P479'
 P_VOLUME = 'P518'
 P_AUTHOR = 'P404'
 P_AUTHOR_STR = 'P405'
+P_SOURCING_CIR = 'P502'
+P_EARLIEST_DATE = 'P432'
+P_LATEST_DATE = 'P464'
 
 # elementy definicyjne w testowej instancji wikibase
 Q_HUMAN = 'Q229050'
+Q_CIRCA = 'Q'
 
 # tomy PSB w testowej instancji PSB jeżeli będą to tomy
 PSB = { "1":"Q0001", "2":"Q0002", "3":"Q0002", "4":"Q0002", "5":"Q0002", "6":"Q0002",
@@ -70,7 +75,7 @@ PSB = { "1":"Q0001", "2":"Q0002", "3":"Q0002", "4":"Q0002", "5":"Q0002", "6":"Q0
 }
 
 # element PSB jeżeli będzie to jeden item
-PSB_ITEM = 'Q22343'
+PSB_ITEM = 'Q000001'
 
 
 class Postac:
@@ -102,21 +107,28 @@ class Postac:
 
         self.date_of_birth = postac_dict.get('date_of_birth', '')
         self.date_of_death = postac_dict.get('date_of_death', '')
-        # zmiana formatu dat z DD-MM-YYYY na YYYY-MM-DD
+        # zmiana formatu dat z DD-MM-YYYY na YYYY-MM-DD oraz zapisów MM, DD na 00
         if self.date_of_birth:
-            b_date = self.date_of_birth[6:] + '-' + self.date_of_birth[3:5] + self.date_of_birth[:2]
+            b_date = self.date_of_birth[6:] + '-' + self.date_of_birth[3:5] + '-' + self.date_of_birth[:2]
             self.date_of_birth = b_date
             if self.date_of_birth.startswith('YYYY') and self.years_start:
                 self.date_of_birth = self.date_of_birth.replace('YYYY', self.years_start)
+            if 'MM' in self.date_of_birth:
+                self.date_of_birth = self.date_of_birth.replace('MM','00')
+            if 'DD' in self.date_of_birth:
+                self.date_of_birth = self.date_of_birth.replace('DD','00')
         if self.date_of_death:
-            d_date = self.date_of_death[6:] + '-' + self.date_of_death[3:5] + self.date_of_death[:2]
+            d_date = self.date_of_death[6:] + '-' + self.date_of_death[3:5] + '-' + self.date_of_death[:2]
             self.date_of_death= d_date
             if self.date_of_death.startswith('YYYY') and self.years_end:
                 self.date_of_death = self.date_of_death.replace('YYYY', self.years_end)
+            if 'MM' in self.date_of_death:
+                self.date_of_death = self.date_of_death.replace('MM','00')
+            if 'DD' in self.date_of_death:
+                self.date_of_death = self.date_of_death.replace('DD','00')
 
         # lata życia postaci z deskryptora BN
         self.bn_years = postac_dict.get('bn_years', '')
-        # ~ ? ok. ca po 16.. 1855-06-05 uu przed post non ante 1562/1563 fl. ca 1800%
 
         # informacje do utworzenia referencji do PSB
         self.volume = postac_dict.get('volume', '')
@@ -190,7 +202,7 @@ class Postac:
         return result
 
 
-    def time_from_string(self, value:str, prop: str, ref:list=None) -> Time:
+    def time_from_string(self, value:str, prop: str, ref:list=None, qlf_list:list=None) -> Time:
         """ przekształca datę z json na time oczekiwany przez wikibase """
         year = value[:4]
         month = value[5:7]
@@ -208,7 +220,100 @@ class Postac:
         format_time =  f'+{year}-{month}-{day}T00:00:00Z'
 
         return Time(prop_nr=prop, time=format_time, precision=precision,
-                    references=ref)
+                    references=ref, qualifiers=qlf_list)
+
+
+    def date_from_bn(self):
+        """ metoda przetwarza lata życia z deskryptora BN na daty do pól
+            date of birth, date of death
+        """
+        # ~ ? ok. ca po 16.. 1855-06-05 uu przed post non ante 1562/1563 fl. ca 1800%
+        if self.bn_years.count('-') > 1:
+            tmp = self.bn_years.split(' - ')
+        else:
+            tmp = self.bn_years.split('-')
+
+        b_date = tmp[0].strip()
+        d_date = tmp[1].strip()
+
+        b_statement = d_statement = None
+
+        if len(b_date) == 4:
+            b_date += '-00-00'
+        if len(b_date) == 10:
+            b_statement = self.time_from_string(value=b_date, prop=P_DATE_OF_BIRTH, ref=self.reference_bn)
+        else:
+            if '?' in b_date or '~' in b_date or 'ca' in b_date or 'ok.' in b_date:
+                qualifier = [Item(value=Q_CIRCA, prop_nr=P_SOURCING_CIR)]
+                b_date = b_date.replace('?', '').replace('~','').replace('ca','').replace('ok.','').strip()
+                if len(b_date) == 4:
+                    b_date += '-00-00'
+                b_statement = self.time_from_string(value=b_date, prop=P_DATE_OF_BIRTH,
+                                                    ref=self.reference_bn,
+                                                    qlf_list=qualifier)
+            elif 'po' in b_date or 'post' in b_date:
+                b_date = b_date.replace('post','').replace('po','').strip()
+                if len(b_date) == 4:
+                    b_date += '-00-00'
+                qualifier = [self.time_from_string(value=b_date, prop=P_EARLIEST_DATE)]
+                b_statement = Time(time=None, prop_nr=P_DATE_OF_BIRTH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+            elif 'przed' in b_date or 'ante' in b_date:
+                b_date = b_date.replace('ante','').replace('przed','').strip()
+                if len(b_date) == 4:
+                    b_date += '-00-00'
+                qualifier = [self.time_from_string(value=b_date, prop=P_LATEST_DATE)]
+                b_statement = Time(time=None, prop_nr=P_DATE_OF_BIRTH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+            elif r'/' in b_date:
+                tmp = b_date.split(r'/')
+                earliest = tmp[0].strip()
+                if len(earliest) == 4:
+                    earliest += '-00-00'
+                latest = tmp[1].strip()
+                if len(latest) == 4:
+                    latest += '-00-00'
+                qualifier = [self.time_from_string(value=earliest, prop=P_EARLIEST_DATE),
+                             self.time_from_string(value=latest, prop=P_LATEST_DATE)]
+                b_statement = Time(time=None, prop_nr=P_DATE_OF_BIRTH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+
+        if len(d_date) == 4:
+            d_date += '-00-00'
+        if len(d_date) == 10:
+            d_statement = self.time_from_string(value=d_date, prop=P_DATE_OF_DEATH, ref=self.reference_bn)
+        else:
+            if '?' in d_date or '~' in d_date or 'ca' in d_date or 'ok.' in d_date:
+                qualifier = [Item(value=Q_CIRCA, prop_nr=P_SOURCING_CIR)]
+                d_date = d_date.replace('?', '').replace('~','').replace('ca','').replace('ok.','').strip()
+                if len(d_date) == 4:
+                    d_date += '-00-00'
+                d_statement = self.time_from_string(value=d_date, prop=P_DATE_OF_DEATH,
+                                                    ref=self.reference_bn,
+                                                    qlf_list=qualifier)
+            elif 'po' in d_date or 'post' in d_date:
+                d_date = d_date.replace('post','').replace('po','').strip()
+                if len(d_date) == 4:
+                    d_date += '-00-00'
+                qualifier = [self.time_from_string(value=d_date, prop=P_EARLIEST_DATE)]
+                d_statement = Time(time=None, prop_nr=P_DATE_OF_DEATH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+            elif 'przed' in d_date or 'ante' in d_date:
+                d_date = d_date.replace('ante','').replace('przed','').strip()
+                if len(d_date) == 4:
+                    d_date += '-00-00'
+                qualifier = [self.time_from_string(value=d_date, prop=P_LATEST_DATE)]
+                d_statement = Time(time=None, prop_nr=P_DATE_OF_DEATH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+            elif r'/' in d_date:
+                tmp = d_date.split(r'/')
+                earliest = tmp[0].strip()
+                if len(earliest) == 4:
+                    earliest += '-00-00'
+                latest = tmp[1].strip()
+                if len(latest) == 4:
+                    latest += '-00-00'
+                qualifier = [self.time_from_string(value=earliest, prop=P_EARLIEST_DATE),
+                             self.time_from_string(value=latest, prop=P_LATEST_DATE)]
+                b_statement = Time(time=None, prop_nr=P_DATE_OF_BIRTH, snaktype=WikibaseSnakType.UNKNOWN_VALUE, qualifiers=qualifier)
+
+
+        return b_statement, d_statement
 
 
     def create_new_item(self):
@@ -236,6 +341,13 @@ class Postac:
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         # lata życia z deskryptora Biblioteki Narodowej
+        # specjalna metoda do przetwarzania dat z BN
+        if self.bn_years:
+            bn_birth_statement, bn_death_statement = self.date_from_bn()
+            if bn_birth_statement:
+                self.wb_item.claims.add([bn_birth_statement], action_if_exists=ActionIfExists.FORCE_APPEND)
+            if bn_death_statement:
+                self.wb_item.claims.add([bn_death_statement], action_if_exists=ActionIfExists.FORCE_APPEND)
 
         # PLWABN ID
         if self.plwabn_id:
@@ -343,24 +455,23 @@ class Postac:
         for item in items:
             wbi_item = self.wbi.item.get(entity_id=item)
             item_label = wbi_item.labels.get(language='pl')
+            item_alias = wbi_item.aliases.get(language='pl')
 
             d_birth = None
             lista = wbi_item.claims.get(P_DATE_OF_BIRTH)
             # uproszczenie, zakładam że obecnie mamy tylko po 1 dacie dla osoby
             if lista:
-                d_birth = lista[0]
-                print('DATE_OF_BIRTH', d_birth)
+                d_birth = lista[0].mainsnak.datavalue['value']['time'][1:5]
 
             d_death = None
             lista = wbi_item.claims.get(P_DATE_OF_DEATH)
             # uproszczenie, zakładam że obecnie mamy tylko po 1 dacie dla osoby
             if lista:
-                d_death = lista[0]
-                print('DATE_OF_DEATH', d_death)
+                d_death = lista[0].mainsnak.datavalue['value']['time'][1:5]
 
-            if (item_label == self.name and
-                (not d_birth or d_birth == self.date_of_birth) and
-                (not d_death or d_death == self.date_of_death) ):
+            if ((item_label == self.name or self.name in item_alias) and
+                (not d_birth or d_birth == self.date_of_birth[:4]) and
+                (not d_death or d_death == self.date_of_death[:4]) ):
                 f_result = True
                 self.qid = item
                 break
@@ -439,8 +550,8 @@ if __name__ == '__main__':
 
     wbi = WikibaseIntegrator(login=login_instance)
 
-    input_path = Path("..") / "data" / "postacie.json"
-    # test: input_path = '/home/piotr/ihpan/psb_import/data/probka.json'
+    #input_path = Path("..") / "data" / "postacie.json"
+    input_path = '/home/piotr/ihpan/psb_import/data/probka_postacie.json'
     output_path = Path("..") / "data" / "postacie_qid.json"
 
     with open(input_path, "r", encoding='utf-8') as f:
