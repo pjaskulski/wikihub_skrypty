@@ -1550,6 +1550,13 @@ class WDHStatementItem:
                     f"Pominięto referencję globalną dla deklaracji: {p_id}->{prop_id} typu external-id."
                 )
 
+            # jeżeli to zewnętrzny identyfikator 'ontohgis ontology id' to zapis do wikibase bez 'http/https'
+            if prop_type == "external-id" and self.statement_property == "ontohgis ontology id":
+                if r'https://' in p_value:
+                    p_value = p_value.replace(r'https://','')
+                elif r'http://' in p_value:
+                    p_value = p_value.replace(r'http://','')
+
             # kontrola czy istnieje deklaracja o tej wartości
             if has_statement(p_id, prop_id, value_to_check=p_value):
                 print(
