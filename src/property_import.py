@@ -231,6 +231,8 @@ class WDHSpreadsheet:
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.property_columns[col]].value
+                col_value = value_clean(col_value)
+
                 if key == "label_en":
                     p_item.label_en = col_value
                 elif key == "description_en":
@@ -250,6 +252,8 @@ class WDHSpreadsheet:
                 for col in extend_cols:
                     key = col.lower()
                     col_value = row[self.property_columns[col]].value
+                    col_value = value_clean(col_value)
+
                     if key == "description_pl":
                         p_item.description_pl = col_value
                     elif key == "wiki_id":
@@ -279,6 +283,7 @@ class WDHSpreadsheet:
                 if col in self.statement_columns:
                     key = col.lower()
                     col_value = row[self.statement_columns[col]].value
+                    col_value = value_clean(col_value)
 
                     if key == "label_en":
                         s_item.label_en = col_value
@@ -328,6 +333,8 @@ class WDHSpreadsheet:
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.item_columns[col]].value
+                col_value = value_clean(col_value)
+
                 if key == "label_en":
                     i_item.label_en = str(col_value).strip() # zbędne spacje zdarzają się na końcu komórek
                 elif key == "description_en":
@@ -353,6 +360,8 @@ class WDHSpreadsheet:
                     key = col.lower()
                     if col in self.item_columns:
                         col_value = row[self.item_columns[col]].value
+                        col_value = value_clean(col_value)
+
                         if key == "wiki_id":
                             i_item.wiki_id = col_value
                         elif key == "startsat":
@@ -394,6 +403,7 @@ class WDHSpreadsheet:
             for col in basic_cols:
                 key = col.lower()
                 col_value = row[self.item_statement_columns[col]].value
+                col_value = value_clean(col_value)
 
                 if key == "label_en":
                     label_en = col_value
@@ -2399,24 +2409,6 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
     return add_result
 
 
-# def get_property_type(p_id: str) -> str:
-#     """Funkcja zwraca typ właściwości na podstawie jej identyfikatora"""
-#     params = {"action": "wbgetentities", "ids": p_id, "props": "datatype"}
-
-#     search_results = mediawiki_api_call_helper(
-#         data=params,
-#         login=None,
-#         mediawiki_api_url=None,
-#         user_agent=None,
-#         allow_anonymous=True,
-#     )
-#     data_type = None
-#     if search_results:
-#         data_type = search_results["entities"][p_id]["datatype"]
-
-#     return data_type
-
-
 def prepare_datetime(t_value: str) -> str:
     """Modyfikuje format zapisu daty do akceptowalnego przez wikibase"""
     t_value = t_value.strip()
@@ -2678,44 +2670,6 @@ def monolingual_text_fix(text_value: str) -> str:
     return text_value
 
 
-# def statement_value_fix(s_value, s_type) -> str:
-#     """poprawia wartość pobraną z deklaracji właściwości"""
-#     if s_value is None:
-#         return s_value
-
-#     if s_type == "monolingualtext":
-#         s_value = s_value[1] + ':"' + s_value[0] + '"'
-#     elif s_type == "quantity":
-#         if isinstance(s_value, tuple):
-#             s_value = s_value[0].replace("+", "").replace("-", "")
-#         else:
-#             s_value = str(s_value)
-#     elif s_type == "globe-coordinate":
-#         if isinstance(s_value, tuple):
-#             s_value = str(s_value[0]) + "," + str(s_value[1])
-#         else:
-#             s_value = str(s_value)
-#     elif s_type == "wikibase-item":
-#         if isinstance(s_value, int):
-#             s_value = str(s_value)
-#         if not s_value.startswith("Q"):
-#             s_value = "Q" + s_value
-#     elif s_type == "time":
-#         if isinstance(s_value, tuple):
-#             s_value_time = s_value[0]
-#             if s_value_time is None:
-#                 s_value = None
-#             elif isinstance(s_value_time, str):
-#                 s_value = s_value_time + "/" + str(s_value[3])
-#             else:
-#                 print(f"ERROR: wartość typu time: {s_value}")
-#     else:
-#         if not isinstance(s_value, str):
-#             s_value = str(s_value)
-
-#     return s_value
-
-
 def get_qualifiers(element: wbi_core.ItemEngine, prop_id, prop_value) -> list:
     """zwraca słownik z kwalifikatorami dla deklaracji"""
     qualifiers = []
@@ -2914,6 +2868,20 @@ def create_inverse_statement(my_login_instance, qid: str, main_property: str, in
                                 print(f"ERROR: podczas dodawania do elementu {statement_value}: {inverse_property} -> {qid}: {write_error.error_msg}")
                         else:
                             print(f"Przygotowano dodanie do elementu {statement_value} deklaracji: {inverse_property} -> {qid}")
+
+
+def value_clean(value:str) -> str:
+    """ czyści wartość pobraną z komórki pliku xlsx """
+    if not value:
+        return ""
+    if type(value) == type(''):
+        value = value.strip()
+        value = value.replace('\t',' ')
+        value = value.replace('\n',' ')
+        # usuwa podwójne spacje
+        value = ' '.join(value.strip().split())
+
+    return value
 
 
 # --------------------------------- MAIN ---------------------------------------
