@@ -329,7 +329,7 @@ class WDHSpreadsheet:
                 key = col.lower()
                 col_value = row[self.item_columns[col]].value
                 if key == "label_en":
-                    i_item.label_en = col_value
+                    i_item.label_en = str(col_value).strip() # zbędne spacje zdarzają się na końcu komórek
                 elif key == "description_en":
                     i_item.description_en = col_value
                 elif key == "description_pl":
@@ -411,7 +411,7 @@ class WDHSpreadsheet:
                     qualifier_value = col_value
                     if not isinstance(qualifier_value, str):
                         qualifier_value = str(qualifier_value)
-                    # jeżeli to multilingual text to weryfikacja cudzysłowów
+                    # jeżeli to monolingual text to weryfikacja cudzysłowów
                     qualifier_value = monolingual_text_fix(qualifier_value)
                 elif key == "reference_property":
                     reference_property = col_value
@@ -436,7 +436,7 @@ class WDHSpreadsheet:
 
                 # jeżeli są globalne referencje
                 if s_item.sheet_name in GLOBAL_REFERENCE:
-                    if reference_property == "":
+                    if not reference_property:
                         g_ref_property, g_ref_value = GLOBAL_REFERENCE[s_item.sheet_name]
                         s_item.additional_references[g_ref_property] = g_ref_value
 
@@ -711,6 +711,11 @@ class WDHItem:
         self.ends_at = ""
         self.instance_of = ""
         self.purl_identifier = ""
+        self.additional_references = {}
+        # jeżeli są globalne referencje dla arkusza
+        if 'Q_list' in GLOBAL_REFERENCE:
+            g_ref_property, g_ref_value = GLOBAL_REFERENCE['Q_list']
+            self.additional_references[g_ref_property] = g_ref_value
 
     @property
     def label_en(self) -> str:
@@ -940,6 +945,7 @@ class WDHItem:
                 wd_item.set_description(self.description_pl, lang="pl")
 
         wiki_dane = None
+
         if self.wiki_id:
             skip_wiki_id = False
             if wikibase_prop.wiki_id == "" or wikibase_prop.wiki_url == "":
@@ -980,6 +986,8 @@ class WDHItem:
                         print(
                             f"SKIP: element {search_id} ({self.label_en}) posiada deklarację: {start_qid} o wartości: {self.starts_at}"
                         )
+                        # próba aktualizacji referencji
+                        update_references(login_instance, wd_item, search_item, start_qid, self.starts_at, self.additional_references)
                         skip_starts_at = True
 
                 if not skip_starts_at:
@@ -1017,6 +1025,8 @@ class WDHItem:
                         print(
                             f"SKIP: element {search_id} ({self.label_en}) posiada deklarację: {end_qid} o wartości: {self.ends_at}"
                         )
+                        # próba aktualizacji referencji
+                        update_references(login_instance, wd_item, search_item, end_qid, self.ends_at, self.additional_references)
                         skip_ends_at = True
 
                 if not skip_ends_at:
@@ -1056,6 +1066,8 @@ class WDHItem:
                             print(
                                 f"SKIP: element {search_id} ({self.label_en}) posiada deklarację: {instance_qid} o wartości: {self.instance_of}"
                             )
+                            # próba aktualizacji referencji
+                            update_references(login_instance, wd_item, search_item, instance_qid, instance_value, self.additional_references)
                             skip_instance = True
 
                     if not skip_instance:
@@ -1774,14 +1786,15 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
 
     match = re.search(pattern, name)
     if not match:
-        # http://purl.org/ontohgis#administrative_system_1
-        purl_pattern = r"https?:\/\/purl\.org\/"
+        # dawniej: http://purl.org/ontohgis#administrative_system_1
+        # obecnie: https://onto.kul.pl/ontohgis/object_30
+        purl_pattern = r"https?:\/\/onto\.kul\.pl\/"
 
         match = re.search(purl_pattern, name)
         # wyszukiwanie elementu z deklaracją 'purl identifier' o wartości równej
         # zmiennej name
         if match:
-            f_result, purl_qid = find_name_qid("purl identifier", "property")
+            f_result, purl_qid = find_name_qid("ontohgis database id", "property")
             if f_result:
                 output = search_by_purl(purl_qid, name)
                 if not output[0]:
@@ -2338,6 +2351,7 @@ def add_property_statement(s_item: WDHStatementProperty) -> tuple:
 
         # kontrola czy istnieje deklaracja o takiej wartości
         if has_statement(p_id, prop_id, value_to_check=value):
+
             return (
                 False,
                 f"SKIP: właściwość: '{p_id}' ({s_item.label_en}) already has a statement: '{prop_id} with value: {value}'.",
@@ -2532,12 +2546,19 @@ def add_reference(login_data, claim_id: str, prop_nr: str, prop_value: str) -> b
         return False
 
     snak_type = "value"
+    type_value = "string"
+    if prop_value.startswith('Q') and prop_value[1:].isnumeric():
+        type_value = "wikibase-entityid"
+        prop_value = {"entity-type": "item",
+                      "numeric-id": int(prop_value.replace('Q','')),
+                      "id": prop_value}
+
     snak = {
         prop_nr: [
             {
                 "snaktype": snak_type,
                 "property": prop_nr,
-                "datavalue": {"type": "string", "value": prop_value},
+                "datavalue": {"type": type_value, "value": prop_value},
             }
         ]
     }
@@ -2625,13 +2646,19 @@ def verify_reference(
         # czy znaleziono poszukiwaną deklarację
         if statement_prop_nr == stat_prop_qid and statement_value == stat_prop_value:
             tmp_references = statement.get_references()
+
+            ref_type = get_property_type(g_ref_qid) # typ właściwości dla referencji
+            if ref_type == 'wikibase-item' and g_ref_value.startswith('Q'):
+                g_ref_value = g_ref_value[1:]
+
             for t_ref_blok in tmp_references:
-                # print(t_ref_blok[0].get_prop_nr(), ' - ', g_ref_qid)
-                # print(t_ref_blok[0].get_value(), ' - ', g_ref_value)
-                if (
-                    t_ref_blok[0].get_prop_nr() == g_ref_qid
-                    and t_ref_blok[0].get_value() == g_ref_value
-                ):
+                ref_blok_qid = t_ref_blok[0].get_prop_nr()
+                ref_blok_value = t_ref_blok[0].get_value()
+                if type(ref_blok_value) != type(''):
+                    ref_blok_value = str(ref_blok_value)
+                #print(ref_blok_qid, ' - ', g_ref_qid)
+                #print(ref_blok_value, ' - ', g_ref_value)
+                if ref_blok_qid == g_ref_qid and ref_blok_value == g_ref_value:
                     ref_exists = True
                     break
 
@@ -2924,7 +2951,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = "/home/piotr/ihpan/wikihub_skrypty/data/autorzy_ontohgis_fix.xlsx"
+        filename = "/home/piotr/ihpan/wikihub_skrypty/data/systems.xlsx"
 
     plik_xlsx = WDHSpreadsheet(filename)
     plik_xlsx.open()
@@ -2993,29 +3020,17 @@ if __name__ == "__main__":
         stm.write_to_wikibase()
 
     # zapis list przetwarzanych właściwości i elementów
-    with open("property_list.html", "w", encoding="utf-8") as f:
-        f.write(
-            '<html>\n<head>\n<meta charset="UTF-8">\n<title>Lista właściwości</title>\n</head>\n<body>\n<h2>Lista dodanych/uaktualnionych właściwości</h2>\n<p>\n'
-        )
-        numer = 1
+    with open("property_list.txt", "w", encoding="utf-8") as f:
         for property_label, property_qid in GLOBAL_PROPERTY.items():
             f.write(
-                f'{numer}. {property_label} = <a href="https://prunus-208.man.poznan.pl/wiki/Property:{property_qid}">{property_qid}</a><br>\n'
+                f'# [https://prunus-208.man.poznan.pl/wiki/Property:{property_qid} {property_label}]\n'
             )
-            numer += 1
-        f.write("</body></html>\n")
 
-    with open("item_list.html", "w", encoding="utf-8") as f:
-        f.write(
-            '<html>\n<head>\n<meta charset="UTF-8">\n<title>Lista elementów</title>\n</head>\n<body>\n<h2>Lista dodanych/uaktualnionych elementów</h2>\n<p>\n'
-        )
-        numer = 1
+    with open("item_list.txt", "w", encoding="utf-8") as f:
         for item_label, item_qid in GLOBAL_ITEM.items():
             f.write(
-                f'{numer}. {item_label} = <a href="https://prunus-208.man.poznan.pl/wiki/Item:{item_qid}">{item_qid}</a><br>\n'
+                f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item_qid} {item_label}]\n'
             )
-            numer += 1
-        f.write("</p></body></html>\n")
 
     end_time = time.time()
     elapsed_time = end_time - start_time
