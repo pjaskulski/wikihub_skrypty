@@ -32,14 +32,14 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapisywać dane w wikibase, czy tylko test
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # standardowe właściwości
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                            'id SDI', 'part of', 'has part or parts', 'TERYT'])
+                            'id SDI', 'part of', 'has part or parts', 'TERYT', 'stated in'])
 
 # elementy definicyjne
-elements = get_elements(['administrative unit', 'http://purl.org/ontohgis#administrative_type_46'])
+elements = get_elements(['administrative unit', 'onto.kul.pl/ontohgis/administrative_type_46'])
 
 
 # ----------------------------------- MAIN -------------------------------------
@@ -53,15 +53,14 @@ if __name__ == '__main__':
 
     # wspólna referencja dla wszystkich deklaracji z ontohgis
     onto_references = {}
-    onto_references[properties['reference URL']] = 'https://ontohgis.pl'
+    onto_references[properties['stated in']] = 'Q233549'
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/powiaty.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -86,20 +85,21 @@ if __name__ == '__main__':
             continue
 
         label_pl = label_en = nazwa
+        label_en = label_en.replace('powiat', 'district')
 
         teryt = row[col_names['JPT_KOD_JE']].value
         idiip = row[col_names['IIP_IDENTY']].value
         part_of = teryt[:2]
 
-        description_pl = 'powiat - współczesna jednostka administracyjna'
-        description_en = 'powiat - współczesna jednostka administracyjna'
+        description_pl = 'powiat - współczesna jednostka administracyjna według Państwowego Rejestru Granic (PRG)'
+        description_en = 'district - a modern administrative unit according to the National Register of Boundaries (PRG)'
 
         # przygotowanie struktur wikibase
         data = []
         aliasy = []
 
         # instance of
-        q_powiat = elements['http://purl.org/ontohgis#administrative_type_46']
+        q_powiat = elements['onto.kul.pl/ontohgis/administrative_type_46']
         statement = create_statement_data(properties['instance of'], q_powiat, None, None, add_ref_dict=onto_references)
         if statement:
             data.append(statement)
@@ -138,8 +138,10 @@ if __name__ == '__main__':
         # description
         wb_woj = wbi_core.ItemEngine(item_id=woj_qid)
         woj_label_pl = wb_woj.get_label('pl')
+        woj_label_en = wb_woj.get_label('en')
 
-        wb_item.set_description(f"{description_en} ({woj_label_pl})", 'en')
+
+        wb_item.set_description(f"{description_en} ({woj_label_en})", 'en')
         wb_item.set_description(f"{description_pl} ({woj_label_pl})", 'pl')
 
         if aliasy:
@@ -156,7 +158,7 @@ if __name__ == '__main__':
                 while True:
                     try:
                         new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                        print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        print(f'{index}/{ws.max_row - 1} Dodano nowy element: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en}/{label_pl}]')
                         if woj_qid:
                             if woj_qid in parts:
                                 parts[woj_qid].append(new_id)

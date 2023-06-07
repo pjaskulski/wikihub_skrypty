@@ -33,14 +33,14 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapis w wikibase czy tylko test
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # standardowe właściwości
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                            'id SDI', 'part of', 'has part or parts', 'TERYT'])
+                            'id SDI', 'part of', 'has part or parts', 'TERYT', 'stated in'])
 
 # elementy definicyjne (purl to voivodship (The Republic of Poland (1999-2016))
-elements = get_elements(['administrative unit', 'http://purl.org/ontohgis#administrative_type_47'])
+elements = get_elements(['administrative unit', 'onto.kul.pl/ontohgis/administrative_type_47'])
 
 # wspólna referencja dla wszystkich deklaracji z PRG
 references = {}
@@ -49,7 +49,7 @@ references[properties['retrieved']] = '2022-09-05'
 
 # wspólna referencja dla wszystkich deklaracji z PRG
 onto_references = {}
-onto_references[properties['reference URL']] = 'https://ontohgis.pl'
+onto_references[properties['stated in']] = 'Q233549'
 
 
 def get_label_en(qid: str) -> str:
@@ -66,12 +66,11 @@ def get_label_en(qid: str) -> str:
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/wojewodztwa.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -93,13 +92,14 @@ if __name__ == '__main__':
         if not nazwa:
             continue
 
-        label_pl = label_en = 'województwo' + ' ' + nazwa
+        label_pl = 'województwo' + ' ' + nazwa
+        label_en = 'voivodship' + ' ' + nazwa
 
         teryt = row[col_names['JPT_KOD_JE']].value
         idiip = row[col_names['IIP_IDENTY']].value
 
-        description_pl = 'województwo (jednostka administracyjna wg PRG)'
-        description_en = 'województwo (jednostka administracyjna wg PRG)'
+        description_pl = 'województwo - współczesna jednostka administracyjna według Państwowego Rejestru Granic (PRG)'
+        description_en = 'voivodship - a modern administrative unit according to the National Register of Boundaries (PRG)'
 
         # przygotowanie struktur wikibase
         data = []
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
         # instance of
         statement = create_statement_data(properties['instance of'],
-                                          properties['http://purl.org/ontohgis#administrative_type_47'],
+                                          elements['onto.kul.pl/ontohgis/administrative_type_47'],
                                           None, None, add_ref_dict=onto_references)
         if statement:
             data.append(statement)
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                 wb_item.set_aliases(value_alias, 'pl')
 
         # wyszukiwanie po etykiecie, właściwości instance of oraz po opisie
-        parameters = [(properties['instance of'], properties['http://purl.org/ontohgis#administrative_type_47'])]
+        parameters = [(properties['instance of'], elements['onto.kul.pl/ontohgis/administrative_type_47'])]
         ok, item_id = element_search_adv(label_en, 'en', parameters, description_en)
 
         if not ok:
