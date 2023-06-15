@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from wikibaseintegrator import WikibaseIntegrator
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikibaseintegrator.datatypes import ExternalID, Time, MonolingualText, Item, URL
+from wikibaseintegrator.datatypes import ExternalID, Time, MonolingualText, Item, URL, String
 from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.wbi_enums import WikibaseDatePrecision
 from wikibaseintegrator.wbi_exceptions import MWApiError
@@ -48,9 +48,13 @@ P_PLWABN_ID = 'P484'
 P_STATED_AS = 'P505'
 P_INSTANCE_OF = 'P459'
 P_REFERENCE_URL = 'P399'
+P_STATED_IN = 'P506'
+P_VOLUME = 'P518'
+P_PAGES = 'P479'
 
 # elementy definicyjne w instancji wikibase
 Q_HUMAN = 'Q229050'
+Q_PSB = 'Q315332'
 
 class Autor:
     """ dane autora PSB """
@@ -64,11 +68,27 @@ class Autor:
         self.description_pl = author_dict.get('years', '')
         self.description_en = author_dict.get('years', '')
 
-        self.description_pl += ' ' + author_dict.get('bn_opis', '')
-        self.description_pl = self.description_pl.strip()
+        # opis polski złożony z lat życia i informacji o autorze z BN, przecinek
+        # po latach życia, bez kropki na końcu opisu
+        tmp_description_pl = author_dict.get('bn_opis', '')
+        if tmp_description_pl:
+            first_char = tmp_description_pl[0].lower()
+            tmp_description_pl = first_char + tmp_description_pl[1:]
+            if tmp_description_pl.endswith('.'):
+                tmp_description_pl = tmp_description_pl[:-1]
+            self.description_pl += ', ' + tmp_description_pl
+            self.description_pl = self.description_pl.strip()
 
-        self.description_en += ' ' + author_dict.get('description_en', '')
-        self.description_en = self.description_en.strip()
+        # opis angielski złożony z lat życia i informacji o autorze z BN przetłumaczonych
+        # automatycznie, przecinek po latach życia, bez kropki na końcu opisu
+        tmp_description_en = author_dict.get('description_en', '')
+        if tmp_description_en:
+            first_char = tmp_description_en[0].lower()
+            tmp_description_en = first_char + tmp_description_en[1:]
+            if tmp_description_en.endswith('.'):
+                tmp_description_en = tmp_description_en[:-1]
+            self.description_en += ', ' + tmp_description_en
+            self.description_en = self.description_en.strip()
 
         self.aliasy = author_dict.get('aliasy', [])
 
@@ -82,6 +102,8 @@ class Autor:
             self.viaf = viaf.replace('http://viaf.org/viaf/','').replace(r'/','')
 
         self.plwabn_id = author_dict.get('plwabn_id', '')
+        self.psb_volume = author_dict.get('psb_volume', '')
+        self.psb_pages = author_dict.get('psb_pages', '')
 
         self.wb_item = None                # element
         self.qid = ''                      # znaleziony lub utworzony QID
@@ -89,9 +111,18 @@ class Autor:
         self.login_instance = login_object # login instance
         self.wbi = wbi_object              # WikibaseIntegratorObject
         self.references = None             # referencje
+        self.references_psb = None         # referencja do PSB dla wariantów nazwiska autora
         # referencja do VIAF dla daty urodzenia, daty śmierci
         if viaf:
             self.references = [[ URL(value=viaf, prop_nr=P_REFERENCE_URL) ]]
+        # referencja do tomu PSB
+        if self.psb_volume:
+            self.references_psb = [
+                [Item(value=Q_PSB, prop_nr=P_STATED_IN),
+                 String(value=self.psb_volume, prop_nr=P_VOLUME),
+                 String(value=self.psb_pages, prop_nr=P_PAGES)
+                 ]
+                                ]
 
 
     def time_from_string(self, value:str, prop: str) -> Time:
@@ -142,10 +173,11 @@ class Autor:
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.aliasy:
-            self.wb_item.aliases.set(language='pl', values=self.aliasy, action_if_exists=ActionIfExists.FORCE_APPEND)
+            self.wb_item.aliases.set(language='pl', values=self.aliasy)
             for alias in self.aliasy:
                 statement = MonolingualText(text=alias, language='pl',
-                                            prop_nr=P_STATED_AS)
+                                            prop_nr=P_STATED_AS,
+                                            references=self.references_psb)
                 self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.FORCE_APPEND)
 
         statement = Item(value=Q_HUMAN, prop_nr=P_INSTANCE_OF)
@@ -178,10 +210,11 @@ class Autor:
             self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
         if self.aliasy:
-            self.wb_item.aliases.set(language='pl', values=self.aliasy, action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
+            self.wb_item.aliases.set(language='pl', values=self.aliasy)
             for alias in self.aliasy:
                 statement = MonolingualText(text=alias, language='pl',
-                                            prop_nr=P_STATED_AS)
+                                            prop_nr=P_STATED_AS,
+                                            references=self.references_psb)
                 self.wb_item.claims.add([statement], action_if_exists=ActionIfExists.APPEND_OR_REPLACE)
 
 
@@ -228,6 +261,7 @@ class Autor:
                 elif err_code in ['failed-save']:
                     if loop_num == 1:
                         self.logger.error('błąd zapisu, czekam 5 sekund...')
+                        time.sleep(5.0)
                         loop_num += 1
                         continue
 
