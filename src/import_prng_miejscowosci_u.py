@@ -34,7 +34,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapis do wikibase czy tylko test
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # ----------------------------------- MAIN -------------------------------------
 
@@ -45,7 +45,8 @@ if __name__ == '__main__':
                                 'id SDI', 'part of', 'has part or parts', 'TERYT', 'settlement type',
                                 'coordinate location', 'located in the administrative territorial entity',
                                 'name status', 'inflectional ending', 'adjective form',
-                                'located in the administrative territorial entity'
+                                'located in the administrative territorial entity', 'prng id',
+                                'SIMC place ID'
                                 ])
 
     # elementy definicyjne
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     elements = get_elements([ 'official name', 'human settlement',
         'part of a colony', 'part of a city', 'part of a settlement', 'part of a village',
         'colony', 'colony of a colony', 'colony of a settlement', 'colony of a village',
-        'city/town', 'settlement', 'settlement of a colony', 'forest settlement',
+        'city/town', 'settlement of a colony', 'forest settlement',
         'forest settlement of a village', 'settlement of a settlement', 'settlement of a village',
         'housing developments', 'housing estate of a village', 'hamlet', 'hamlet of a colony',
         'hamlet of a settlement', 'hamlet of a village', 'tourist shelter', 'village'
@@ -69,7 +70,7 @@ if __name__ == '__main__':
     settlement_type_map['kolonia osady'] = 'colony of a settlement'
     settlement_type_map['kolonia wsi'] = 'colony of a village'
     settlement_type_map['miasto'] = 'city/town'
-    settlement_type_map['osada'] = 'settlement'
+    settlement_type_map['osada'] = 'human settlement'
     settlement_type_map['osada kolonii'] = 'settlement of a colony'
     settlement_type_map['osada leśna'] = 'forest settlement'
     settlement_type_map['osada leśna wsi'] = 'forest settlement of a village'
@@ -91,12 +92,11 @@ if __name__ == '__main__':
     references[properties['retrieved']] = '2022-09-23'
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/miejscowosciU.xlsx'
     tmp_index = '../data_prng/miejsc_u_unique.txt'
@@ -116,12 +116,15 @@ if __name__ == '__main__':
     if os.path.isfile(tmp_index):
         with open(tmp_index, 'r', encoding='utf-8') as findex:
             lines = findex.readlines()
+            print(len(lines))
             for line in lines:
                 tab_line = line.split('|')
-                key = tab_line[0].strip()
-                value = tab_line[1].strip()
+                key = tab_line[0].strip()+'|'+tab_line[1].strip()
+                value = tab_line[2].strip()
                 if key not in unique_item:
                     unique_item[key] = value
+
+    print(len(unique_item))
 
     parts = {}
 
@@ -129,6 +132,10 @@ if __name__ == '__main__':
     max_row = ws.max_row
     for row in ws.iter_rows(2, max_row):
         index += 1
+        # kontynuacja importu
+        if index <= 95301:
+            continue
+
         # wczytanie danych z xlsx
         nazwa = row[col_names['NAZWAGLOWN']].value
         if not nazwa:
@@ -159,14 +166,40 @@ if __name__ == '__main__':
                                        'część miasta', 'część kolonii', 'przysiółek wsi']
         if rodzajobie in rodzaje_czesci_miejscowosci:
             description_pl = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
-            description_en = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{rodzajobie}: {nazwa_miejsc} (commune: {gmina}, district: {powiat}, voivodship: {wojewodztw})'
         else:
             description_pl = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
-            description_en = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{rodzajobie} (commune: {gmina}, district: {powiat}, voivodship: {wojewodztw})'
 
         # przygotowanie struktur wikibase
         data = []
         aliasy = {}
+
+
+        # WGS84 - Point (23.29833332 52.68194448)
+        if wgs84:
+            wgs84 = wgs84.replace('Point', '').replace('(', '').replace(')','').strip()
+            tmp = wgs84.split(' ')
+            longitude = tmp[0]
+            latitude = tmp[1]
+            coordinate = f'{latitude},{longitude}'
+            statement = create_statement_data(properties['coordinate location'], coordinate,
+                None, None, add_ref_dict=references)
+            if statement:
+                data.append(statement)
+
+        # unikalność description
+        label_desc = f"{label_en}|{description_en}"
+        if label_desc not in unique_item:
+            unique_item[label_desc] = index
+        else:
+            description_en = f'{description_en} [{coordinate}]'
+            description_pl = f'{description_pl} [{coordinate}]'
+            label_desc = f"{label_en}|{description_en}"
+            unique_item[label_desc] = index
+
+        with open(tmp_index, 'a', encoding='utf-8') as findex:
+            findex.write(f'{label_desc}|{index}\n')
 
         # instance of
         statement = create_statement_data(properties['instance of'], elements['human settlement'],
@@ -232,18 +265,6 @@ if __name__ == '__main__':
         if statement:
             data.append(statement)
 
-        # WGS84 - Point (23.29833332 52.68194448)
-        if wgs84:
-            wgs84 = wgs84.replace('Point', '').replace('(', '').replace(')','').strip()
-            tmp = wgs84.split(' ')
-            longitude = tmp[0]
-            latitude = tmp[1]
-            coordinate = f'{latitude},{longitude}'
-            statement = create_statement_data(properties['coordinate location'], coordinate,
-                None, None, add_ref_dict=references)
-            if statement:
-                data.append(statement)
-
         # IDENTYFI_2
         if identyfi_2:
             parameters = [(properties['TERYT'], identyfi_2)]
@@ -274,19 +295,6 @@ if __name__ == '__main__':
             if statement:
                 data.append(statement)
 
-        # unikalność description
-        label_desc = f"{label_en}|{description_en}"
-        if label_desc not in unique_item:
-            unique_item[label_desc] = index
-        else:
-            description_en = f'{description_en} [{coordinate}]'
-            description_pl = f'{description_pl} [{coordinate}]'
-            label_desc = f"{label_en}|{description_en}"
-            unique_item[label_desc] = index
-
-        with open(tmp_index, 'a', encoding='utf-8') as findex:
-            findex.write(f'{label_desc}|{index}')
-
         # etykiety, description, aliasy
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
         wb_item.set_label(label_en, lang='en')
@@ -306,6 +314,11 @@ if __name__ == '__main__':
                 try:
                     new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
                     print(f'{index}/{max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+
+                    # zapis QID dla miejscowości
+                    with open('../data_prng/miejscowosci_u_qid.txt', 'a', encoding='utf-8') as f_qid:
+                        f_qid.write(f'{index};{new_id}\n')
+
                     break
                 except MWApiError as wbdelreference_error:
                     err_code = wbdelreference_error.error_msg['error']['code']

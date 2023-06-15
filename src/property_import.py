@@ -352,7 +352,7 @@ class WDHSpreadsheet:
                     "StartsAt",
                     "EndsAt",
                     "Instance of",
-                    "Purl identifier",
+                    "ontohgis_ontology_id",
                     "Reference_property",
                     "Reference_value"
                 ]
@@ -378,7 +378,7 @@ class WDHSpreadsheet:
                             i_item.ends_at = col_value
                         elif key == "instance of":
                             i_item.instance_of = col_value
-                        elif key == "purl identifier":
+                        elif key == "ontohgis_ontology_id":
                             if col_value is None:
                                 col_value = ""
                             if not isinstance(col_value, str):
@@ -874,6 +874,10 @@ class WDHItem:
         """set Purl_identifier"""
         if value:
             self._purl_identifier = value.strip()
+            if 'https' in self._purl_identifier:
+                self._purl_identifier = self._purl_identifier.replace('https://','').strip()
+            elif  'http' in self._purl_identifier:
+                self._purl_identifier = self._purl_identifier.replace('http://','').strip()
         else:
             self._purl_identifier = ""
 
@@ -1107,7 +1111,7 @@ class WDHItem:
         if self.purl_identifier:
             #print("Podano Purl")
             skip_purl_identifier = False
-            res, purl_qid = find_name_qid("purl identifier", "property")
+            res, purl_qid = find_name_qid("OntoHGIS ID", "property")
             if res:
                 if search_item:
                     if has_statement(search_id, purl_qid, self.purl_identifier):
@@ -1123,12 +1127,12 @@ class WDHItem:
                     item_is_changed = True
                     if mode == 'ZAKTUALIZOWANO: ':
                         print(
-                            f"DODANO deklarację: 'purl identifier' ({purl_qid}) o wartości: {self.purl_identifier}"
+                            f"DODANO deklarację: 'OntoHGIS ID' ({purl_qid}) o wartości: {self.purl_identifier}"
                         )
 
             else:
                 print(
-                    "ERROR: nie znaleziono właściwości 'purl identifier' w instancji Wkibase."
+                    "ERROR: nie znaleziono właściwości 'OntoHGIS ID' w instancji Wkibase."
                 )
 
         # zapis w Wikibase jeżeli nowy element lub zmiany dla elementu
@@ -1217,6 +1221,10 @@ class WDHStatementItem:
         """setter: label_en"""
         if value:
             self._label_en = value.strip()
+            if 'https://onto.kul.pl' in self._label_en:
+                self._label_en = self._label_en.replace('https://','').strip()
+            elif  'http' in self._label_en:
+                self._label_en = self._label_en.replace('http://','').strip()
         else:
             self._label_en = ""
 
@@ -1550,8 +1558,8 @@ class WDHStatementItem:
                     f"Pominięto referencję globalną dla deklaracji: {p_id}->{prop_id} typu external-id."
                 )
 
-            # jeżeli to zewnętrzny identyfikator 'ontohgis ontology id' to zapis do wikibase bez 'http/https'
-            if prop_type == "external-id" and self.statement_property == "ontohgis ontology id":
+            # jeżeli to zewnętrzny identyfikator 'OntoHGIS ID' to zapis do wikibase bez 'http/https'
+            if prop_type == "external-id" and self.statement_property == "OntoHGIS ID":
                 if r'https://' in p_value:
                     p_value = p_value.replace(r'https://','')
                 elif r'http://' in p_value:
@@ -1805,13 +1813,13 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False) -> tuple:
     if not match:
         # dawniej: http://purl.org/ontohgis#administrative_system_1
         # obecnie: https://onto.kul.pl/ontohgis/object_30
-        purl_pattern = r"https?:\/\/onto\.kul\.pl\/"
+        purl_pattern = r"onto\.kul\.pl\/ontohgis\/"
 
         match = re.search(purl_pattern, name)
         # wyszukiwanie elementu z deklaracją 'purl identifier' o wartości równej
         # zmiennej name
         if match:
-            f_result, purl_qid = find_name_qid("ontohgis database id", "property")
+            f_result, purl_qid = find_name_qid("OntoHGIS ID", "property")
             if f_result:
                 output = search_by_purl(purl_qid, name)
                 if not output[0]:
@@ -2926,7 +2934,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = "/home/piotr/ihpan/wikihub_skrypty/data/systems.xlsx"
+        filename = "/home/piotr/ihpan/wikihub_skrypty/data/administrative_types_statments_new.xlsx"
 
     plik_xlsx = WDHSpreadsheet(filename)
     plik_xlsx.open()

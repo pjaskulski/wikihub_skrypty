@@ -52,10 +52,10 @@ def element_search(search_string: str, element_type: str, lang: str, **kwargs) -
             aliases = kwargs['aliases']
         if 'strict' in kwargs:
             strict = kwargs['strict']
-        if 'purl_id' in kwargs:
+        if 'purl_id' in kwargs: # czy to ma być tu obsługiwane czy wystarczy search_by_purl?
             purl_id = kwargs['purl_id']
 
-    # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki
+    # jeżeli search_string jest zbyt długi to tylko 243 pierwsze znaki (błąd w wikibase?)
     if len(search_string) > 240:
         search_string = search_string[:241]
 
@@ -351,7 +351,13 @@ def get_claim_value(qid: str, claim_property: str, wikibase_item = None) -> list
 
 
 def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
-    """ wyszukiwanie elementu na podstawie identyfikatora purl """
+    """ wyszukiwanie elementu na podstawie identyfikatora purl/onto.kul """
+    # czyszczenie identyfikatora onto.kul, w wiki jest zapisywany bez http/https
+    if 'https' in purl_value:
+        purl_value = purl_value.replace('https://','').strip()
+    elif  'http' in purl_value:
+        purl_value = purl_value.replace('http://','').strip()
+
     query = f'SELECT ?item WHERE {{ ?item wdt:{purl_prop_id} "{purl_value}". }} LIMIT 5'
 
     results = execute_sparql_query(query)
@@ -391,20 +397,20 @@ def find_name_qid(name: str, elem_type: str, strict: bool = False, lang: str = '
 
     match = re.search(pattern, name)
     if not match:
-        # http://purl.org/ontohgis#administrative_system_1
-        purl_pattern = r"https?:\/\/purl\.org\/"
+        # onto.kul.pl/ontohgis/administrative_system_1
+        onto_pattern = r"onto\.kul\.pl\/ontohgis\/"
 
-        match = re.search(purl_pattern, name)
-        # wyszukiwanie elementu z deklaracją 'purl identifier' o wartości równej
+        match = re.search(onto_pattern, name)
+        # wyszukiwanie elementu z deklaracją 'OntoHGIS ID' o wartości równej
         # zmiennej name
         if match:
-            f_result, purl_qid = find_name_qid("purl identifier", "property")
+            f_result, onto_qid = find_name_qid("OntoHGIS ID", "property")
             if f_result:
-                output = search_by_purl(purl_qid, name)
+                output = search_by_purl(onto_qid, name)
                 if not output[0]:
                     output = (False, f"INVALID DATA, {elem_type}: {name}, {output[1]}")
             else:
-                output = (False, f"ERROR: {purl_qid}")
+                output = (False, f"ERROR: {onto_qid}")
         # zwykłe wyszukiwanie
         else:
             output = element_search(name, elem_type, lang, strict=strict)

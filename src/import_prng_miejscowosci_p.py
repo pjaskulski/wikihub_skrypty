@@ -1,4 +1,7 @@
-""" import miejscowosci z pliku miejscowosciP.xlsx z danymi z PRG"""
+""" import miejscowosci z pliku miejscowosciP.xlsx z danymi z PRG
+    poprawić i uwaględnić problem miejscowości typu Ciężkowice prng 17782
+    gdzie prng przypisało się do miejscowości urzędowej zamazując 17783
+"""
 import os
 import os.path
 import time
@@ -35,7 +38,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapis do wikibase czy tylko test
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # ----------------------------------- MAIN -------------------------------------
 
@@ -46,7 +49,8 @@ if __name__ == '__main__':
                                 'id SDI', 'part of', 'has part or parts', 'TERYT', 'settlement type',
                                 'coordinate location', 'located in the administrative territorial entity',
                                 'name status', 'inflectional ending', 'adjective form',
-                                'located in the administrative territorial entity'
+                                'located in the administrative territorial entity', 'prng id',
+                                'SIMC place ID'
                                 ])
 
     # elementy definicyjne
@@ -70,7 +74,7 @@ if __name__ == '__main__':
     settlement_type_map['kolonia osady'] = 'colony of a settlement'
     settlement_type_map['kolonia wsi'] = 'colony of a village'
     settlement_type_map['miasto'] = 'city/town'
-    settlement_type_map['osada'] = 'settlement'
+    settlement_type_map['osada'] = 'human settlement'
     settlement_type_map['osada kolonii'] = 'settlement of a colony'
     settlement_type_map['osada leśna'] = 'forest settlement'
     settlement_type_map['osada leśna wsi'] = 'forest settlement of a village'
@@ -93,17 +97,19 @@ if __name__ == '__main__':
     references[properties['retrieved']] = '2022-09-23'
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/miejscowosciP.xlsx'
     tmp_index = '../data_prng/miejsc_p_unique.txt'
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["miejscowosciP"]
+
+    # poprawić i uwzględnić problem miejscowości typu Ciężkowice prng 17782
+    # gdzie prng przypisało się do miejscowości urzędowej zamazując 17783
 
     col_names = {}
     nr_col = 0
@@ -119,8 +125,8 @@ if __name__ == '__main__':
             lines = findex.readlines()
             for line in lines:
                 tab_line = line.split('|')
-                key = tab_line[0].strip()
-                value = tab_line[1].strip()
+                key = tab_line[0].strip()+'|'+tab_line[1].strip()
+                value = tab_line[2].strip()
                 unique_item[key] = value
 
     parts = {}
@@ -157,10 +163,10 @@ if __name__ == '__main__':
                                        'część miasta', 'część kolonii', 'przysiółek wsi']
         if rodzajobie in rodzaje_czesci_miejscowosci:
             description_pl = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
-            description_en = f'{rodzajobie}: {nazwa_miejsc} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{settlement_type_map[rodzajobie]}: {nazwa_miejsc} (commune: {gmina}, district: {powiat}, voivodship: {wojewodztw})'
         else:
             description_pl = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
-            description_en = f'{rodzajobie} (gmina: {gmina}, powiat: {powiat}, wojewódzwo: {wojewodztw})'
+            description_en = f'{settlement_type_map[rodzajobie]} (commune: {gmina}, district: {powiat}, voivodship: {wojewodztw})'
 
         # przygotowanie struktur wikibase
         data = []
@@ -254,7 +260,7 @@ if __name__ == '__main__':
             if statement:
                 data.append(statement)
 
-        # uniklaność description
+        # unikalność description
         label_desc = f"{label_en}|{description_en}"
         if label_desc not in unique_item:
             unique_item[label_desc] = index
@@ -287,6 +293,11 @@ if __name__ == '__main__':
                 try:
                     new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
                     print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+
+                    # zapis QID dla miejscowości
+                    with open('../data_prng/miejscowosci_p_qid.txt', 'a', encoding='utf-8') as f_qid:
+                        f_qid.write(f'{index};{new_id}\n')
+
                     break
                 except MWApiError as wbdelreference_error:
                     err_code = wbdelreference_error.error_msg['error']['code']
