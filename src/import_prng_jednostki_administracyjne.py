@@ -21,8 +21,11 @@ wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-BOT_LOGIN = os.environ.get('WIKIDARIAH_USER')
-BOT_PASSWORD = os.environ.get('WIKIDARIAH_PWD')
+# OAuth
+WIKIDARIAH_CONSUMER_TOKEN = os.environ.get('WIKIDARIAH_CONSUMER_TOKEN')
+WIKIDARIAH_CONSUMER_SECRET = os.environ.get('WIKIDARIAH_CONSUMER_SECRET')
+WIKIDARIAH_ACCESS_TOKEN = os.environ.get('WIKIDARIAH_ACCESS_TOKEN')
+WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 
 # pomiar czasu wykonania
 start_time = time.time()
@@ -144,7 +147,11 @@ def get_label_en(qid: str) -> str:
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                        consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                        access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                        access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                        token_renew_period=14400)
 
     xlsx_input = '../data_prng/PRNG_egzonimy_JA.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -186,6 +193,7 @@ if __name__ == '__main__':
 
         idiip = row[col_names['idiip']].value
         polozenie_t = row[col_names['Polozeniet']].value
+        polozenie_t_en = row[col_names['PolozenieT_en']].value
         wsp_geo = row[col_names['wspGeograf']].value
 
         description_pl = 'jednostka administracyjna'
@@ -226,7 +234,7 @@ if __name__ == '__main__':
             data.append(statement)
 
         # nazwaDlug
-        if nazwa_dlug:
+        if nazwa_dlug and nazwa_dlug != nazwa:
             qualifiers = {}
             if odmiana_ndd:
                 qualifiers[p_inflectional_form] = odmiana_ndd
@@ -239,7 +247,7 @@ if __name__ == '__main__':
                 data.append(statement)
 
         # nazwaObocz
-        if nazwa_obocz:
+        if nazwa_obocz and nazwa_obocz not in (nazwa, nazwa_dlug):
             qualifiers = {}
             if odmiana_nod:
                 qualifiers[p_inflectional_form] = odmiana_nod
@@ -255,16 +263,17 @@ if __name__ == '__main__':
         if element_roz:
             if element_roz != nazwa:
                 aliasy.append(element_roz)
-            statement = create_statement_data(p_stated_as, f'pl:"{element_roz}"', None, None, add_ref_dict=references)
-            if statement:
-                data.append(statement)
+            if element_roz not in (nazwa, nazwa_dlug, nazwa_obocz):
+                statement = create_statement_data(p_stated_as, f'pl:"{element_roz}"', None, None, add_ref_dict=references)
+                if statement:
+                    data.append(statement)
 
         #name_description = polozenie_t
         # polozenieT
         if polozenie_t:
             # czy istnieje w wikibase element o takiej nazwie będący instancją 'country'?
             parameters = [(p_instance_of ,q_country)]
-            ok, country_qid = element_search_adv(polozenie_t, 'pl', parameters)
+            ok, country_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
             if country_qid:
                 #name_description = get_label_en(country_qid)
                 statement = create_statement_data(p_located_in_country, country_qid, None, None, add_ref_dict=references)
@@ -273,7 +282,7 @@ if __name__ == '__main__':
             else:
                 # być może to nie państwo a terytorium zależne?
                 parameters = [(p_instance_of ,q_dependent_territory)]
-                ok, dependent_territory_qid = element_search_adv(polozenie_t, 'pl', parameters)
+                ok, dependent_territory_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
                 if dependent_territory_qid:
                     #name_description = get_label_en(dependent_territory_qid)
                     statement = create_statement_data(p_located_in, dependent_territory_qid, None, None, add_ref_dict=references)
@@ -282,7 +291,7 @@ if __name__ == '__main__':
                 else:
                     # być może to jednak region?
                     parameters = [(p_instance_of ,q_region)]
-                    ok, region_qid = element_search_adv(polozenie_t, 'pl', parameters)
+                    ok, region_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
                     if region_qid:
                         #name_description = get_label_en(region_qid)
                         statement = create_statement_data(p_located_in, dependent_territory_qid, None, None, add_ref_dict=references)
@@ -305,7 +314,7 @@ if __name__ == '__main__':
         # administracyjne w różnych państwach
         # w ang. wersji także z polozenie_t - w sumie i tak nie ma angielskich tłumaczeń...
         # gdyby były to można by pobrać ze zmiennej name_description
-        wb_item.set_description(f'{description_en} ({polozenie_t})', 'en')
+        wb_item.set_description(f'{description_en} ({polozenie_t_en})', 'en')
         wb_item.set_description(f'{description_pl} ({polozenie_t})', 'pl')
 
         if aliasy:
@@ -314,7 +323,7 @@ if __name__ == '__main__':
 
         # wyszukiwanie po etykiecie
         parameters = [(p_instance_of, q_administrative_unit)]
-        ok, item_id = element_search_adv(label_en, 'en', parameters, f'{description_en} ({polozenie_t})')
+        ok, item_id = element_search_adv(label_en, 'en', parameters, f'{description_en} ({polozenie_t})', max_results_to_verify=5)
         if not ok:
             if WIKIBASE_WRITE:
                 new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')

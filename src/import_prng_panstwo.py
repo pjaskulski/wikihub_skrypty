@@ -31,7 +31,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # standardowe właściwości i elementy
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
@@ -52,13 +52,11 @@ references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/ser
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
-
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                        consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                        access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                        access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                        token_renew_period=14400)
 
     xlsx_input = '../data_prng/PRNG_egzonimy_panstwo.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -112,7 +110,7 @@ if __name__ == '__main__':
         data = []
         aliasy = []
 
-        # instace of
+        # instance of
         statement = create_statement_data(properties['instance of'], elements['country'], None, None, add_ref_dict=None)
         if statement:
             data.append(statement)
@@ -179,7 +177,7 @@ if __name__ == '__main__':
 
         # polozenieT
         if polozenie_t:
-            statement = create_statement_data(properties['stated as'], polozenie_t, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['located in (string)'], polozenie_t, None, None, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
@@ -223,4 +221,5 @@ if __name__ == '__main__':
                 new_id = 'TEST'
                 print(f"Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
         else:
-            print(f'Element: {label_en} / {label_pl} już istnieje: {item_id}')
+            #print(f'Element: {label_en} / {label_pl} już istnieje: {item_id}')
+            print(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item_id} {label_en} / {label_pl}]')

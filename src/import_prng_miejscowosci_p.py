@@ -38,13 +38,13 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapis do wikibase czy tylko test
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # ----------------------------------- MAIN -------------------------------------
 
 if __name__ == '__main__':
     # standardowe właściwości
-    print('Przygotowanie właściwości...')
+    print('Przygotowanie właściwości...', end='')
     properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                                 'id SDI', 'part of', 'has part or parts', 'TERYT', 'settlement type',
                                 'coordinate location', 'located in the administrative territorial entity',
@@ -52,17 +52,19 @@ if __name__ == '__main__':
                                 'located in the administrative territorial entity', 'prng id',
                                 'SIMC place ID'
                                 ])
+    print('OK')
 
     # elementy definicyjne
-    print('Przygotowanie elementów definicyjnych...')
+    print('Przygotowanie elementów definicyjnych...', end='')
     elements = get_elements(['unofficial name', 'human settlement',
         'part of a colony', 'part of a city', 'part of a settlement', 'part of a village',
         'colony', 'colony of a colony', 'colony of a settlement', 'colony of a village',
-        'city/town', 'settlement', 'settlement of a colony', 'forest settlement',
+        'city/town', 'human settlement', 'settlement of a colony', 'forest settlement',
         'forest settlement of a village', 'settlement of a settlement', 'settlement of a village',
         'housing developments', 'housing estate of a village', 'hamlet', 'hamlet of a colony',
         'hamlet of a settlement', 'hamlet of a village', 'tourist shelter', 'village', "forester's lodge"
                             ])
+    print('OK')
 
     settlement_type_map = {}
     settlement_type_map['część kolonii'] = 'part of a colony'
@@ -108,9 +110,6 @@ if __name__ == '__main__':
     wb = openpyxl.load_workbook(xlsx_input)
     ws = wb["miejscowosciP"]
 
-    # poprawić i uwzględnić problem miejscowości typu Ciężkowice prng 17782
-    # gdzie prng przypisało się do miejscowości urzędowej zamazując 17783
-
     col_names = {}
     nr_col = 0
     for column in ws.iter_cols(1, ws.max_column):
@@ -124,10 +123,12 @@ if __name__ == '__main__':
         with open(tmp_index, 'r', encoding='utf-8') as findex:
             lines = findex.readlines()
             for line in lines:
-                tab_line = line.split('|')
-                key = tab_line[0].strip()+'|'+tab_line[1].strip()
-                value = tab_line[2].strip()
-                unique_item[key] = value
+                line = line.strip()
+                if line:
+                    tab_line = line.split('|')
+                    key = tab_line[0].strip()+'|'+tab_line[1].strip()
+                    value = tab_line[2].strip()
+                    unique_item[key] = value
 
     parts = {}
 
@@ -135,6 +136,7 @@ if __name__ == '__main__':
     max_row = ws.max_row
     for row in ws.iter_rows(2, max_row):
         index += 1
+
         # wczytanie danych z xlsx
         nazwa = row[col_names['NAZWAGLOWN']].value
         if not nazwa:
@@ -158,6 +160,11 @@ if __name__ == '__main__':
         powiat = row[col_names['POWIAT']].value
         wojewodztw = row[col_names['WOJEWODZTW']].value
         row_prng = row[col_names['IDENTYFIKA']].value
+        miejsc_qid = row[col_names['QID']].value
+
+        # drugi przebieg z uzupełnianiem brakujących
+        if miejsc_qid:
+            continue
 
         rodzaje_czesci_miejscowosci = ['część wsi', 'przysiółek osady', 'kolonia wsi',
                                        'część miasta', 'część kolonii', 'przysiółek wsi']
@@ -240,12 +247,14 @@ if __name__ == '__main__':
         # IDENTYFI_2
         if identyfi_2:
             parameters = [(properties['TERYT'], identyfi_2)]
-            ok, gmina_qid = element_search_adv(gmina, 'en', parameters)
+            ok, gmina_qid = element_search_adv('commune' + ' ' + gmina, 'en', parameters)
             if ok:
                 statement = create_statement_data(properties['located in the administrative territorial entity'],
                     gmina_qid, None, None, add_ref_dict=references)
                 if statement:
                     data.append(statement)
+            else:
+                print('ERROR: nie znaleziono gminy:', gmina, identyfi_2)
 
         # id SDI
         if idiip:
@@ -253,14 +262,14 @@ if __name__ == '__main__':
             if statement:
                 data.append(statement)
 
-        # identyfikator PRNG (tylko, w pozostałych nie ma SIMC)
+        # identyfikator PRNG (tylko, w miejscowościach pozostałych nie ma SIMC)
         if row_prng:
             statement = create_statement_data(properties['prng id'], row_prng,
                 None, None, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
-        # unikalność description
+        # unikalność description (w obrębie miejscowości pozostałych)
         label_desc = f"{label_en}|{description_en}"
         if label_desc not in unique_item:
             unique_item[label_desc] = index
@@ -272,7 +281,17 @@ if __name__ == '__main__':
             print(f'{index}/{ws.max_row - 1}, {label_en}, rozszerzony opis: {description_en}')
 
         with open(tmp_index, 'a', encoding='utf-8') as findex:
-            findex.write(f'{label_desc}|{index}')
+            findex.write(f'{label_desc}|{index}\n')
+
+        # zdarzają się identyczne miejscowości urzędowe i pozostałe, różnią się prng
+        # np. Ciężkowice z prng 17782 i 17783, w takiej sytuacji trzeba dodać coś do opisu
+        # miejscowości niestandaryzowanej
+        parameters = [(properties['instance of'], elements['human settlement'])]
+        ok, test_official_id = element_search_adv(label_en, 'en', parameters, description_en, max_results_to_verify=50)
+        if ok:
+            print('Duplikat urzędowej: ', row_prng, label_en)
+            description_pl += ' (niestandaryzowana)'
+            description_en += ' (non-standardised)'
 
         # etykiety, description, aliasy
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
@@ -320,7 +339,7 @@ if __name__ == '__main__':
             ok, item_id = element_search_adv(label_en, 'en', parameters, description_en, max_results_to_verify=50)
             if not ok:
                 new_id = 'TEST'
-                print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"{index}/{ws.max_row - 1} Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}, {description_en}")
             else:
                 print(f'{index}/{ws.max_row - 1} Element: {label_en} / {label_pl} już istnieje: {item_id}')
 

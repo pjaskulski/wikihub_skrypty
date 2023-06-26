@@ -2821,7 +2821,13 @@ def has_statement(pid_to_check: str, claim_to_check: str, value_to_check: str = 
                     elif "entity-type" in value_json:
                         value = value_json["id"]
                     elif "latitude" in value_json:
-                        value = f"{value_json['latitude']},{value_json['longitude']}"
+                        latitude = value_json['latitude']
+                        if isinstance(latitude, int):
+                            latitude = float(latitude)
+                        longitude = value_json['longitude']
+                        if isinstance(longitude, int):
+                            longitude = float(longitude)
+                        value = f"{latitude},{longitude}"
                     elif "time" in value_json:
                         value = f"{value_json['time']}/{value_json['precision']}"
                     elif "amount" in value_json:
