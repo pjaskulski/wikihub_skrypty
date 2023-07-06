@@ -816,29 +816,39 @@ def write_or_exit(login_instance, wb_item, logger):
         except (MWApiError, KeyError) as wb_error:
             err_code = wb_error.error_msg['error']['code']
             message = wb_error.error_msg['error']['info']
-            logger.info(f'ERROR: {err_code}, {message}')
+            if logger:
+                logger.info(f'ERROR: {err_code}, {message}')
+            else:
+                print(f'ERROR: {err_code}, {message}')
 
             # jeżeli jest to problem z tokenem to próba odświeżenia tokena i powtórzenie
             # zapisu, ale tylko raz, w razie powtórnego błędu bad token, skrypt kończy pracę
             if err_code in ['assertuserfailed', 'badtoken']:
                 if loop_num == 1:
-                    logger.info('Generate edit credentials...')
+                    if logger:
+                        logger.info('Generate edit credentials...')
+                    else:
+                        print('Generate edit credentials...')
                     login_instance.generate_edit_credentials()
                     loop_num += 1
                     continue
             # jeżeli błąd zapisu dto druga próba po 5 sekundach
             elif err_code in ['failed-save']:
                 if loop_num == 1:
-                    logger.info('wait 5 seconds...')
+                    if logger:
+                        logger.info('wait 5 seconds...')
+                    else:
+                        print('wait 5 seconds...')
                     loop_num += 1
                     continue
 
             sys.exit(1)
         except BaseException:
-            logger.exception('ERROR: an exception was thrown!')
+            if logger:
+                logger.exception('ERROR: an exception was thrown!')
+            else:
+                print('ERROR: an exception was thrown!')
             sys.exit(1)
-
-
 
     return new_id
 

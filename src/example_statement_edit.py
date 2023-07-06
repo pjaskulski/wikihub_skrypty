@@ -30,4 +30,5 @@ if __name__ == "__main__":
     moje_dane = wbi_datatype.String(value='Aders-Kettler-Starszy II', prop_nr='P4')
     data = [moje_dane]
     wd_item = wbi_core.ItemEngine(item_id='Q413', data=data, debug=False)
-    wd_item.write(login_instance)
+    print(wd_item.get_json_representation())
+    #wd_item.write(login_instance)

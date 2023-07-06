@@ -38,7 +38,7 @@ def select_name(nazwa_wsp, nazwa_16, nazwa_slow) -> str:
     return result
 
 
-def get_best(text, min_dist, ahp_prng_WGS84):
+def get_best(text, min_dist, ahp_prng_WGS84, dist_max = 0):
     """ get_best """
     best_prng = ''
     result = process.extract(text, df_prng['NAZWAGLOWN'], score_cutoff=90, limit=150)
@@ -47,9 +47,13 @@ def get_best(text, min_dist, ahp_prng_WGS84):
         prng = df_prng['PRNG'][line_number]
         prng_WGS84 = df_prng['WGS84'][line_number]
         dist = calculate_distance(ahp_prng_WGS84, prng_WGS84)
-        if dist < min_dist:
-            min_dist = dist
-            best_prng = prng
+        if not dist_max:
+            if dist < min_dist:
+                min_dist = dist
+                best_prng = prng
+        else:
+            if dist > min_dist and dist < min_dist + dist_max:
+
 
     return best_prng
 

@@ -94,8 +94,12 @@ if __name__ == '__main__':
                         label_pl = wb_item.get_label('pl')
                         wb_help = wbi_core.ItemEngine(item_id=part, data=data)
                         label_target = wb_help.get_label('pl')
+                        wb_item = wbi_core.ItemEngine(item_id=qid, data=data)
+
+                        write_or_exit(login_instance, wb_item, logger)
+
                         message = f'{licznik}:, {part}, {label_target}, uzupełniono właściwość "has part or parts" =  {qid}, {label_pl}'
-                        write_or_exit(login_instance, part, data, logger, message)
+                        logger.info(message)
 
     end_time = time.time()
     elapsed_time = end_time - start_time

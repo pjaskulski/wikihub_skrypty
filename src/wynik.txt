@@ -1,0 +1,1937 @@
+PROPERTY (1/61): Wikidata ID
+Property: 'Wikidata ID' already exists: P50, update mode.
+SKIP: właściwość: P50 (Wikidata ID) posiada już opis w języku: "en" o wartości: Wikidata entity ID
+SKIP: właściwość: P50 (Wikidata ID) posiada już opis w języku: "pl" o wartości: Identyfikator w Wikidata
+PROPERTY (2/61): ID-URL
+Property: 'ID-URL' already exists: P188, update mode.
+SKIP: właściwość: P188 (ID-URL) posiada już opis w języku: "en" o wartości: used on external-id property to build URL from ID
+SKIP: właściwość: P188 (ID-URL) posiada już opis w języku: "pl" o wartości: używany dla właściwości typu external-id jako definicja formatu URL budowanego z id
+SKIP: właściwość: P188 (ID-URL) posiada już deklarację: P50 o wartości: P1630
+PROPERTY (3/61): purl identifier
+Property: 'purl identifier' already exists: P197, update mode.
+SKIP: właściwość: P197 (purl identifier) posiada już opis w języku: "en" o wartości: external identifier used in OWL
+SKIP: właściwość: P197 (purl identifier) posiada już opis w języku: "pl" o wartości: zewnętrzny identyfikator stosowany w OWL
+PROPERTY (4/61): ISBN publisher prefix
+Property: 'ISBN publisher prefix' already exists: P220, update mode.
+SKIP: właściwość: P220 (ISBN publisher prefix) posiada już opis w języku: "en" o wartości: part of an ISBN(-13) specific to a publisher
+SKIP: właściwość: P220 (ISBN publisher prefix) posiada już opis w języku: "pl" o wartości: cześć numeru ISBN (-13) określająca wydawcę
+SKIP: właściwość: P220 (ISBN publisher prefix) posiada już deklarację: P50 o wartości: P3035
+PROPERTY (5/61): ISSN
+Property: 'ISSN' already exists: P236, update mode.
+SKIP: właściwość: P236 (ISSN) posiada już opis w języku: "en" o wartości: International Standard Serial Number (print or electronic)
+SKIP: właściwość: P236 (ISSN) posiada już opis w języku: "pl" o wartości: ośmiocyfrowy niepowtarzalny identyfikator wydawnictw ciągłych tradycyjnych oraz elektronicznych
+SKIP: właściwość: P236 (ISSN) posiada już deklarację: P50 o wartości: P236
+PROPERTY (6/61): DOI
+Property: 'DOI' already exists: P237, update mode.
+SKIP: właściwość: P237 (DOI) posiada już opis w języku: "en" o wartości: serial code used to uniquely identify digital objects like academic papers (use upper case letters only)
+SKIP: właściwość: P237 (DOI) posiada już opis w języku: "pl" o wartości: cyfrowy identyfikator dokumentu elektronicznego
+SKIP: właściwość: P237 (DOI) posiada już deklarację: P50 o wartości: P356
+PROPERTY (7/61): ISBN-10
+Property: 'ISBN-10' already exists: P122, update mode.
+SKIP: właściwość: P122 (ISBN-10) posiada już opis w języku: "en" o wartości: former identifier for a book (edition), ten digits. Used for all publications up to 2006 (convertible to ISBN-13 for some online catalogs; useful for old books or fac-similes not reedited since 2007)
+SKIP: właściwość: P122 (ISBN-10) posiada już opis w języku: "pl" o wartości: International Standard Book Number, 10-cyfrowy
+SKIP: właściwość: P122 (ISBN-10) posiada już deklarację: P50 o wartości: P957
+PROPERTY (8/61): ISBN-13
+Property: 'ISBN-13' already exists: P123, update mode.
+SKIP: właściwość: P123 (ISBN-13) posiada już opis w języku: "en" o wartości: identifier for a book (edition), thirteen digit
+SKIP: właściwość: P123 (ISBN-13) posiada już opis w języku: "pl" o wartości: International Standard Book Number, 13-cyfrowy
+SKIP: właściwość: P123 (ISBN-13) posiada już deklarację: P50 o wartości: P212
+PROPERTY (9/61): PLWABN ID
+Property: 'PLWABN ID' already exists: P238, update mode.
+SKIP: właściwość: P238 (PLWABN ID) posiada już opis w języku: "en" o wartości: National Library of Poland record no. identifier. Format: "98", followed by 10 digits, then ending with "5606"
+SKIP: właściwość: P238 (PLWABN ID) posiada już opis w języku: "pl" o wartości: nr rekordu kontroli autorytatywnej Biblioteki Narodowej (Polska)
+SKIP: właściwość: P238 (PLWABN ID) posiada już deklarację: P50 o wartości: P7293
+PROPERTY (10/61): inverse property
+Property: 'inverse property' already exists: P156, update mode.
+SKIP: właściwość: P156 (inverse property) posiada już opis w języku: "en" o wartości: links a property to its inverse property (which relates the subject and object in reverse order)
+SKIP: właściwość: P156 (inverse property) posiada już opis w języku: "pl" o wartości: łączy właściwość z jej właściwością odwrotną (która łączy podmiot i obiekt w odwrotnej kolejności)
+SKIP: właściwość: P156 (inverse property) posiada już deklarację: P50 o wartości: P1696
+PROPERTY (11/61): instance of
+Property: 'instance of' already exists: P47, update mode.
+SKIP: właściwość: P47 (instance of) posiada już opis w języku: "en" o wartości: that class of which this subject is a particular example and member
+SKIP: właściwość: P47 (instance of) posiada już opis w języku: "pl" o wartości: stanowi przykład (jest elementem) danej klasy
+SKIP: właściwość: P47 (instance of) posiada już deklarację: P50 o wartości: P31
+PROPERTY (12/61): subclass of
+Property: 'subclass of' already exists: P133, update mode.
+SKIP: właściwość: P133 (subclass of) posiada już opis w języku: "en" o wartości: next higher class or type; all instances of these items are instances of those items
+SKIP: właściwość: P133 (subclass of) posiada już opis w języku: "pl" o wartości: wszystkie elementy tego typu są również elementami typu nadrzędnego
+SKIP: właściwość: P133 (subclass of) posiada już deklarację: P50 o wartości: P279
+PROPERTY (13/61): superclass of
+Property: 'superclass of' already exists: P210, update mode.
+SKIP: właściwość: P210 (superclass of) posiada już opis w języku: "en" o wartości: parent class of
+SKIP: właściwość: P210 (superclass of) posiada już opis w języku: "pl" o wartości: klasa-rodzic dla
+ADD_PROPERTY_STATEMENT: SKIP: właściwość: 'P133' (P133) already has a statement: 'P156 with value: P210'.
+ZAKTUALIZOWANO właściwość: qid:P210 (superclass of), True
+PROPERTY (14/61): said to be the same as
+Property: 'said to be the same as' already exists: P83, update mode.
+SKIP: właściwość: P83 (said to be the same as) posiada już opis w języku: "en" o wartości: this item is said to be the same as that item, but it's uncertain or disputed
+SKIP: właściwość: P83 (said to be the same as) posiada już opis w języku: "pl" o wartości: niektórzy uważają że ta rzecz jest tym samym co tamta rzecz, ale nie wszyscy się z tym zgadzają
+SKIP: właściwość: P83 (said to be the same as) posiada już deklarację: P50 o wartości: P460
+PROPERTY (15/61): different from
+Property: 'different from' already exists: P82, update mode.
+SKIP: właściwość: P82 (different from) posiada już opis w języku: "en" o wartości: item that is different from another item, with which it may be confused
+SKIP: właściwość: P82 (different from) posiada już opis w języku: "pl" o wartości: element jest inny niż drugi element, które jednak mogą być mylone
+SKIP: właściwość: P82 (different from) posiada już deklarację: P50 o wartości: P1889
+PROPERTY (16/61): stated as
+Property: 'stated as' already exists: P195, update mode.
+SKIP: właściwość: P195 (stated as) posiada już opis w języku: "en" o wartości: name under which object is mentioned in datasource (datasource should be defined by proper qualifiers)
+SKIP: właściwość: P195 (stated as) posiada już opis w języku: "pl" o wartości: nazwa pod jaką wymieniony jest obiekt w źródle (źródło definiowane za pomocą odpowiednich kwalifikatorów)
+SKIP: właściwość: P195 (stated as) posiada już deklarację: P50 o wartości: P1932
+PROPERTY (17/61): part of
+Property: 'part of' already exists: P212, update mode.
+SKIP: właściwość: P212 (part of) posiada już opis w języku: "en" o wartości: object of which the subject is a part
+SKIP: właściwość: P212 (part of) posiada już opis w języku: "pl" o wartości: podmiot należy do innego obiektu
+SKIP: właściwość: P212 (part of) posiada już deklarację: P50 o wartości: P361
+PROPERTY (18/61): has part or parts
+Property: 'has part or parts' already exists: P213, update mode.
+SKIP: właściwość: P213 (has part or parts) posiada już opis w języku: "en" o wartości: part of this subject, inverse property of "part of"
+SKIP: właściwość: P213 (has part or parts) posiada już opis w języku: "pl" o wartości: obiekt jest częścią podmiotu, przeciwieństwo: "część"
+SKIP: właściwość: P213 (has part or parts) posiada już deklarację: P50 o wartości: P527
+ADD_PROPERTY_STATEMENT: SKIP: właściwość: 'P212' (P212) already has a statement: 'P156 with value: P213'.
+ZAKTUALIZOWANO właściwość: qid:P213 (has part or parts), True
+PROPERTY (19/61): refine date
+Property: 'refine date' already exists: P190, update mode.
+SKIP: właściwość: P190 (refine date) posiada już opis w języku: "en" o wartości: qualifier to narrow down the precision of a date not fully specified by the Wikidata time datatype precision field
+SKIP: właściwość: P190 (refine date) posiada już opis w języku: "pl" o wartości: kwalifikator doprecyzowujący datę, w przypadku gdy precyzja nie może być określona za pomocą formatu daty Wikidanych
+SKIP: właściwość: P190 (refine date) posiada już deklarację: P50 o wartości: P4241
+PROPERTY (20/61): starts at
+Property: 'starts at' already exists: P203, update mode.
+SKIP: właściwość: P203 (starts at) posiada już opis w języku: "en" o wartości: time a time period starts
+SKIP: właściwość: P203 (starts at) posiada już opis w języku: "pl" o wartości: data początkowa
+SKIP: właściwość: P203 (starts at) posiada już deklarację: P50 o wartości: P580
+PROPERTY (21/61): ends at
+Property: 'ends at' already exists: P204, update mode.
+SKIP: właściwość: P204 (ends at) posiada już opis w języku: "en" o wartości: time a time period ends
+SKIP: właściwość: P204 (ends at) posiada już opis w języku: "pl" o wartości: data końcowa
+SKIP: właściwość: P204 (ends at) posiada już deklarację: P50 o wartości: P582
+PROPERTY (22/61): earliest date
+Property: 'earliest date' already exists: P38, update mode.
+SKIP: właściwość: P38 (earliest date) posiada już opis w języku: "en" o wartości: earliest date at which an event could have happened. Use as qualifier for other date properties
+SKIP: właściwość: P38 (earliest date) posiada już opis w języku: "pl" o wartości: najwcześniejsza data, w której mogło nastąpić zdarzenie. Użyj jako kwalifikatora dla innych właściwości daty
+SKIP: właściwość: P38 (earliest date) posiada już deklarację: P50 o wartości: P1319
+PROPERTY (23/61): latest date
+Property: 'latest date' already exists: P39, update mode.
+SKIP: właściwość: P39 (latest date) posiada już opis w języku: "en" o wartości: latest possible time that something could have occurred. Use as qualifier for other date properties
+SKIP: właściwość: P39 (latest date) posiada już opis w języku: "pl" o wartości: ostatnia możliwa data do której wydarzenie miało szansę mieć miejsce
+SKIP: właściwość: P39 (latest date) posiada już deklarację: P50 o wartości: P1326
+PROPERTY (24/61): date of birth
+Property: 'date of birth' already exists: P7, update mode.
+SKIP: właściwość: P7 (date of birth) posiada już opis w języku: "en" o wartości: date on which the subject was born
+SKIP: właściwość: P7 (date of birth) posiada już opis w języku: "pl" o wartości: data wskazująca narodziny danej osoby
+SKIP: właściwość: P7 (date of birth) posiada już deklarację: P50 o wartości: P569
+PROPERTY (25/61): date of death
+Property: 'date of death' already exists: P8, update mode.
+SKIP: właściwość: P8 (date of death) posiada już opis w języku: "en" o wartości: date on which the subject died
+SKIP: właściwość: P8 (date of death) posiada już opis w języku: "pl" o wartości: data kiedy osoba zmarła
+SKIP: właściwość: P8 (date of death) posiada już deklarację: P50 o wartości: P570
+PROPERTY (26/61): publisher
+Property: 'publisher' already exists: P226, update mode.
+SKIP: właściwość: P226 (publisher) posiada już opis w języku: "en" o wartości: organization or person responsible for publishing books, periodicals, printed music, podcasts, games or software
+SKIP: właściwość: P226 (publisher) posiada już opis w języku: "pl" o wartości: osoba bądź instytucja która przygotowuje, opracowuje, a następnie wydaje np. czasopisma, gry lub książki
+SKIP: właściwość: P226 (publisher) posiada już deklarację: P50 o wartości: P123
+PROPERTY (27/61): located in
+Property: 'located in' already exists: P219, update mode.
+ZAKTUALIZOWANO właściwość: qid:P219 (located in), True
+PROPERTY (28/61): title
+Property: 'title' already exists: P244, update mode.
+SKIP: właściwość: P244 (title) posiada już opis w języku: "en" o wartości: published name of a work, such as a newspaper article, a literary work, piece of music, a website, or a performance work
+SKIP: właściwość: P244 (title) posiada już opis w języku: "pl" o wartości: tytuł publikacji, np. artykułu prasowego lub naukowego, dzieła literackiego, strony internetowej
+SKIP: właściwość: P244 (title) posiada już deklarację: P50 o wartości: P1476
+PROPERTY (29/61): author
+Property: 'author' already exists: P239, update mode.
+SKIP: właściwość: P239 (author) posiada już opis w języku: "en" o wartości: main creator(s) of a written work (use on works, not humans); use P2093 when Wikidata item is unknown or does not exist
+SKIP: właściwość: P239 (author) posiada już opis w języku: "pl" o wartości: autor utworu, tekstu, pracy, dzieła
+SKIP: właściwość: P239 (author) posiada już deklarację: P50 o wartości: P50
+PROPERTY (30/61): translator
+Property: 'translator' already exists: P240, update mode.
+SKIP: właściwość: P240 (translator) posiada już opis w języku: "en" o wartości: agent who adapts any kind of written text from one language to another
+SKIP: właściwość: P240 (translator) posiada już opis w języku: "pl" o wartości: osoba, która tłumaczy teksty pisane z jednego języka na inny
+SKIP: właściwość: P240 (translator) posiada już deklarację: P50 o wartości: P655
+PROPERTY (31/61): editor
+Property: 'editor' already exists: P224, update mode.
+SKIP: właściwość: P224 (editor) posiada już opis w języku: "en" o wartości: editor of a compiled work such as a book or a periodical (newspaper or an academic journal)
+SKIP: właściwość: P224 (editor) posiada już opis w języku: "pl" o wartości: osoba dokonująca redakcji tekstu
+SKIP: właściwość: P224 (editor) posiada już deklarację: P50 o wartości: P98
+PROPERTY (32/61): contributor to the creative work or subject
+Property: 'contributor to the creative work or subject' already exists: P163, update mode.
+SKIP: właściwość: P163 (contributor to the creative work or subject) posiada już opis w języku: "en" o wartości: person or organization that contributed to a subject: co-creator of a creative work or subject
+SKIP: właściwość: P163 (contributor to the creative work or subject) posiada już opis w języku: "pl" o wartości: 
+SKIP: właściwość: P163 (contributor to the creative work or subject) posiada już deklarację: P50 o wartości: P767
+PROPERTY (33/61): author of foreword
+Property: 'author of foreword' already exists: P241, update mode.
+SKIP: właściwość: P241 (author of foreword) posiada już opis w języku: "en" o wartości: person who wrote the preface, foreword, or introduction of the book but who isn't an author of the rest of the book
+SKIP: właściwość: P241 (author of foreword) posiada już opis w języku: "pl" o wartości: 
+SKIP: właściwość: P241 (author of foreword) posiada już deklarację: P50 o wartości: P2679
+PROPERTY (34/61): published in
+Property: 'published in' already exists: P167, update mode.
+SKIP: właściwość: P167 (published in) posiada już opis w języku: "en" o wartości: larger work that a given work was published in, like a book, journal or music album
+SKIP: właściwość: P167 (published in) posiada już opis w języku: "pl" o wartości: większa praca (wydawnictwo), w której podana praca została opublikowana
+SKIP: właściwość: P167 (published in) posiada już deklarację: P50 o wartości: P1433
+PROPERTY (35/61): place of publication
+Property: 'place of publication' already exists: P225, update mode.
+SKIP: właściwość: P225 (place of publication) posiada już opis w języku: "en" o wartości: geographical place of publication of the edition (use 1st edition when referring to works)
+SKIP: właściwość: P225 (place of publication) posiada już opis w języku: "pl" o wartości: geograficzne miejsce wydania obiektu (użyj pierwszego wydania w odniesieniu do utworów)
+SKIP: właściwość: P225 (place of publication) posiada już deklarację: P50 o wartości: P291
+PROPERTY (36/61): publication date
+Property: 'publication date' already exists: P227, update mode.
+SKIP: właściwość: P227 (publication date) posiada już opis w języku: "en" o wartości: date or point in time when a work was first published or released
+SKIP: właściwość: P227 (publication date) posiada już opis w języku: "pl" o wartości: data lub punkt w czasie, kiedy dzieło jest publikowane po raz pierwszy lub ma premierę w innej formie
+SKIP: właściwość: P227 (publication date) posiada już deklarację: P50 o wartości: P577
+PROPERTY (37/61): described at URL
+Property: 'described at URL' already exists: P217, update mode.
+SKIP: właściwość: P217 (described at URL) posiada już opis w języku: "en" o wartości: item is described at the following URL
+SKIP: właściwość: P217 (described at URL) posiada już opis w języku: "pl" o wartości: adres URL, gdzie element został opisany
+SKIP: właściwość: P217 (described at URL) posiada już deklarację: P50 o wartości: P973
+PROPERTY (38/61): described by source
+Property: 'described by source' already exists: P218, update mode.
+SKIP: właściwość: P218 (described by source) posiada już opis w języku: "en" o wartości: work where this item is described
+SKIP: właściwość: P218 (described by source) posiada już opis w języku: "pl" o wartości: źródło (np. słownik, encyklopedia), w którym opisano ten element
+SKIP: właściwość: P218 (described by source) posiada już deklarację: P50 o wartości: P1343
+PROPERTY (39/61): stated in
+Property: 'stated in' already exists: P192, update mode.
+SKIP: właściwość: P192 (stated in) posiada już opis w języku: "en" o wartości: to be used in the references field to refer to the information document or database in which a claim is made
+SKIP: właściwość: P192 (stated in) posiada już opis w języku: "pl" o wartości: opis źródła, skąd pochodzi dana informacja
+SKIP: właściwość: P192 (stated in) posiada już deklarację: P50 o wartości: P248
+PROPERTY (40/61): reference URL
+Property: 'reference URL' already exists: P182, update mode.
+SKIP: właściwość: P182 (reference URL) posiada już opis w języku: "en" o wartości: should be used for Internet URLs as references
+SKIP: właściwość: P182 (reference URL) posiada już opis w języku: "pl" o wartości: używany do podawania adresów internetowych jako źródeł
+SKIP: właściwość: P182 (reference URL) posiada już deklarację: P50 o wartości: P854
+PROPERTY (41/61): sourcing circumstances
+Property: 'sourcing circumstances' already exists: P189, update mode.
+SKIP: właściwość: P189 (sourcing circumstances) posiada już opis w języku: "en" o wartości: qualification of the truth or accuracy of a source: circa, near, presumably, etc.
+SKIP: właściwość: P189 (sourcing circumstances) posiada już opis w języku: "pl" o wartości: kwalifikator dla stwierdzeń: około, błąd w druku, przypuszczalnie
+SKIP: właściwość: P189 (sourcing circumstances) posiada już deklarację: P50 o wartości: P1480
+PROPERTY (42/61): retrieved
+Property: 'retrieved' already exists: P228, update mode.
+SKIP: właściwość: P228 (retrieved) posiada już opis w języku: "en" o wartości: date or point in time that information was retrieved from a database or website (for use in online sources)
+SKIP: właściwość: P228 (retrieved) posiada już opis w języku: "pl" o wartości: czas pobrania informacji z bazy danych lub strony internetowej (dla źródeł internetowych)
+SKIP: właściwość: P228 (retrieved) posiada już deklarację: P50 o wartości: P813
+PROPERTY (43/61): section, verse, paragraph, or clause
+Property: 'section, verse, paragraph, or clause' already exists: P231, update mode.
+SKIP: właściwość: P231 (section, verse, paragraph, or clause) posiada już opis w języku: "en" o wartości: paragraph, or other kind of special indication to find information on a page or on a document (legal texts etc.)
+SKIP: właściwość: P231 (section, verse, paragraph, or clause) posiada już opis w języku: "pl" o wartości: akapit lub inne oznaczenie miejsca umieszczenia informacji w obrębie publikacji (dla rozdziałów stosuje się P792)
+SKIP: właściwość: P231 (section, verse, paragraph, or clause) posiada już deklarację: P50 o wartości: P958
+PROPERTY (44/61): volume
+Property: 'volume' already exists: P232, update mode.
+SKIP: właściwość: P232 (volume) posiada już opis w języku: "en" o wartości: volume of a book or music release in a collection/series or a published collection of journal issues in a serial publication
+SKIP: właściwość: P232 (volume) posiada już opis w języku: "pl" o wartości: numer tomu w serii książek lub rocznik gazety/czasopisma
+SKIP: właściwość: P232 (volume) posiada już deklarację: P50 o wartości: P478
+PROPERTY (45/61): pages
+Property: 'pages' already exists: P234, update mode.
+SKIP: właściwość: P234 (pages) posiada już opis w języku: "en" o wartości: page number of source referenced for statement.
+SKIP: właściwość: P234 (pages) posiada już opis w języku: "pl" o wartości: numer strony lub zakres stron w źródle
+SKIP: właściwość: P234 (pages) posiada już deklarację: P50 o wartości: P304
+PROPERTY (46/61): hidden label
+Property: 'hidden label' already exists: P181, update mode.
+SKIP: właściwość: P181 (hidden label) posiada już opis w języku: "en" o wartości: A lexical label for a resource that should be hidden when generating visual displays of the resource, but should still be accessible to free text search operations.
+SKIP: właściwość: P181 (hidden label) posiada już opis w języku: "pl" o wartości: Leksykalna etykieta dla źródła, która powinna być ukryta podczas wizualnej prezentacji, ale powinna być ciągle dostępna podczas wyszukiwania tekstowego
+PROPERTY (47/61): religion
+Property: 'religion' already exists: P77, update mode.
+SKIP: właściwość: P77 (religion) posiada już opis w języku: "en" o wartości: set of beliefs, practices and traditions for a group or community
+SKIP: właściwość: P77 (religion) posiada już opis w języku: "pl" o wartości: system wierzeń i praktyk
+PROPERTY (48/61): confession
+Property: 'confession' already exists: P205, update mode.
+SKIP: właściwość: P205 (confession) posiada już opis w języku: "en" o wartości: identifiable religious subgroup with a common structure and doctrine
+SKIP: właściwość: P205 (confession) posiada już opis w języku: "pl" o wartości: organizacja religijna
+PROPERTY (49/61): rite
+Property: 'rite' already exists: P206, update mode.
+SKIP: właściwość: P206 (rite) posiada już opis w języku: "en" o wartości: established specific way of celebrating the liturgy, characteristic for a given region
+SKIP: właściwość: P206 (rite) posiada już opis w języku: "pl" o wartości: utrwalony specyficzny sposób sprawowania liturgii, charakterystyczny dla danego regionu
+PROPERTY (50/61): legal basis
+Property: 'legal basis' already exists: P242, update mode.
+SKIP: właściwość: P242 (legal basis) posiada już opis w języku: "en" o wartości: source which is a legal base for an item
+SKIP: właściwość: P242 (legal basis) posiada już opis w języku: "pl" o wartości: źródło stanowiące podstawę prawną dla obiektu
+PROPERTY (51/61): composed of
+Property: 'composed of' already exists: P243, update mode.
+SKIP: właściwość: P243 (composed of) posiada już opis w języku: "en" o wartości: 
+SKIP: właściwość: P243 (composed of) posiada już opis w języku: "pl" o wartości: przynależność typu jednostki administracyjnej do systemu administracji religijnej
+PROPERTY (52/61): point in time
+Property: 'point in time' already exists: P252, update mode.
+SKIP: właściwość: P252 (point in time) posiada już opis w języku: "en" o wartości: time and date something took place, existed or a statement was true
+SKIP: właściwość: P252 (point in time) posiada już opis w języku: "pl" o wartości: czas i data kiedy coś miało miejsce, istniało lub kiedy stwierdzenie było prawdziwe
+SKIP: właściwość: P252 (point in time) posiada już deklarację: P50 o wartości: P585
+PROPERTY (53/61): related properties
+Property: 'related properties' already exists: P162, update mode.
+SKIP: właściwość: P162 (related properties) posiada już opis w języku: "en" o wartości: used to indicate another property that might provide additional information about the subject
+SKIP: właściwość: P162 (related properties) posiada już opis w języku: "pl" o wartości: używane do wskazania właściwości, która może dostarczyć dodatkowych informacji na ten temat
+SKIP: właściwość: P162 (related properties) posiada już deklarację: P50 o wartości: P1659
+PROPERTY (54/61): equivalent to
+Property: 'equivalent to' already exists: P269, update mode.
+SKIP: właściwość: P269 (equivalent to) posiada już opis w języku: "en" o wartości: 
+SKIP: właściwość: P269 (equivalent to) posiada już opis w języku: "pl" o wartości: 
+PROPERTY (55/61): inflectional ending
+Property: 'inflectional ending' already exists: P279, update mode.
+SKIP: właściwość: P279 (inflectional ending) posiada już opis w języku: "en" o wartości: the ending for the genitive form of the name, used as "stated as" qualifier
+SKIP: właściwość: P279 (inflectional ending) posiada już opis w języku: "pl" o wartości: końcówka nazwy podana w dopełniaczu; jako kwalifikator do "opisany jako"
+PROPERTY (56/61): adjective form
+Property: 'adjective form' already exists: P280, update mode.
+SKIP: właściwość: P280 (adjective form) posiada już opis w języku: "en" o wartości: an adjective derived from the name, used as "stated as" qualifier
+SKIP: właściwość: P280 (adjective form) posiada już opis w języku: "pl" o wartości: przymiotnik utworzony od nazwy; jako kwalifikator do "opisany jako"
+PROPERTY (57/61): locative form
+Property: 'locative form' already exists: P281, update mode.
+SKIP: właściwość: P281 (locative form) posiada już opis w języku: "en" o wartości: the name given in the locative, used as "stated as" qualifier
+SKIP: właściwość: P281 (locative form) posiada już opis w języku: "pl" o wartości: nazwa podana w miejscowniku; jako kwalifikator do "opisany jako"
+PROPERTY (58/61): inflectional form
+Property: 'inflectional form' already exists: P282, update mode.
+SKIP: właściwość: P282 (inflectional form) posiada już opis w języku: "en" o wartości: the name given in the genitive, used as "stated as" qualifier
+SKIP: właściwość: P282 (inflectional form) posiada już opis w języku: "pl" o wartości: nazwa podana w dopełniaczu; jako kwalifikator do "opisany jako"
+PROPERTY (59/61): name status
+Property: 'name status' already exists: P283, update mode.
+SKIP: właściwość: P283 (name status) posiada już opis w języku: "en" o wartości: status resulting from the type of source, or specified in that source
+SKIP: właściwość: P283 (name status) posiada już opis w języku: "pl" o wartości: status wynikający z rodzaju źródła, lub określony w tym źródle
+PROPERTY (60/61): information status
+Property: 'information status' already exists: P284, update mode.
+SKIP: właściwość: P284 (information status) posiada już opis w języku: "en" o wartości: status allowing expert determination of uncertainty or false information; used as a declaration qualifier
+SKIP: właściwość: P284 (information status) posiada już opis w języku: "pl" o wartości: status pozwalający ekspercko określić niepewność lub nieprawdziwość informacji; używany jako kwalifikator deklaracji
+PROPERTY (61/61): count
+DODANO właściwość: qid:P349 (count), True
+PROPERTY (statements) (1/657): part of, STATEMENT: subproperty of, VALUE: partially coincident with
+result SKIP: właściwość: 'P212' (part of) already has a statement: 'P208 with value: P230'.
+PROPERTY (statements) (2/657): subproperty of, STATEMENT: subproperty of, VALUE: subclass of
+result SKIP: właściwość: 'P208' (subproperty of) already has a statement: 'P208 with value: P133'.
+PROPERTY (statements) (3/657): inverse property, STATEMENT: Aen, VALUE: antonym
+result SKIP: właściwość: 'P156 (inverse property)' już posiada alias: 'antonym' dla języka: en.
+PROPERTY (statements) (4/657): inverse property, STATEMENT: Aen, VALUE: opponent
+result SKIP: właściwość: 'P156 (inverse property)' już posiada alias: 'opponent' dla języka: en.
+PROPERTY (statements) (5/657): inverse property, STATEMENT: Aen, VALUE: inverse of
+result SKIP: właściwość: 'P156 (inverse property)' już posiada alias: 'inverse of' dla języka: en.
+PROPERTY (statements) (6/657): Wikidata item of this property, STATEMENT: Aen, VALUE: item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'item' dla języka: en.
+PROPERTY (statements) (7/657): Wikidata item of this property, STATEMENT: Aen, VALUE: represents
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'represents' dla języka: en.
+PROPERTY (statements) (8/657): Wikidata item of this property, STATEMENT: Aen, VALUE: subject item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'subject item' dla języka: en.
+PROPERTY (statements) (9/657): Wikidata item of this property, STATEMENT: Aen, VALUE: Wikidata property subject item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'Wikidata property subject item' dla języka: en.
+PROPERTY (statements) (10/657): Wikidata item of this property, STATEMENT: Aen, VALUE: associated item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'associated item' dla języka: en.
+PROPERTY (statements) (11/657): Wikidata item of this property, STATEMENT: Aen, VALUE: property's subject item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'property's subject item' dla języka: en.
+PROPERTY (statements) (12/657): Wikidata item of this property, STATEMENT: Aen, VALUE: property subject item
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'property subject item' dla języka: en.
+PROPERTY (statements) (13/657): Wikidata item of this property, STATEMENT: Aen, VALUE: subject of this property
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'subject of this property' dla języka: en.
+PROPERTY (statements) (14/657): Wikidata item of this property, STATEMENT: Aen, VALUE: subject of property
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'subject of property' dla języka: en.
+PROPERTY (statements) (15/657): Wikidata item of this property, STATEMENT: Aen, VALUE: item of this property
+result SKIP: właściwość: 'P209 (Wikidata item of this property)' już posiada alias: 'item of this property' dla języka: en.
+PROPERTY (statements) (16/657): said to be the same as, STATEMENT: Apl, VALUE: uważane za to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'uważane za to samo co' dla języka: pl.
+PROPERTY (statements) (17/657): said to be the same as, STATEMENT: Apl, VALUE: prawdopodobnie to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'prawdopodobnie to samo co' dla języka: pl.
+PROPERTY (statements) (18/657): said to be the same as, STATEMENT: Apl, VALUE: to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'to samo co' dla języka: pl.
+PROPERTY (statements) (19/657): said to be the same as, STATEMENT: Apl, VALUE: tożsame z
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'tożsame z' dla języka: pl.
+PROPERTY (statements) (20/657): said to be the same as, STATEMENT: Apl, VALUE: być może to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'być może to samo co' dla języka: pl.
+PROPERTY (statements) (21/657): said to be the same as, STATEMENT: Apl, VALUE: identyczne z
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'identyczne z' dla języka: pl.
+PROPERTY (statements) (22/657): said to be the same as, STATEMENT: Apl, VALUE: identyczne
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'identyczne' dla języka: pl.
+PROPERTY (statements) (23/657): said to be the same as, STATEMENT: Apl, VALUE: tożsame
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'tożsame' dla języka: pl.
+PROPERTY (statements) (24/657): said to be the same as, STATEMENT: Apl, VALUE: zapewne to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'zapewne to samo co' dla języka: pl.
+PROPERTY (statements) (25/657): said to be the same as, STATEMENT: Apl, VALUE: przypuszczalnie to samo co
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'przypuszczalnie to samo co' dla języka: pl.
+PROPERTY (statements) (26/657): said to be the same as, STATEMENT: Aen, VALUE: same as
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'same as' dla języka: en.
+PROPERTY (statements) (27/657): said to be the same as, STATEMENT: Aen, VALUE: the same as
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'the same as' dla języka: en.
+PROPERTY (statements) (28/657): said to be the same as, STATEMENT: Aen, VALUE: equivalent to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'equivalent to' dla języka: en.
+PROPERTY (statements) (29/657): said to be the same as, STATEMENT: Aen, VALUE: equivalent of
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'equivalent of' dla języka: en.
+PROPERTY (statements) (30/657): said to be the same as, STATEMENT: Aen, VALUE: is the same as
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'is the same as' dla języka: en.
+PROPERTY (statements) (31/657): said to be the same as, STATEMENT: Aen, VALUE: is said to be the same as
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'is said to be the same as' dla języka: en.
+PROPERTY (statements) (32/657): said to be the same as, STATEMENT: Aen, VALUE: similar to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'similar to' dla języka: en.
+PROPERTY (statements) (33/657): said to be the same as, STATEMENT: Aen, VALUE: close to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'close to' dla języka: en.
+PROPERTY (statements) (34/657): said to be the same as, STATEMENT: Aen, VALUE: same
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'same' dla języka: en.
+PROPERTY (statements) (35/657): said to be the same as, STATEMENT: Aen, VALUE: see also
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'see also' dla języka: en.
+PROPERTY (statements) (36/657): said to be the same as, STATEMENT: Aen, VALUE: conspecific with
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'conspecific with' dla języka: en.
+PROPERTY (statements) (37/657): said to be the same as, STATEMENT: Aen, VALUE: said to be equal to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'said to be equal to' dla języka: en.
+PROPERTY (statements) (38/657): said to be the same as, STATEMENT: Aen, VALUE: equal to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'equal to' dla języka: en.
+PROPERTY (statements) (39/657): said to be the same as, STATEMENT: Aen, VALUE: could be equal to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'could be equal to' dla języka: en.
+PROPERTY (statements) (40/657): said to be the same as, STATEMENT: Aen, VALUE: may be equal to
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'may be equal to' dla języka: en.
+PROPERTY (statements) (41/657): said to be the same as, STATEMENT: Aen, VALUE: could be
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'could be' dla języka: en.
+PROPERTY (statements) (42/657): said to be the same as, STATEMENT: Aen, VALUE: may be
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'may be' dla języka: en.
+PROPERTY (statements) (43/657): said to be the same as, STATEMENT: Aen, VALUE: said to be same as
+result SKIP: właściwość: 'P83 (said to be the same as)' już posiada alias: 'said to be same as' dla języka: en.
+PROPERTY (statements) (44/657): subclass of, STATEMENT: Aen, VALUE: hyponym of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'hyponym of' dla języka: en.
+PROPERTY (statements) (45/657): subclass of, STATEMENT: Aen, VALUE: has superclass
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'has superclass' dla języka: en.
+PROPERTY (statements) (46/657): subclass of, STATEMENT: Aen, VALUE: is also a
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is also a' dla języka: en.
+PROPERTY (statements) (47/657): subclass of, STATEMENT: Aen, VALUE: subtype of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'subtype of' dla języka: en.
+PROPERTY (statements) (48/657): subclass of, STATEMENT: Aen, VALUE: is a subtype of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is a subtype of' dla języka: en.
+PROPERTY (statements) (49/657): subclass of, STATEMENT: Aen, VALUE: subcategory of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'subcategory of' dla języka: en.
+PROPERTY (statements) (50/657): subclass of, STATEMENT: Aen, VALUE: is a category of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is a category of' dla języka: en.
+PROPERTY (statements) (51/657): subclass of, STATEMENT: Aen, VALUE: is thereby also a
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is thereby also a' dla języka: en.
+PROPERTY (statements) (52/657): subclass of, STATEMENT: Aen, VALUE: is necessarily also a
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is necessarily also a' dla języka: en.
+PROPERTY (statements) (53/657): subclass of, STATEMENT: Aen, VALUE: whose instances are among
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'whose instances are among' dla języka: en.
+PROPERTY (statements) (54/657): subclass of, STATEMENT: Aen, VALUE: whose instances ⊆ those of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'whose instances ⊆ those of' dla języka: en.
+PROPERTY (statements) (55/657): subclass of, STATEMENT: Aen, VALUE: ⊆
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: '⊆' dla języka: en.
+PROPERTY (statements) (56/657): subclass of, STATEMENT: Aen, VALUE: ⊂
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: '⊂' dla języka: en.
+PROPERTY (statements) (57/657): subclass of, STATEMENT: Aen, VALUE: is a type of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is a type of' dla języka: en.
+PROPERTY (statements) (58/657): subclass of, STATEMENT: Aen, VALUE: is a class of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'is a class of' dla języka: en.
+PROPERTY (statements) (59/657): subclass of, STATEMENT: Aen, VALUE: subset of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'subset of' dla języka: en.
+PROPERTY (statements) (60/657): subclass of, STATEMENT: Aen, VALUE: type of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'type of' dla języka: en.
+PROPERTY (statements) (61/657): subclass of, STATEMENT: Aen, VALUE: form of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'form of' dla języka: en.
+PROPERTY (statements) (62/657): subclass of, STATEMENT: Aen, VALUE: sc
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'sc' dla języka: en.
+PROPERTY (statements) (63/657): subclass of, STATEMENT: Aen, VALUE: way of
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'way of' dla języka: en.
+PROPERTY (statements) (64/657): subclass of, STATEMENT: Apl, VALUE: typ nadrzędny
+result SKIP: właściwość: 'P133 (subclass of)' już posiada alias: 'typ nadrzędny' dla języka: pl.
+PROPERTY (statements) (65/657): instance of, STATEMENT: Aen, VALUE: is a
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a' dla języka: en.
+PROPERTY (statements) (66/657): instance of, STATEMENT: Aen, VALUE: is an
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is an' dla języka: en.
+PROPERTY (statements) (67/657): instance of, STATEMENT: Aen, VALUE: has class
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'has class' dla języka: en.
+PROPERTY (statements) (68/657): instance of, STATEMENT: Aen, VALUE: has type
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'has type' dla języka: en.
+PROPERTY (statements) (69/657): instance of, STATEMENT: Aen, VALUE: is a particular
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a particular' dla języka: en.
+PROPERTY (statements) (70/657): instance of, STATEMENT: Aen, VALUE: is a specific
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a specific' dla języka: en.
+PROPERTY (statements) (71/657): instance of, STATEMENT: Aen, VALUE: is an individual
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is an individual' dla języka: en.
+PROPERTY (statements) (72/657): instance of, STATEMENT: Aen, VALUE: is a unique
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a unique' dla języka: en.
+PROPERTY (statements) (73/657): instance of, STATEMENT: Aen, VALUE: is an example of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is an example of' dla języka: en.
+PROPERTY (statements) (74/657): instance of, STATEMENT: Aen, VALUE: member of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'member of' dla języka: en.
+PROPERTY (statements) (75/657): instance of, STATEMENT: Aen, VALUE: unique individual of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'unique individual of' dla języka: en.
+PROPERTY (statements) (76/657): instance of, STATEMENT: Aen, VALUE: distinct member of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'distinct member of' dla języka: en.
+PROPERTY (statements) (77/657): instance of, STATEMENT: Aen, VALUE: unitary element of class
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'unitary element of class' dla języka: en.
+PROPERTY (statements) (78/657): instance of, STATEMENT: Aen, VALUE: distinct element of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'distinct element of' dla języka: en.
+PROPERTY (statements) (79/657): instance of, STATEMENT: Aen, VALUE: distinct individual member of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'distinct individual member of' dla języka: en.
+PROPERTY (statements) (80/657): instance of, STATEMENT: Aen, VALUE: rdf:type
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'rdf:type' dla języka: en.
+PROPERTY (statements) (81/657): instance of, STATEMENT: Aen, VALUE: type
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'type' dla języka: en.
+PROPERTY (statements) (82/657): instance of, STATEMENT: Aen, VALUE: main type
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'main type' dla języka: en.
+PROPERTY (statements) (83/657): instance of, STATEMENT: Aen, VALUE: is a(n)
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a(n)' dla języka: en.
+PROPERTY (statements) (84/657): instance of, STATEMENT: Aen, VALUE: type of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'type of' dla języka: en.
+PROPERTY (statements) (85/657): instance of, STATEMENT: Aen, VALUE: is a type of
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'is a type of' dla języka: en.
+PROPERTY (statements) (86/657): instance of, STATEMENT: Apl, VALUE: ∈
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: '∈' dla języka: pl.
+PROPERTY (statements) (87/657): instance of, STATEMENT: Apl, VALUE: jest
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'jest' dla języka: pl.
+PROPERTY (statements) (88/657): instance of, STATEMENT: Apl, VALUE: są to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'są to' dla języka: pl.
+PROPERTY (statements) (89/657): instance of, STATEMENT: Apl, VALUE: był to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'był to' dla języka: pl.
+PROPERTY (statements) (90/657): instance of, STATEMENT: Apl, VALUE: była to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'była to' dla języka: pl.
+PROPERTY (statements) (91/657): instance of, STATEMENT: Apl, VALUE: było to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'było to' dla języka: pl.
+PROPERTY (statements) (92/657): instance of, STATEMENT: Apl, VALUE: byli to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'byli to' dla języka: pl.
+PROPERTY (statements) (93/657): instance of, STATEMENT: Apl, VALUE: były to
+result SKIP: właściwość: 'P47 (instance of)' już posiada alias: 'były to' dla języka: pl.
+PROPERTY (statements) (94/657): different from, STATEMENT: Aen, VALUE: different than
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different than' dla języka: en.
+PROPERTY (statements) (95/657): different from, STATEMENT: Aen, VALUE: different to
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different to' dla języka: en.
+PROPERTY (statements) (96/657): different from, STATEMENT: Aen, VALUE: is not
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'is not' dla języka: en.
+PROPERTY (statements) (97/657): different from, STATEMENT: Aen, VALUE: distinct from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'distinct from' dla języka: en.
+PROPERTY (statements) (98/657): different from, STATEMENT: Aen, VALUE: not the same as
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'not the same as' dla języka: en.
+PROPERTY (statements) (99/657): different from, STATEMENT: Aen, VALUE: isn't
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'isn't' dla języka: en.
+PROPERTY (statements) (100/657): different from, STATEMENT: Aen, VALUE: distinguished from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'distinguished from' dla języka: en.
+PROPERTY (statements) (101/657): different from, STATEMENT: Aen, VALUE: to be distinguished from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'to be distinguished from' dla języka: en.
+PROPERTY (statements) (102/657): different from, STATEMENT: Aen, VALUE: disambiguated from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'disambiguated from' dla języka: en.
+PROPERTY (statements) (103/657): different from, STATEMENT: Aen, VALUE: not same as
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'not same as' dla języka: en.
+PROPERTY (statements) (104/657): different from, STATEMENT: Aen, VALUE: confused with
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'confused with' dla języka: en.
+PROPERTY (statements) (105/657): different from, STATEMENT: Aen, VALUE: is different from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'is different from' dla języka: en.
+PROPERTY (statements) (106/657): different from, STATEMENT: Aen, VALUE: mistakenly taken for
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'mistakenly taken for' dla języka: en.
+PROPERTY (statements) (107/657): different from, STATEMENT: Aen, VALUE: differs from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'differs from' dla języka: en.
+PROPERTY (statements) (108/657): different from, STATEMENT: Aen, VALUE: differ from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'differ from' dla języka: en.
+PROPERTY (statements) (109/657): different from, STATEMENT: Aen, VALUE: often confused with
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'often confused with' dla języka: en.
+PROPERTY (statements) (110/657): different from, STATEMENT: Aen, VALUE: rejected match
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'rejected match' dla języka: en.
+PROPERTY (statements) (111/657): different from, STATEMENT: Aen, VALUE: not to be confused with
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'not to be confused with' dla języka: en.
+PROPERTY (statements) (112/657): different from, STATEMENT: Aen, VALUE: ≠
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: '≠' dla języka: en.
+PROPERTY (statements) (113/657): different from, STATEMENT: Aen, VALUE: not equal to
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'not equal to' dla języka: en.
+PROPERTY (statements) (114/657): different from, STATEMENT: Aen, VALUE: is not the same as
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'is not the same as' dla języka: en.
+PROPERTY (statements) (115/657): different from, STATEMENT: Aen, VALUE: do not confuse with
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'do not confuse with' dla języka: en.
+PROPERTY (statements) (116/657): different from, STATEMENT: Aen, VALUE: not identical to
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'not identical to' dla języka: en.
+PROPERTY (statements) (117/657): different from, STATEMENT: Aen, VALUE: different thing from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different thing from' dla języka: en.
+PROPERTY (statements) (118/657): different from, STATEMENT: Aen, VALUE: different entity from
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different entity from' dla języka: en.
+PROPERTY (statements) (119/657): different from, STATEMENT: Aen, VALUE: is not same as
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'is not same as' dla języka: en.
+PROPERTY (statements) (120/657): different from, STATEMENT: Aen, VALUE: different entity than
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different entity than' dla języka: en.
+PROPERTY (statements) (121/657): different from, STATEMENT: Aen, VALUE: different thing than
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'different thing than' dla języka: en.
+PROPERTY (statements) (122/657): different from, STATEMENT: Apl, VALUE: różny od
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'różny od' dla języka: pl.
+PROPERTY (statements) (123/657): different from, STATEMENT: Apl, VALUE: nie mylić z
+result SKIP: właściwość: 'P82 (different from)' już posiada alias: 'nie mylić z' dla języka: pl.
+PROPERTY (statements) (124/657): part of, STATEMENT: Aen, VALUE: meronym of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'meronym of' dla języka: en.
+PROPERTY (statements) (125/657): part of, STATEMENT: Aen, VALUE: section of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'section of' dla języka: en.
+PROPERTY (statements) (126/657): part of, STATEMENT: Aen, VALUE: system of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'system of' dla języka: en.
+PROPERTY (statements) (127/657): part of, STATEMENT: Aen, VALUE: subsystem of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'subsystem of' dla języka: en.
+PROPERTY (statements) (128/657): part of, STATEMENT: Aen, VALUE: subassembly of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'subassembly of' dla języka: en.
+PROPERTY (statements) (129/657): part of, STATEMENT: Aen, VALUE: merged into
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'merged into' dla języka: en.
+PROPERTY (statements) (130/657): part of, STATEMENT: Aen, VALUE: contained within
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'contained within' dla języka: en.
+PROPERTY (statements) (131/657): part of, STATEMENT: Aen, VALUE: assembly of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'assembly of' dla języka: en.
+PROPERTY (statements) (132/657): part of, STATEMENT: Aen, VALUE: part of-property
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'part of-property' dla języka: en.
+PROPERTY (statements) (133/657): part of, STATEMENT: Aen, VALUE: merged with
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'merged with' dla języka: en.
+PROPERTY (statements) (134/657): part of, STATEMENT: Aen, VALUE: component of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'component of' dla języka: en.
+PROPERTY (statements) (135/657): part of, STATEMENT: Aen, VALUE: in
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'in' dla języka: en.
+PROPERTY (statements) (136/657): part of, STATEMENT: Aen, VALUE: within
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'within' dla języka: en.
+PROPERTY (statements) (137/657): part of, STATEMENT: Aen, VALUE: is part of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'is part of' dla języka: en.
+PROPERTY (statements) (138/657): part of, STATEMENT: Aen, VALUE: subgroup of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'subgroup of' dla języka: en.
+PROPERTY (statements) (139/657): part of, STATEMENT: Aen, VALUE: collateral branch of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'collateral branch of' dla języka: en.
+PROPERTY (statements) (140/657): part of, STATEMENT: Aen, VALUE: cadet branch of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'cadet branch of' dla języka: en.
+PROPERTY (statements) (141/657): part of, STATEMENT: Aen, VALUE: branch of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'branch of' dla języka: en.
+PROPERTY (statements) (142/657): part of, STATEMENT: Aen, VALUE: element of
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'element of' dla języka: en.
+PROPERTY (statements) (143/657): part of, STATEMENT: Aen, VALUE: chain
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'chain' dla języka: en.
+PROPERTY (statements) (144/657): part of, STATEMENT: Apl, VALUE: fragment
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'fragment' dla języka: pl.
+PROPERTY (statements) (145/657): part of, STATEMENT: Apl, VALUE: meronim
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'meronim' dla języka: pl.
+PROPERTY (statements) (146/657): part of, STATEMENT: Apl, VALUE: sekcja
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'sekcja' dla języka: pl.
+PROPERTY (statements) (147/657): part of, STATEMENT: Apl, VALUE: jest częścią
+result SKIP: właściwość: 'P212 (part of)' już posiada alias: 'jest częścią' dla języka: pl.
+PROPERTY (statements) (148/657): has part or parts, STATEMENT: Aen, VALUE: formed from
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'formed from' dla języka: en.
+PROPERTY (statements) (149/657): has part or parts, STATEMENT: Aen, VALUE: formed out of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'formed out of' dla języka: en.
+PROPERTY (statements) (150/657): has part or parts, STATEMENT: Aen, VALUE: assembled from
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'assembled from' dla języka: en.
+PROPERTY (statements) (151/657): has part or parts, STATEMENT: Aen, VALUE: assembled out of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'assembled out of' dla języka: en.
+PROPERTY (statements) (152/657): has part or parts, STATEMENT: Aen, VALUE: created from
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'created from' dla języka: en.
+PROPERTY (statements) (153/657): has part or parts, STATEMENT: Aen, VALUE: created out of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'created out of' dla języka: en.
+PROPERTY (statements) (154/657): has part or parts, STATEMENT: Aen, VALUE: amalgamation of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'amalgamation of' dla języka: en.
+PROPERTY (statements) (155/657): has part or parts, STATEMENT: Aen, VALUE: set of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'set of' dla języka: en.
+PROPERTY (statements) (156/657): has part or parts, STATEMENT: Aen, VALUE: consists of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'consists of' dla języka: en.
+PROPERTY (statements) (157/657): has part or parts, STATEMENT: Aen, VALUE: holonym of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'holonym of' dla języka: en.
+PROPERTY (statements) (158/657): has part or parts, STATEMENT: Aen, VALUE: parts
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'parts' dla języka: en.
+PROPERTY (statements) (159/657): has part or parts, STATEMENT: Aen, VALUE: comprised of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'comprised of' dla języka: en.
+PROPERTY (statements) (160/657): has part or parts, STATEMENT: Aen, VALUE: includes part
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'includes part' dla języka: en.
+PROPERTY (statements) (161/657): has part or parts, STATEMENT: Aen, VALUE: has as part
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has as part' dla języka: en.
+PROPERTY (statements) (162/657): has part or parts, STATEMENT: Aen, VALUE: has component
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has component' dla języka: en.
+PROPERTY (statements) (163/657): has part or parts, STATEMENT: Aen, VALUE: have part
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'have part' dla języka: en.
+PROPERTY (statements) (164/657): has part or parts, STATEMENT: Aen, VALUE: composed of
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'composed of' dla języka: en.
+PROPERTY (statements) (165/657): has part or parts, STATEMENT: Aen, VALUE: has ingredient
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has ingredient' dla języka: en.
+PROPERTY (statements) (166/657): has part or parts, STATEMENT: Aen, VALUE: has ingredients
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has ingredients' dla języka: en.
+PROPERTY (statements) (167/657): has part or parts, STATEMENT: Aen, VALUE: ingredients
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'ingredients' dla języka: en.
+PROPERTY (statements) (168/657): has part or parts, STATEMENT: Aen, VALUE: contain
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'contain' dla języka: en.
+PROPERTY (statements) (169/657): has part or parts, STATEMENT: Aen, VALUE: contains
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'contains' dla języka: en.
+PROPERTY (statements) (170/657): has part or parts, STATEMENT: Aen, VALUE: includes
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'includes' dla języka: en.
+PROPERTY (statements) (171/657): has part or parts, STATEMENT: Aen, VALUE: has member
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has member' dla języka: en.
+PROPERTY (statements) (172/657): has part or parts, STATEMENT: Aen, VALUE: has branch
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has branch' dla języka: en.
+PROPERTY (statements) (173/657): has part or parts, STATEMENT: Aen, VALUE: divided by
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'divided by' dla języka: en.
+PROPERTY (statements) (174/657): has part or parts, STATEMENT: Aen, VALUE: incorporates
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'incorporates' dla języka: en.
+PROPERTY (statements) (175/657): has part or parts, STATEMENT: Aen, VALUE: had part
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'had part' dla języka: en.
+PROPERTY (statements) (176/657): has part or parts, STATEMENT: Aen, VALUE: has parts
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has parts' dla języka: en.
+PROPERTY (statements) (177/657): has part or parts, STATEMENT: Aen, VALUE: has part(s)
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has part(s)' dla języka: en.
+PROPERTY (statements) (178/657): has part or parts, STATEMENT: Aen, VALUE: has part
+result SKIP: właściwość: 'P213 (has part or parts)' już posiada alias: 'has part' dla języka: en.
+PROPERTY (statements) (179/657): contains, STATEMENT: Aen, VALUE: holds
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'holds' dla języka: en.
+PROPERTY (statements) (180/657): contains, STATEMENT: Aen, VALUE: surrounds
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'surrounds' dla języka: en.
+PROPERTY (statements) (181/657): contains, STATEMENT: Aen, VALUE: encloses
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'encloses' dla języka: en.
+PROPERTY (statements) (182/657): contains, STATEMENT: Aen, VALUE: wraps
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'wraps' dla języka: en.
+PROPERTY (statements) (183/657): contains, STATEMENT: Aen, VALUE: contents
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'contents' dla języka: en.
+PROPERTY (statements) (184/657): contains, STATEMENT: Aen, VALUE: has contents
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'has contents' dla języka: en.
+PROPERTY (statements) (185/657): contains, STATEMENT: Aen, VALUE: stores
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'stores' dla języka: en.
+PROPERTY (statements) (186/657): contains, STATEMENT: Apl, VALUE: zawiera przedmiot
+result SKIP: właściwość: 'P214 (contains)' już posiada alias: 'zawiera przedmiot' dla języka: pl.
+PROPERTY (statements) (187/657): opposite of, STATEMENT: Aen, VALUE: inverse
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'inverse' dla języka: en.
+PROPERTY (statements) (188/657): opposite of, STATEMENT: Aen, VALUE: opposite
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'opposite' dla języka: en.
+PROPERTY (statements) (189/657): opposite of, STATEMENT: Aen, VALUE: is the opposite of
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'is the opposite of' dla języka: en.
+PROPERTY (statements) (190/657): opposite of, STATEMENT: Aen, VALUE: inverse of
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'inverse of' dla języka: en.
+PROPERTY (statements) (191/657): opposite of, STATEMENT: Aen, VALUE: contrasted to
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'contrasted to' dla języka: en.
+PROPERTY (statements) (192/657): opposite of, STATEMENT: Aen, VALUE: contrast of
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'contrast of' dla języka: en.
+PROPERTY (statements) (193/657): opposite of, STATEMENT: Aen, VALUE: is opposite of
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'is opposite of' dla języka: en.
+PROPERTY (statements) (194/657): opposite of, STATEMENT: Aen, VALUE: opposite to
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'opposite to' dla języka: en.
+PROPERTY (statements) (195/657): opposite of, STATEMENT: Apl, VALUE: antonim
+result SKIP: właściwość: 'P216 (opposite of)' już posiada alias: 'antonim' dla języka: pl.
+PROPERTY (statements) (196/657): described at URL, STATEMENT: Aen, VALUE: info URL
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'info URL' dla języka: en.
+PROPERTY (statements) (197/657): described at URL, STATEMENT: Aen, VALUE: described by URL
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'described by URL' dla języka: en.
+PROPERTY (statements) (198/657): described at URL, STATEMENT: Aen, VALUE: described in URL
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'described in URL' dla języka: en.
+PROPERTY (statements) (199/657): described at URL, STATEMENT: Aen, VALUE: URL described in
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'URL described in' dla języka: en.
+PROPERTY (statements) (200/657): described at URL, STATEMENT: Aen, VALUE: web page describing
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'web page describing' dla języka: en.
+PROPERTY (statements) (201/657): described at URL, STATEMENT: Aen, VALUE: described in url
+result ALIAS ADDED, właściwość: P217 (described at URL): Aen -> described in url
+PROPERTY (statements) (202/657): described at URL, STATEMENT: Aen, VALUE: described at webpage
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'described at webpage' dla języka: en.
+PROPERTY (statements) (203/657): described at URL, STATEMENT: Aen, VALUE: described on webpage
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'described on webpage' dla języka: en.
+PROPERTY (statements) (204/657): described at URL, STATEMENT: Aen, VALUE: rdfs:isDefinedBy
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'rdfs:isDefinedBy' dla języka: en.
+PROPERTY (statements) (205/657): described at URL, STATEMENT: Aen, VALUE: descURL
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'descURL' dla języka: en.
+PROPERTY (statements) (206/657): described at URL, STATEMENT: Aen, VALUE: discussed at URL
+result SKIP: właściwość: 'P217 (described at URL)' już posiada alias: 'discussed at URL' dla języka: en.
+PROPERTY (statements) (207/657): described by source, STATEMENT: Aen, VALUE: described in source
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'described in source' dla języka: en.
+PROPERTY (statements) (208/657): described by source, STATEMENT: Aen, VALUE: written about in
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'written about in' dla języka: en.
+PROPERTY (statements) (209/657): described by source, STATEMENT: Aen, VALUE: entry
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'entry' dla języka: en.
+PROPERTY (statements) (210/657): described by source, STATEMENT: Aen, VALUE: subject of
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'subject of' dla języka: en.
+PROPERTY (statements) (211/657): described by source, STATEMENT: Aen, VALUE: described by encyclopedia
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'described by encyclopedia' dla języka: en.
+PROPERTY (statements) (212/657): described by source, STATEMENT: Aen, VALUE: described by reference work
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'described by reference work' dla języka: en.
+PROPERTY (statements) (213/657): described by source, STATEMENT: Aen, VALUE: described by biography
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'described by biography' dla języka: en.
+PROPERTY (statements) (214/657): described by source, STATEMENT: Aen, VALUE: reviewed in
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'reviewed in' dla języka: en.
+PROPERTY (statements) (215/657): described by source, STATEMENT: Aen, VALUE: source of item
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'source of item' dla języka: en.
+PROPERTY (statements) (216/657): described by source, STATEMENT: Aen, VALUE: described by obituary
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'described by obituary' dla języka: en.
+PROPERTY (statements) (217/657): described by source, STATEMENT: Aen, VALUE: mentioned in news article
+result SKIP: właściwość: 'P218 (described by source)' już posiada alias: 'mentioned in news article' dla języka: en.
+PROPERTY (statements) (218/657): earliest date, STATEMENT: Aen, VALUE: terminus post quem
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'terminus post quem' dla języka: en.
+PROPERTY (statements) (219/657): earliest date, STATEMENT: Aen, VALUE: after this date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'after this date' dla języka: en.
+PROPERTY (statements) (220/657): earliest date, STATEMENT: Aen, VALUE: later than
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'later than' dla języka: en.
+PROPERTY (statements) (221/657): earliest date, STATEMENT: Aen, VALUE: earliest start date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'earliest start date' dla języka: en.
+PROPERTY (statements) (222/657): earliest date, STATEMENT: Aen, VALUE: start date (earliest)
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'start date (earliest)' dla języka: en.
+PROPERTY (statements) (223/657): earliest date, STATEMENT: Aen, VALUE: on or after this date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'on or after this date' dla języka: en.
+PROPERTY (statements) (224/657): earliest date, STATEMENT: Aen, VALUE: after
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'after' dla języka: en.
+PROPERTY (statements) (225/657): latest date, STATEMENT: Aen, VALUE: before this date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'before this date' dla języka: en.
+PROPERTY (statements) (226/657): latest date, STATEMENT: Aen, VALUE: earlier than
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'earlier than' dla języka: en.
+PROPERTY (statements) (227/657): latest date, STATEMENT: Aen, VALUE: terminus ante quem
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'terminus ante quem' dla języka: en.
+PROPERTY (statements) (228/657): latest date, STATEMENT: Aen, VALUE: prior to
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'prior to' dla języka: en.
+PROPERTY (statements) (229/657): latest date, STATEMENT: Aen, VALUE: latest end date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'latest end date' dla języka: en.
+PROPERTY (statements) (230/657): latest date, STATEMENT: Aen, VALUE: end date (latest)
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'end date (latest)' dla języka: en.
+PROPERTY (statements) (231/657): latest date, STATEMENT: Aen, VALUE: on or before this date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'on or before this date' dla języka: en.
+PROPERTY (statements) (232/657): latest date, STATEMENT: Apl, VALUE: przed datą
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'przed datą' dla języka: pl.
+PROPERTY (statements) (233/657): latest date, STATEMENT: Apl, VALUE: przed
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'przed' dla języka: pl.
+PROPERTY (statements) (234/657): sourcing circumstances, STATEMENT: Aen, VALUE: accuracy
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'accuracy' dla języka: en.
+PROPERTY (statements) (235/657): sourcing circumstances, STATEMENT: Aen, VALUE: reliability
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'reliability' dla języka: en.
+PROPERTY (statements) (236/657): sourcing circumstances, STATEMENT: Aen, VALUE: confidence
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'confidence' dla języka: en.
+PROPERTY (statements) (237/657): sourcing circumstances, STATEMENT: Aen, VALUE: precision
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'precision' dla języka: en.
+PROPERTY (statements) (238/657): sourcing circumstances, STATEMENT: Aen, VALUE: certainty
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'certainty' dla języka: en.
+PROPERTY (statements) (239/657): sourcing circumstances, STATEMENT: Aen, VALUE: validity
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'validity' dla języka: en.
+PROPERTY (statements) (240/657): sourcing circumstances, STATEMENT: Aen, VALUE: qualitative valuation
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'qualitative valuation' dla języka: en.
+PROPERTY (statements) (241/657): sourcing circumstances, STATEMENT: Aen, VALUE: source circumstances
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'source circumstances' dla języka: en.
+PROPERTY (statements) (242/657): refine date, STATEMENT: Aen, VALUE: quarter
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'quarter' dla języka: en.
+PROPERTY (statements) (243/657): refine date, STATEMENT: Aen, VALUE: semester
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'semester' dla języka: en.
+PROPERTY (statements) (244/657): refine date, STATEMENT: Aen, VALUE: season of year
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'season of year' dla języka: en.
+PROPERTY (statements) (245/657): refine date, STATEMENT: Aen, VALUE: refine time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'refine time' dla języka: en.
+PROPERTY (statements) (246/657): refine date, STATEMENT: Aen, VALUE: specific time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'specific time' dla języka: en.
+PROPERTY (statements) (247/657): refine date, STATEMENT: Aen, VALUE: time of year
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'time of year' dla języka: en.
+PROPERTY (statements) (248/657): refine date, STATEMENT: Aen, VALUE: hour
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'hour' dla języka: en.
+PROPERTY (statements) (249/657): refine date, STATEMENT: Aen, VALUE: local time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'local time' dla języka: en.
+PROPERTY (statements) (250/657): refine date, STATEMENT: Aen, VALUE: date refinement
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'date refinement' dla języka: en.
+PROPERTY (statements) (251/657): stated as, STATEMENT: Aen, VALUE: printed as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'printed as' dla języka: en.
+PROPERTY (statements) (252/657): stated as, STATEMENT: Aen, VALUE: original wording
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'original wording' dla języka: en.
+PROPERTY (statements) (253/657): stated as, STATEMENT: Aen, VALUE: as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'as' dla języka: en.
+PROPERTY (statements) (254/657): stated as, STATEMENT: Aen, VALUE: reference wording
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'reference wording' dla języka: en.
+PROPERTY (statements) (255/657): stated as, STATEMENT: Aen, VALUE: source wording
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'source wording' dla języka: en.
+PROPERTY (statements) (256/657): stated as, STATEMENT: Aen, VALUE: credited as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'credited as' dla języka: en.
+PROPERTY (statements) (257/657): stated as, STATEMENT: Aen, VALUE: sic
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'sic' dla języka: en.
+PROPERTY (statements) (258/657): stated as, STATEMENT: Aen, VALUE: [sic]
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: '[sic]' dla języka: en.
+PROPERTY (statements) (259/657): stated as, STATEMENT: Aen, VALUE: object named as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'object named as' dla języka: en.
+PROPERTY (statements) (260/657): stated as, STATEMENT: Aen, VALUE: object stated as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'object stated as' dla języka: en.
+PROPERTY (statements) (261/657): stated as, STATEMENT: Aen, VALUE: stated author
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'stated author' dla języka: en.
+PROPERTY (statements) (262/657): stated as, STATEMENT: Aen, VALUE: stated as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'stated as' dla języka: en.
+PROPERTY (statements) (263/657): stated as, STATEMENT: Aen, VALUE: originally printed as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'originally printed as' dla języka: en.
+PROPERTY (statements) (264/657): stated as, STATEMENT: Aen, VALUE: object value stated as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'object value stated as' dla języka: en.
+PROPERTY (statements) (265/657): stated as, STATEMENT: Aen, VALUE: value stated as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'value stated as' dla języka: en.
+PROPERTY (statements) (266/657): stated as, STATEMENT: Aen, VALUE: named as
+result SKIP: właściwość: 'P195 (stated as)' już posiada alias: 'named as' dla języka: en.
+PROPERTY (statements) (267/657): stated in, STATEMENT: Aen, VALUE: originating source
+result SKIP: właściwość: 'P192 (stated in)' już posiada alias: 'originating source' dla języka: en.
+PROPERTY (statements) (268/657): stated in, STATEMENT: Aen, VALUE: source of claim
+result SKIP: właściwość: 'P192 (stated in)' już posiada alias: 'source of claim' dla języka: en.
+PROPERTY (statements) (269/657): stated in, STATEMENT: Aen, VALUE: in statement
+result SKIP: właściwość: 'P192 (stated in)' już posiada alias: 'in statement' dla języka: en.
+PROPERTY (statements) (270/657): earliest date, STATEMENT: Aen, VALUE: terminus post quem
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'terminus post quem' dla języka: en.
+PROPERTY (statements) (271/657): earliest date, STATEMENT: Aen, VALUE: after this date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'after this date' dla języka: en.
+PROPERTY (statements) (272/657): earliest date, STATEMENT: Aen, VALUE: later than
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'later than' dla języka: en.
+PROPERTY (statements) (273/657): earliest date, STATEMENT: Aen, VALUE: earliest start date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'earliest start date' dla języka: en.
+PROPERTY (statements) (274/657): earliest date, STATEMENT: Aen, VALUE: start date (earliest)
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'start date (earliest)' dla języka: en.
+PROPERTY (statements) (275/657): earliest date, STATEMENT: Aen, VALUE: on or after this date
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'on or after this date' dla języka: en.
+PROPERTY (statements) (276/657): earliest date, STATEMENT: Aen, VALUE: after
+result SKIP: właściwość: 'P38 (earliest date)' już posiada alias: 'after' dla języka: en.
+PROPERTY (statements) (277/657): latest date, STATEMENT: Aen, VALUE: before this date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'before this date' dla języka: en.
+PROPERTY (statements) (278/657): latest date, STATEMENT: Aen, VALUE: earlier than
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'earlier than' dla języka: en.
+PROPERTY (statements) (279/657): latest date, STATEMENT: Aen, VALUE: terminus ante quem
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'terminus ante quem' dla języka: en.
+PROPERTY (statements) (280/657): latest date, STATEMENT: Aen, VALUE: prior to
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'prior to' dla języka: en.
+PROPERTY (statements) (281/657): latest date, STATEMENT: Aen, VALUE: latest end date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'latest end date' dla języka: en.
+PROPERTY (statements) (282/657): latest date, STATEMENT: Aen, VALUE: end date (latest)
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'end date (latest)' dla języka: en.
+PROPERTY (statements) (283/657): latest date, STATEMENT: Aen, VALUE: on or before this date
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'on or before this date' dla języka: en.
+PROPERTY (statements) (284/657): latest date, STATEMENT: Apl, VALUE: przed datą
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'przed datą' dla języka: pl.
+PROPERTY (statements) (285/657): latest date, STATEMENT: Apl, VALUE: przed
+result SKIP: właściwość: 'P39 (latest date)' już posiada alias: 'przed' dla języka: pl.
+PROPERTY (statements) (286/657): sourcing circumstances, STATEMENT: Aen, VALUE: accuracy
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'accuracy' dla języka: en.
+PROPERTY (statements) (287/657): sourcing circumstances, STATEMENT: Aen, VALUE: reliability
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'reliability' dla języka: en.
+PROPERTY (statements) (288/657): sourcing circumstances, STATEMENT: Aen, VALUE: confidence
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'confidence' dla języka: en.
+PROPERTY (statements) (289/657): sourcing circumstances, STATEMENT: Aen, VALUE: precision
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'precision' dla języka: en.
+PROPERTY (statements) (290/657): sourcing circumstances, STATEMENT: Aen, VALUE: certainty
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'certainty' dla języka: en.
+PROPERTY (statements) (291/657): sourcing circumstances, STATEMENT: Aen, VALUE: validity
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'validity' dla języka: en.
+PROPERTY (statements) (292/657): sourcing circumstances, STATEMENT: Aen, VALUE: qualitative valuation
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'qualitative valuation' dla języka: en.
+PROPERTY (statements) (293/657): sourcing circumstances, STATEMENT: Aen, VALUE: source circumstances
+result SKIP: właściwość: 'P189 (sourcing circumstances)' już posiada alias: 'source circumstances' dla języka: en.
+PROPERTY (statements) (294/657): refine date, STATEMENT: Aen, VALUE: quarter
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'quarter' dla języka: en.
+PROPERTY (statements) (295/657): refine date, STATEMENT: Aen, VALUE: semester
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'semester' dla języka: en.
+PROPERTY (statements) (296/657): refine date, STATEMENT: Aen, VALUE: season of year
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'season of year' dla języka: en.
+PROPERTY (statements) (297/657): refine date, STATEMENT: Aen, VALUE: refine time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'refine time' dla języka: en.
+PROPERTY (statements) (298/657): refine date, STATEMENT: Aen, VALUE: specific time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'specific time' dla języka: en.
+PROPERTY (statements) (299/657): refine date, STATEMENT: Aen, VALUE: time of year
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'time of year' dla języka: en.
+PROPERTY (statements) (300/657): refine date, STATEMENT: Aen, VALUE: hour
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'hour' dla języka: en.
+PROPERTY (statements) (301/657): refine date, STATEMENT: Aen, VALUE: local time
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'local time' dla języka: en.
+PROPERTY (statements) (302/657): refine date, STATEMENT: Aen, VALUE: date refinement
+result SKIP: właściwość: 'P190 (refine date)' już posiada alias: 'date refinement' dla języka: en.
+PROPERTY (statements) (303/657): subproperty of, STATEMENT: Aen, VALUE: rdfs:subPropertyOf
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'rdfs:subPropertyOf' dla języka: en.
+PROPERTY (statements) (304/657): subproperty of, STATEMENT: Aen, VALUE: subPropertyOf
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'subPropertyOf' dla języka: en.
+PROPERTY (statements) (305/657): subproperty of, STATEMENT: Aen, VALUE: superproperty
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'superproperty' dla języka: en.
+PROPERTY (statements) (306/657): subproperty of, STATEMENT: Aen, VALUE: parent property
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'parent property' dla języka: en.
+PROPERTY (statements) (307/657): subproperty of, STATEMENT: Aen, VALUE: has parent property
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'has parent property' dla języka: en.
+PROPERTY (statements) (308/657): subproperty of, STATEMENT: Aen, VALUE: instance of property
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'instance of property' dla języka: en.
+PROPERTY (statements) (309/657): subproperty of, STATEMENT: Aen, VALUE: subclass of property
+result SKIP: właściwość: 'P208 (subproperty of)' już posiada alias: 'subclass of property' dla języka: en.
+PROPERTY (statements) (310/657): title, STATEMENT: Aen, VALUE: original title
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'original title' dla języka: en.
+PROPERTY (statements) (311/657): title, STATEMENT: Aen, VALUE: article
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'article' dla języka: en.
+PROPERTY (statements) (312/657): title, STATEMENT: Aen, VALUE: known as
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'known as' dla języka: en.
+PROPERTY (statements) (313/657): title, STATEMENT: Aen, VALUE: full title
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'full title' dla języka: en.
+PROPERTY (statements) (314/657): title, STATEMENT: Aen, VALUE: headline
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'headline' dla języka: en.
+PROPERTY (statements) (315/657): title, STATEMENT: Aen, VALUE: titled
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'titled' dla języka: en.
+PROPERTY (statements) (316/657): title, STATEMENT: Aen, VALUE: name
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'name' dla języka: en.
+PROPERTY (statements) (317/657): title, STATEMENT: Apl, VALUE: tytuł oryginalny
+result SKIP: właściwość: 'P244 (title)' już posiada alias: 'tytuł oryginalny' dla języka: pl.
+PROPERTY (statements) (318/657): date of birth, STATEMENT: Aen, VALUE: DOB
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'DOB' dla języka: en.
+PROPERTY (statements) (319/657): date of birth, STATEMENT: Aen, VALUE: birth date
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'birth date' dla języka: en.
+PROPERTY (statements) (320/657): date of birth, STATEMENT: Aen, VALUE: birth year
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'birth year' dla języka: en.
+PROPERTY (statements) (321/657): date of birth, STATEMENT: Aen, VALUE: birthdate
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'birthdate' dla języka: en.
+PROPERTY (statements) (322/657): date of birth, STATEMENT: Aen, VALUE: birthyear
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'birthyear' dla języka: en.
+PROPERTY (statements) (323/657): date of birth, STATEMENT: Aen, VALUE: born
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'born' dla języka: en.
+PROPERTY (statements) (324/657): date of birth, STATEMENT: Aen, VALUE: born on
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'born on' dla języka: en.
+PROPERTY (statements) (325/657): date of birth, STATEMENT: Aen, VALUE: year of birth
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'year of birth' dla języka: en.
+PROPERTY (statements) (326/657): date of birth, STATEMENT: Apl, VALUE: urodzony
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'urodzony' dla języka: pl.
+PROPERTY (statements) (327/657): date of birth, STATEMENT: Apl, VALUE: urodzony dnia
+result SKIP: właściwość: 'P7 (date of birth)' już posiada alias: 'urodzony dnia' dla języka: pl.
+PROPERTY (statements) (328/657): date of death, STATEMENT: Aen, VALUE: date of the end
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'date of the end' dla języka: en.
+PROPERTY (statements) (329/657): date of death, STATEMENT: Aen, VALUE: death date
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'death date' dla języka: en.
+PROPERTY (statements) (330/657): date of death, STATEMENT: Aen, VALUE: died on
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'died on' dla języka: en.
+PROPERTY (statements) (331/657): date of death, STATEMENT: Aen, VALUE: DOD
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'DOD' dla języka: en.
+PROPERTY (statements) (332/657): date of death, STATEMENT: Aen, VALUE: year of death
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'year of death' dla języka: en.
+PROPERTY (statements) (333/657): date of death, STATEMENT: Aen, VALUE: dead
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'dead' dla języka: en.
+PROPERTY (statements) (334/657): date of death, STATEMENT: Aen, VALUE: deathdate
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'deathdate' dla języka: en.
+PROPERTY (statements) (335/657): date of death, STATEMENT: Aen, VALUE: death
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'death' dla języka: en.
+PROPERTY (statements) (336/657): date of death, STATEMENT: Aen, VALUE: died
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'died' dla języka: en.
+PROPERTY (statements) (337/657): date of death, STATEMENT: Apl, VALUE: zm.
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'zm.' dla języka: pl.
+PROPERTY (statements) (338/657): date of death, STATEMENT: Apl, VALUE: zmarł
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'zmarł' dla języka: pl.
+PROPERTY (statements) (339/657): date of death, STATEMENT: Apl, VALUE: zmarła
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'zmarła' dla języka: pl.
+PROPERTY (statements) (340/657): date of death, STATEMENT: Apl, VALUE: zmarło
+result SKIP: właściwość: 'P8 (date of death)' już posiada alias: 'zmarło' dla języka: pl.
+PROPERTY (statements) (341/657): editor, STATEMENT: Aen, VALUE: compiler
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'compiler' dla języka: en.
+PROPERTY (statements) (342/657): editor, STATEMENT: Aen, VALUE: edited by
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'edited by' dla języka: en.
+PROPERTY (statements) (343/657): editor, STATEMENT: Aen, VALUE: compiled by
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'compiled by' dla języka: en.
+PROPERTY (statements) (344/657): editor, STATEMENT: Aen, VALUE: associate editor
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'associate editor' dla języka: en.
+PROPERTY (statements) (345/657): editor, STATEMENT: Aen, VALUE: eds.
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'eds.' dla języka: en.
+PROPERTY (statements) (346/657): editor, STATEMENT: Aen, VALUE: ed.
+result SKIP: właściwość: 'P224 (editor)' już posiada alias: 'ed.' dla języka: en.
+PROPERTY (statements) (347/657): place of publication, STATEMENT: Aen, VALUE: release region
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'release region' dla języka: en.
+PROPERTY (statements) (348/657): place of publication, STATEMENT: Aen, VALUE: publication region
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'publication region' dla języka: en.
+PROPERTY (statements) (349/657): place of publication, STATEMENT: Aen, VALUE: published in (place)
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'published in (place)' dla języka: en.
+PROPERTY (statements) (350/657): place of publication, STATEMENT: Aen, VALUE: publication place
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'publication place' dla języka: en.
+PROPERTY (statements) (351/657): place of publication, STATEMENT: Aen, VALUE: publication location
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'publication location' dla języka: en.
+PROPERTY (statements) (352/657): place of publication, STATEMENT: Aen, VALUE: location of publication
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'location of publication' dla języka: en.
+PROPERTY (statements) (353/657): place of publication, STATEMENT: Aen, VALUE: released in
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'released in' dla języka: en.
+PROPERTY (statements) (354/657): place of publication, STATEMENT: Aen, VALUE: publication city
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'publication city' dla języka: en.
+PROPERTY (statements) (355/657): place of publication, STATEMENT: Aen, VALUE: printed in
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'printed in' dla języka: en.
+PROPERTY (statements) (356/657): place of publication, STATEMENT: Aen, VALUE: printed at
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'printed at' dla języka: en.
+PROPERTY (statements) (357/657): place of publication, STATEMENT: Apl, VALUE: miejsce wydania
+result SKIP: właściwość: 'P225 (place of publication)' już posiada alias: 'miejsce wydania' dla języka: pl.
+PROPERTY (statements) (358/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: defunct date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'defunct date' dla języka: en.
+PROPERTY (statements) (359/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: dissolution date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'dissolution date' dla języka: en.
+PROPERTY (statements) (360/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: dissolved on date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'dissolved on date' dla języka: en.
+PROPERTY (statements) (361/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: wound up on date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'wound up on date' dla języka: en.
+PROPERTY (statements) (362/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date of dissolution
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date of dissolution' dla języka: en.
+PROPERTY (statements) (363/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date dissolved
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date dissolved' dla języka: en.
+PROPERTY (statements) (364/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date disbanded
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date disbanded' dla języka: en.
+PROPERTY (statements) (365/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date disestablished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date disestablished' dla języka: en.
+PROPERTY (statements) (366/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: disestablished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'disestablished' dla języka: en.
+PROPERTY (statements) (367/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: abolished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'abolished' dla języka: en.
+PROPERTY (statements) (368/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: abolishment date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'abolishment date' dla języka: en.
+PROPERTY (statements) (369/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: time dissolved
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'time dissolved' dla języka: en.
+PROPERTY (statements) (370/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: time of dissolution
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'time of dissolution' dla języka: en.
+PROPERTY (statements) (371/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: time abolished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'time abolished' dla języka: en.
+PROPERTY (statements) (372/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: time of abolishment
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'time of abolishment' dla języka: en.
+PROPERTY (statements) (373/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: ended
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'ended' dla języka: en.
+PROPERTY (statements) (374/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: disbanded on
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'disbanded on' dla języka: en.
+PROPERTY (statements) (375/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: dissolved or abolished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'dissolved or abolished' dla języka: en.
+PROPERTY (statements) (376/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: defunct
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'defunct' dla języka: en.
+PROPERTY (statements) (377/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: dissolved, abolished, or demolished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'dissolved, abolished, or demolished' dla języka: en.
+PROPERTY (statements) (378/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: closed on
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'closed on' dla języka: en.
+PROPERTY (statements) (379/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: closure date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'closure date' dla języka: en.
+PROPERTY (statements) (380/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: destroyed in
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'destroyed in' dla języka: en.
+PROPERTY (statements) (381/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: folded
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'folded' dla języka: en.
+PROPERTY (statements) (382/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: final year
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'final year' dla języka: en.
+PROPERTY (statements) (383/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: end date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'end date' dla języka: en.
+PROPERTY (statements) (384/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: disbanded
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'disbanded' dla języka: en.
+PROPERTY (statements) (385/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: demise date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'demise date' dla języka: en.
+PROPERTY (statements) (386/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: dissolved
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'dissolved' dla języka: en.
+PROPERTY (statements) (387/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: ceased to exist
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'ceased to exist' dla języka: en.
+PROPERTY (statements) (388/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: demolished
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'demolished' dla języka: en.
+PROPERTY (statements) (389/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: final issue
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'final issue' dla języka: en.
+PROPERTY (statements) (390/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: demolition date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'demolition date' dla języka: en.
+PROPERTY (statements) (391/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date of demolition
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date of demolition' dla języka: en.
+PROPERTY (statements) (392/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: ceased publication
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'ceased publication' dla języka: en.
+PROPERTY (statements) (393/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: ceased date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'ceased date' dla języka: en.
+PROPERTY (statements) (394/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: ceased on
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'ceased on' dla języka: en.
+PROPERTY (statements) (395/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: terminated on
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'terminated on' dla języka: en.
+PROPERTY (statements) (396/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: termination date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'termination date' dla języka: en.
+PROPERTY (statements) (397/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date of cessation
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date of cessation' dla języka: en.
+PROPERTY (statements) (398/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: cessation date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'cessation date' dla języka: en.
+PROPERTY (statements) (399/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: date of termination
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'date of termination' dla języka: en.
+PROPERTY (statements) (400/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: publication end date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'publication end date' dla języka: en.
+PROPERTY (statements) (401/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: publication terminal date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'publication terminal date' dla języka: en.
+PROPERTY (statements) (402/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: terminal date
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'terminal date' dla języka: en.
+PROPERTY (statements) (403/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: last issue
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'last issue' dla języka: en.
+PROPERTY (statements) (404/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: terminal issue
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'terminal issue' dla języka: en.
+PROPERTY (statements) (405/657): dissolved, abolished or demolished date, STATEMENT: Aen, VALUE: razed in
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'razed in' dla języka: en.
+PROPERTY (statements) (406/657): dissolved, abolished or demolished date, STATEMENT: Apl, VALUE: data likwidacji
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'data likwidacji' dla języka: pl.
+PROPERTY (statements) (407/657): dissolved, abolished or demolished date, STATEMENT: Apl, VALUE: data końca
+result SKIP: właściwość: 'P222 (dissolved, abolished or demolished date)' już posiada alias: 'data końca' dla języka: pl.
+PROPERTY (statements) (408/657): publisher, STATEMENT: Aen, VALUE: book publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'book publisher' dla języka: en.
+PROPERTY (statements) (409/657): publisher, STATEMENT: Aen, VALUE: video game publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'video game publisher' dla języka: en.
+PROPERTY (statements) (410/657): publisher, STATEMENT: Aen, VALUE: software publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'software publisher' dla języka: en.
+PROPERTY (statements) (411/657): publisher, STATEMENT: Aen, VALUE: publishing house
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'publishing house' dla języka: en.
+PROPERTY (statements) (412/657): publisher, STATEMENT: Aen, VALUE: published by
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'published by' dla języka: en.
+PROPERTY (statements) (413/657): publisher, STATEMENT: Aen, VALUE: board game publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'board game publisher' dla języka: en.
+PROPERTY (statements) (414/657): publisher, STATEMENT: Aen, VALUE: comic publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'comic publisher' dla języka: en.
+PROPERTY (statements) (415/657): publisher, STATEMENT: Aen, VALUE: comic book publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'comic book publisher' dla języka: en.
+PROPERTY (statements) (416/657): publisher, STATEMENT: Aen, VALUE: music publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'music publisher' dla języka: en.
+PROPERTY (statements) (417/657): publisher, STATEMENT: Aen, VALUE: printed music publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'printed music publisher' dla języka: en.
+PROPERTY (statements) (418/657): publisher, STATEMENT: Aen, VALUE: sheet music publisher
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'sheet music publisher' dla języka: en.
+PROPERTY (statements) (419/657): publisher, STATEMENT: Apl, VALUE: wydawnictwo
+result SKIP: właściwość: 'P226 (publisher)' już posiada alias: 'wydawnictwo' dla języka: pl.
+PROPERTY (statements) (420/657): publication date, STATEMENT: Aen, VALUE: first released
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'first released' dla języka: en.
+PROPERTY (statements) (421/657): publication date, STATEMENT: Aen, VALUE: first published
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'first published' dla języka: en.
+PROPERTY (statements) (422/657): publication date, STATEMENT: Aen, VALUE: air date
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'air date' dla języka: en.
+PROPERTY (statements) (423/657): publication date, STATEMENT: Aen, VALUE: pubdate
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'pubdate' dla języka: en.
+PROPERTY (statements) (424/657): publication date, STATEMENT: Aen, VALUE: date of first publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'date of first publication' dla języka: en.
+PROPERTY (statements) (425/657): publication date, STATEMENT: Aen, VALUE: first publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'first publication' dla języka: en.
+PROPERTY (statements) (426/657): publication date, STATEMENT: Aen, VALUE: airdate
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'airdate' dla języka: en.
+PROPERTY (statements) (427/657): publication date, STATEMENT: Aen, VALUE: release date
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'release date' dla języka: en.
+PROPERTY (statements) (428/657): publication date, STATEMENT: Aen, VALUE: date published
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'date published' dla języka: en.
+PROPERTY (statements) (429/657): publication date, STATEMENT: Aen, VALUE: date released
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'date released' dla języka: en.
+PROPERTY (statements) (430/657): publication date, STATEMENT: Aen, VALUE: published
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'published' dla języka: en.
+PROPERTY (statements) (431/657): publication date, STATEMENT: Aen, VALUE: dop
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'dop' dla języka: en.
+PROPERTY (statements) (432/657): publication date, STATEMENT: Aen, VALUE: year of publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'year of publication' dla języka: en.
+PROPERTY (statements) (433/657): publication date, STATEMENT: Aen, VALUE: initial release
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'initial release' dla języka: en.
+PROPERTY (statements) (434/657): publication date, STATEMENT: Aen, VALUE: date of release
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'date of release' dla języka: en.
+PROPERTY (statements) (435/657): publication date, STATEMENT: Aen, VALUE: date of publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'date of publication' dla języka: en.
+PROPERTY (statements) (436/657): publication date, STATEMENT: Aen, VALUE: released
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'released' dla języka: en.
+PROPERTY (statements) (437/657): publication date, STATEMENT: Aen, VALUE: time of publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'time of publication' dla języka: en.
+PROPERTY (statements) (438/657): publication date, STATEMENT: Aen, VALUE: publication
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'publication' dla języka: en.
+PROPERTY (statements) (439/657): publication date, STATEMENT: Aen, VALUE: publication time
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'publication time' dla języka: en.
+PROPERTY (statements) (440/657): publication date, STATEMENT: Aen, VALUE: launched
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'launched' dla języka: en.
+PROPERTY (statements) (441/657): publication date, STATEMENT: Aen, VALUE: launch date
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'launch date' dla języka: en.
+PROPERTY (statements) (442/657): publication date, STATEMENT: Aen, VALUE: released in
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'released in' dla języka: en.
+PROPERTY (statements) (443/657): publication date, STATEMENT: Aen, VALUE: was published in
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'was published in' dla języka: en.
+PROPERTY (statements) (444/657): publication date, STATEMENT: Aen, VALUE: be published in
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'be published in' dla języka: en.
+PROPERTY (statements) (445/657): publication date, STATEMENT: Aen, VALUE: be published during
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'be published during' dla języka: en.
+PROPERTY (statements) (446/657): publication date, STATEMENT: Aen, VALUE: was published during
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'was published during' dla języka: en.
+PROPERTY (statements) (447/657): publication date, STATEMENT: Aen, VALUE: broadcast date
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'broadcast date' dla języka: en.
+PROPERTY (statements) (448/657): publication date, STATEMENT: Apl, VALUE: data premiery
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'data premiery' dla języka: pl.
+PROPERTY (statements) (449/657): publication date, STATEMENT: Apl, VALUE: data publikacji
+result SKIP: właściwość: 'P227 (publication date)' już posiada alias: 'data publikacji' dla języka: pl.
+PROPERTY (statements) (450/657): retrieved, STATEMENT: Aen, VALUE: access date
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'access date' dla języka: en.
+PROPERTY (statements) (451/657): retrieved, STATEMENT: Aen, VALUE: date accessed
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'date accessed' dla języka: en.
+PROPERTY (statements) (452/657): retrieved, STATEMENT: Aen, VALUE: accessdate
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'accessdate' dla języka: en.
+PROPERTY (statements) (453/657): retrieved, STATEMENT: Aen, VALUE: retrieved at
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'retrieved at' dla języka: en.
+PROPERTY (statements) (454/657): retrieved, STATEMENT: Aen, VALUE: date retrieved
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'date retrieved' dla języka: en.
+PROPERTY (statements) (455/657): retrieved, STATEMENT: Aen, VALUE: date of retrieval
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'date of retrieval' dla języka: en.
+PROPERTY (statements) (456/657): retrieved, STATEMENT: Aen, VALUE: time of retrieval
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'time of retrieval' dla języka: en.
+PROPERTY (statements) (457/657): retrieved, STATEMENT: Aen, VALUE: accessed
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'accessed' dla języka: en.
+PROPERTY (statements) (458/657): retrieved, STATEMENT: Aen, VALUE: consulted
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'consulted' dla języka: en.
+PROPERTY (statements) (459/657): retrieved, STATEMENT: Aen, VALUE: visited at
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'visited at' dla języka: en.
+PROPERTY (statements) (460/657): retrieved, STATEMENT: Aen, VALUE: viewed on
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'viewed on' dla języka: en.
+PROPERTY (statements) (461/657): retrieved, STATEMENT: Aen, VALUE: viewed on date
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'viewed on date' dla języka: en.
+PROPERTY (statements) (462/657): retrieved, STATEMENT: Aen, VALUE: retrieved date
+result SKIP: właściwość: 'P228 (retrieved)' już posiada alias: 'retrieved date' dla języka: en.
+PROPERTY (statements) (463/657): quotation, STATEMENT: Aen, VALUE: excerpt
+result SKIP: właściwość: 'P229 (quotation)' już posiada alias: 'excerpt' dla języka: en.
+PROPERTY (statements) (464/657): quotation, STATEMENT: Aen, VALUE: citation
+result SKIP: właściwość: 'P229 (quotation)' już posiada alias: 'citation' dla języka: en.
+PROPERTY (statements) (465/657): quotation, STATEMENT: Aen, VALUE: quote
+result SKIP: właściwość: 'P229 (quotation)' już posiada alias: 'quote' dla języka: en.
+PROPERTY (statements) (466/657): inception, STATEMENT: Aen, VALUE: instantiation date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'instantiation date' dla języka: en.
+PROPERTY (statements) (467/657): inception, STATEMENT: Aen, VALUE: date founded
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date founded' dla języka: en.
+PROPERTY (statements) (468/657): inception, STATEMENT: Aen, VALUE: date created
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date created' dla języka: en.
+PROPERTY (statements) (469/657): inception, STATEMENT: Aen, VALUE: foundation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'foundation' dla języka: en.
+PROPERTY (statements) (470/657): inception, STATEMENT: Aen, VALUE: created
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'created' dla języka: en.
+PROPERTY (statements) (471/657): inception, STATEMENT: Aen, VALUE: date of foundation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of foundation' dla języka: en.
+PROPERTY (statements) (472/657): inception, STATEMENT: Aen, VALUE: date of creation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of creation' dla języka: en.
+PROPERTY (statements) (473/657): inception, STATEMENT: Aen, VALUE: established
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'established' dla języka: en.
+PROPERTY (statements) (474/657): inception, STATEMENT: Aen, VALUE: establishment date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'establishment date' dla języka: en.
+PROPERTY (statements) (475/657): inception, STATEMENT: Aen, VALUE: foundation date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'foundation date' dla języka: en.
+PROPERTY (statements) (476/657): inception, STATEMENT: Aen, VALUE: creation date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'creation date' dla języka: en.
+PROPERTY (statements) (477/657): inception, STATEMENT: Aen, VALUE: date of establishment
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of establishment' dla języka: en.
+PROPERTY (statements) (478/657): inception, STATEMENT: Aen, VALUE: founding date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'founding date' dla języka: en.
+PROPERTY (statements) (479/657): inception, STATEMENT: Aen, VALUE: date of founding
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of founding' dla języka: en.
+PROPERTY (statements) (480/657): inception, STATEMENT: Aen, VALUE: date formed
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date formed' dla języka: en.
+PROPERTY (statements) (481/657): inception, STATEMENT: Aen, VALUE: formation date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'formation date' dla języka: en.
+PROPERTY (statements) (482/657): inception, STATEMENT: Aen, VALUE: formed on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'formed on date' dla języka: en.
+PROPERTY (statements) (483/657): inception, STATEMENT: Aen, VALUE: founded on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'founded on date' dla języka: en.
+PROPERTY (statements) (484/657): inception, STATEMENT: Aen, VALUE: established on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'established on date' dla języka: en.
+PROPERTY (statements) (485/657): inception, STATEMENT: Aen, VALUE: created on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'created on date' dla języka: en.
+PROPERTY (statements) (486/657): inception, STATEMENT: Aen, VALUE: commencement date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'commencement date' dla języka: en.
+PROPERTY (statements) (487/657): inception, STATEMENT: Aen, VALUE: date commenced
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date commenced' dla języka: en.
+PROPERTY (statements) (488/657): inception, STATEMENT: Aen, VALUE: commenced on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'commenced on date' dla języka: en.
+PROPERTY (statements) (489/657): inception, STATEMENT: Aen, VALUE: date of commencement
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of commencement' dla języka: en.
+PROPERTY (statements) (490/657): inception, STATEMENT: Aen, VALUE: time of foundation or creation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'time of foundation or creation' dla języka: en.
+PROPERTY (statements) (491/657): inception, STATEMENT: Aen, VALUE: date of foundation or creation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date of foundation or creation' dla języka: en.
+PROPERTY (statements) (492/657): inception, STATEMENT: Aen, VALUE: written on date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'written on date' dla języka: en.
+PROPERTY (statements) (493/657): inception, STATEMENT: Aen, VALUE: time of inception
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'time of inception' dla języka: en.
+PROPERTY (statements) (494/657): inception, STATEMENT: Aen, VALUE: year founded
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'year founded' dla języka: en.
+PROPERTY (statements) (495/657): inception, STATEMENT: Aen, VALUE: year created
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'year created' dla języka: en.
+PROPERTY (statements) (496/657): inception, STATEMENT: Aen, VALUE: year written
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'year written' dla języka: en.
+PROPERTY (statements) (497/657): inception, STATEMENT: Aen, VALUE: year commenced
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'year commenced' dla języka: en.
+PROPERTY (statements) (498/657): inception, STATEMENT: Aen, VALUE: year established
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'year established' dla języka: en.
+PROPERTY (statements) (499/657): inception, STATEMENT: Aen, VALUE: date constructed
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'date constructed' dla języka: en.
+PROPERTY (statements) (500/657): inception, STATEMENT: Aen, VALUE: construction date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'construction date' dla języka: en.
+PROPERTY (statements) (501/657): inception, STATEMENT: Aen, VALUE: constructed
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'constructed' dla języka: en.
+PROPERTY (statements) (502/657): inception, STATEMENT: Aen, VALUE: formation
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'formation' dla języka: en.
+PROPERTY (statements) (503/657): inception, STATEMENT: Aen, VALUE: dedication date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'dedication date' dla języka: en.
+PROPERTY (statements) (504/657): inception, STATEMENT: Aen, VALUE: formed in
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'formed in' dla języka: en.
+PROPERTY (statements) (505/657): inception, STATEMENT: Aen, VALUE: formed at
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'formed at' dla języka: en.
+PROPERTY (statements) (506/657): inception, STATEMENT: Aen, VALUE: introduced
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'introduced' dla języka: en.
+PROPERTY (statements) (507/657): inception, STATEMENT: Aen, VALUE: introduction
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'introduction' dla języka: en.
+PROPERTY (statements) (508/657): inception, STATEMENT: Aen, VALUE: completed
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'completed' dla języka: en.
+PROPERTY (statements) (509/657): inception, STATEMENT: Aen, VALUE: first issue
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'first issue' dla języka: en.
+PROPERTY (statements) (510/657): inception, STATEMENT: Aen, VALUE: built
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'built' dla języka: en.
+PROPERTY (statements) (511/657): inception, STATEMENT: Aen, VALUE: foundation / creation date
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'foundation / creation date' dla języka: en.
+PROPERTY (statements) (512/657): inception, STATEMENT: Aen, VALUE: founded
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'founded' dla języka: en.
+PROPERTY (statements) (513/657): inception, STATEMENT: Aen, VALUE: founded in
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'founded in' dla języka: en.
+PROPERTY (statements) (514/657): inception, STATEMENT: Aen, VALUE: broke ground
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'broke ground' dla języka: en.
+PROPERTY (statements) (515/657): inception, STATEMENT: Aen, VALUE: initiated
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'initiated' dla języka: en.
+PROPERTY (statements) (516/657): inception, STATEMENT: Aen, VALUE: composed
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'composed' dla języka: en.
+PROPERTY (statements) (517/657): inception, STATEMENT: Apl, VALUE: data założenia
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'data założenia' dla języka: pl.
+PROPERTY (statements) (518/657): inception, STATEMENT: Apl, VALUE: data powstania
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'data powstania' dla języka: pl.
+PROPERTY (statements) (519/657): inception, STATEMENT: Apl, VALUE: czas utworzenia
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'czas utworzenia' dla języka: pl.
+PROPERTY (statements) (520/657): inception, STATEMENT: Apl, VALUE: czas założenia
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'czas założenia' dla języka: pl.
+PROPERTY (statements) (521/657): inception, STATEMENT: Apl, VALUE: czas powstania
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'czas powstania' dla języka: pl.
+PROPERTY (statements) (522/657): inception, STATEMENT: Apl, VALUE: data utworzenia
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'data utworzenia' dla języka: pl.
+PROPERTY (statements) (523/657): inception, STATEMENT: Apl, VALUE: powstał
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'powstał' dla języka: pl.
+PROPERTY (statements) (524/657): inception, STATEMENT: Apl, VALUE: powstała
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'powstała' dla języka: pl.
+PROPERTY (statements) (525/657): inception, STATEMENT: Apl, VALUE: powstało
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'powstało' dla języka: pl.
+PROPERTY (statements) (526/657): inception, STATEMENT: Apl, VALUE: założono
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'założono' dla języka: pl.
+PROPERTY (statements) (527/657): inception, STATEMENT: Apl, VALUE: założony
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'założony' dla języka: pl.
+PROPERTY (statements) (528/657): inception, STATEMENT: Apl, VALUE: założona
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'założona' dla języka: pl.
+PROPERTY (statements) (529/657): inception, STATEMENT: Apl, VALUE: założone
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'założone' dla języka: pl.
+PROPERTY (statements) (530/657): inception, STATEMENT: Apl, VALUE: powstały
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'powstały' dla języka: pl.
+PROPERTY (statements) (531/657): inception, STATEMENT: Apl, VALUE: utworzono
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'utworzono' dla języka: pl.
+PROPERTY (statements) (532/657): inception, STATEMENT: Apl, VALUE: utworzone
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'utworzone' dla języka: pl.
+PROPERTY (statements) (533/657): inception, STATEMENT: Apl, VALUE: utworzony
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'utworzony' dla języka: pl.
+PROPERTY (statements) (534/657): inception, STATEMENT: Apl, VALUE: utworzona
+result SKIP: właściwość: 'P221 (inception)' już posiada alias: 'utworzona' dla języka: pl.
+PROPERTY (statements) (535/657): partially coincident with, STATEMENT: Aen, VALUE: partially overlaps
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partially overlaps' dla języka: en.
+PROPERTY (statements) (536/657): partially coincident with, STATEMENT: Aen, VALUE: partial concurrency
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partial concurrency' dla języka: en.
+PROPERTY (statements) (537/657): partially coincident with, STATEMENT: Aen, VALUE: concurrent with
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'concurrent with' dla języka: en.
+PROPERTY (statements) (538/657): partially coincident with, STATEMENT: Aen, VALUE: concurrency
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'concurrency' dla języka: en.
+PROPERTY (statements) (539/657): partially coincident with, STATEMENT: Aen, VALUE: overlapping with
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'overlapping with' dla języka: en.
+PROPERTY (statements) (540/657): partially coincident with, STATEMENT: Aen, VALUE: partially include
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partially include' dla języka: en.
+PROPERTY (statements) (541/657): partially coincident with, STATEMENT: Aen, VALUE: partially in
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partially in' dla języka: en.
+PROPERTY (statements) (542/657): partially coincident with, STATEMENT: Aen, VALUE: coincident with
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'coincident with' dla języka: en.
+PROPERTY (statements) (543/657): partially coincident with, STATEMENT: Aen, VALUE: part of (partially)
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'part of (partially)' dla języka: en.
+PROPERTY (statements) (544/657): partially coincident with, STATEMENT: Aen, VALUE: overlaps
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'overlaps' dla języka: en.
+PROPERTY (statements) (545/657): partially coincident with, STATEMENT: Aen, VALUE: overlaps with
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'overlaps with' dla języka: en.
+PROPERTY (statements) (546/657): partially coincident with, STATEMENT: Aen, VALUE: partly similar
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partly similar' dla języka: en.
+PROPERTY (statements) (547/657): partially coincident with, STATEMENT: Aen, VALUE: partly coincident with
+result SKIP: właściwość: 'P230 (partially coincident with)' już posiada alias: 'partly coincident with' dla języka: en.
+PROPERTY (statements) (548/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: title (of a section)
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'title (of a section)' dla języka: en.
+PROPERTY (statements) (549/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: entry
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'entry' dla języka: en.
+PROPERTY (statements) (550/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: encyclopedia entry
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'encyclopedia entry' dla języka: en.
+PROPERTY (statements) (551/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: dictionary entry
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'dictionary entry' dla języka: en.
+PROPERTY (statements) (552/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: section
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'section' dla języka: en.
+PROPERTY (statements) (553/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: verse
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'verse' dla języka: en.
+PROPERTY (statements) (554/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: paragraph
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'paragraph' dla języka: en.
+PROPERTY (statements) (555/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: bibliography
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'bibliography' dla języka: en.
+PROPERTY (statements) (556/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: sub voce
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'sub voce' dla języka: en.
+PROPERTY (statements) (557/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: sub verbo
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'sub verbo' dla języka: en.
+PROPERTY (statements) (558/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: s. v.
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 's. v.' dla języka: en.
+PROPERTY (statements) (559/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: clause
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'clause' dla języka: en.
+PROPERTY (statements) (560/657): section, verse, paragraph, or clause, STATEMENT: Aen, VALUE: item number
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'item number' dla języka: en.
+PROPERTY (statements) (561/657): section, verse, paragraph, or clause, STATEMENT: Apl, VALUE: sekcja
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'sekcja' dla języka: pl.
+PROPERTY (statements) (562/657): section, verse, paragraph, or clause, STATEMENT: Apl, VALUE: werset
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'werset' dla języka: pl.
+PROPERTY (statements) (563/657): section, verse, paragraph, or clause, STATEMENT: Apl, VALUE: akapit
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'akapit' dla języka: pl.
+PROPERTY (statements) (564/657): section, verse, paragraph, or clause, STATEMENT: Apl, VALUE: paragraf
+result SKIP: właściwość: 'P231 (section, verse, paragraph, or clause)' już posiada alias: 'paragraf' dla języka: pl.
+PROPERTY (statements) (565/657): volume, STATEMENT: Aen, VALUE: volume of a book
+result SKIP: właściwość: 'P232 (volume)' już posiada alias: 'volume of a book' dla języka: en.
+PROPERTY (statements) (566/657): volume, STATEMENT: Aen, VALUE: volume of serial
+result SKIP: właściwość: 'P232 (volume)' już posiada alias: 'volume of serial' dla języka: en.
+PROPERTY (statements) (567/657): volume, STATEMENT: Aen, VALUE: vol.
+result SKIP: właściwość: 'P232 (volume)' już posiada alias: 'vol.' dla języka: en.
+PROPERTY (statements) (568/657): volume, STATEMENT: Aen, VALUE: tome
+result SKIP: właściwość: 'P232 (volume)' już posiada alias: 'tome' dla języka: en.
+PROPERTY (statements) (569/657): volume, STATEMENT: Apl, VALUE: rocznik
+result SKIP: właściwość: 'P232 (volume)' już posiada alias: 'rocznik' dla języka: pl.
+PROPERTY (statements) (570/657): pages, STATEMENT: Aen, VALUE: pp.
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'pp.' dla języka: en.
+PROPERTY (statements) (571/657): pages, STATEMENT: Aen, VALUE: p.
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'p.' dla języka: en.
+PROPERTY (statements) (572/657): pages, STATEMENT: Aen, VALUE: page
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'page' dla języka: en.
+PROPERTY (statements) (573/657): pages, STATEMENT: Aen, VALUE: pages
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'pages' dla języka: en.
+PROPERTY (statements) (574/657): pages, STATEMENT: Aen, VALUE: pg.
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'pg.' dla języka: en.
+PROPERTY (statements) (575/657): pages, STATEMENT: Aen, VALUE: pgs.
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'pgs.' dla języka: en.
+PROPERTY (statements) (576/657): pages, STATEMENT: Aen, VALUE: page number
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'page number' dla języka: en.
+PROPERTY (statements) (577/657): pages, STATEMENT: Aen, VALUE: page numbers
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'page numbers' dla języka: en.
+PROPERTY (statements) (578/657): pages, STATEMENT: Apl, VALUE: zakres stron
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'zakres stron' dla języka: pl.
+PROPERTY (statements) (579/657): pages, STATEMENT: Apl, VALUE: strona
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'strona' dla języka: pl.
+PROPERTY (statements) (580/657): pages, STATEMENT: Apl, VALUE: strony
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 'strony' dla języka: pl.
+PROPERTY (statements) (581/657): pages, STATEMENT: Apl, VALUE: s.
+result SKIP: właściwość: 'P234 (pages)' już posiada alias: 's.' dla języka: pl.
+PROPERTY (statements) (582/657): starts at, STATEMENT: Aen, VALUE: from
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'from' dla języka: en.
+PROPERTY (statements) (583/657): starts at, STATEMENT: Aen, VALUE: starting
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'starting' dla języka: en.
+PROPERTY (statements) (584/657): starts at, STATEMENT: Aen, VALUE: began
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'began' dla języka: en.
+PROPERTY (statements) (585/657): starts at, STATEMENT: Aen, VALUE: from time
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'from time' dla języka: en.
+PROPERTY (statements) (586/657): starts at, STATEMENT: Aen, VALUE: since
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'since' dla języka: en.
+PROPERTY (statements) (587/657): starts at, STATEMENT: Aen, VALUE: from date
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'from date' dla języka: en.
+PROPERTY (statements) (588/657): starts at, STATEMENT: Aen, VALUE: starttime
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'starttime' dla języka: en.
+PROPERTY (statements) (589/657): starts at, STATEMENT: Aen, VALUE: introduced
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'introduced' dla języka: en.
+PROPERTY (statements) (590/657): starts at, STATEMENT: Aen, VALUE: started in
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'started in' dla języka: en.
+PROPERTY (statements) (591/657): starts at, STATEMENT: Aen, VALUE: beginning
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'beginning' dla języka: en.
+PROPERTY (statements) (592/657): starts at, STATEMENT: Aen, VALUE: join date
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'join date' dla języka: en.
+PROPERTY (statements) (593/657): starts at, STATEMENT: Aen, VALUE: join time
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'join time' dla języka: en.
+PROPERTY (statements) (594/657): starts at, STATEMENT: Aen, VALUE: start date
+result SKIP: właściwość: 'P203 (starts at)' już posiada alias: 'start date' dla języka: en.
+PROPERTY (statements) (595/657): ends at, STATEMENT: Aen, VALUE: until
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'until' dla języka: en.
+PROPERTY (statements) (596/657): ends at, STATEMENT: Aen, VALUE: enddate
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'enddate' dla języka: en.
+PROPERTY (statements) (597/657): ends at, STATEMENT: Aen, VALUE: closed
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'closed' dla języka: en.
+PROPERTY (statements) (598/657): ends at, STATEMENT: Aen, VALUE: fall date
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'fall date' dla języka: en.
+PROPERTY (statements) (599/657): ends at, STATEMENT: Aen, VALUE: cease date
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'cease date' dla języka: en.
+PROPERTY (statements) (600/657): ends at, STATEMENT: Aen, VALUE: cease time
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'cease time' dla języka: en.
+PROPERTY (statements) (601/657): ends at, STATEMENT: Aen, VALUE: endtime
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'endtime' dla języka: en.
+PROPERTY (statements) (602/657): ends at, STATEMENT: Aen, VALUE: ends
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'ends' dla języka: en.
+PROPERTY (statements) (603/657): ends at, STATEMENT: Aen, VALUE: till
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'till' dla języka: en.
+PROPERTY (statements) (604/657): ends at, STATEMENT: Aen, VALUE: completed in
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'completed in' dla języka: en.
+PROPERTY (statements) (605/657): ends at, STATEMENT: Aen, VALUE: dissolved
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'dissolved' dla języka: en.
+PROPERTY (statements) (606/657): ends at, STATEMENT: Aen, VALUE: stop time
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'stop time' dla języka: en.
+PROPERTY (statements) (607/657): ends at, STATEMENT: Aen, VALUE: to
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'to' dla języka: en.
+PROPERTY (statements) (608/657): ends at, STATEMENT: Aen, VALUE: ending
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'ending' dla języka: en.
+PROPERTY (statements) (609/657): ends at, STATEMENT: Aen, VALUE: end date
+result SKIP: właściwość: 'P204 (ends at)' już posiada alias: 'end date' dla języka: en.
+PROPERTY (statements) (610/657): point in time, STATEMENT: Aen, VALUE: date
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'date' dla języka: en.
+PROPERTY (statements) (611/657): point in time, STATEMENT: Aen, VALUE: as of
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'as of' dla języka: en.
+PROPERTY (statements) (612/657): point in time, STATEMENT: Aen, VALUE: time of event
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'time of event' dla języka: en.
+PROPERTY (statements) (613/657): point in time, STATEMENT: Aen, VALUE: at time
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'at time' dla języka: en.
+PROPERTY (statements) (614/657): point in time, STATEMENT: Aen, VALUE: when
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'when' dla języka: en.
+PROPERTY (statements) (615/657): point in time, STATEMENT: Aen, VALUE: year
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'year' dla języka: en.
+PROPERTY (statements) (616/657): point in time, STATEMENT: Aen, VALUE: time
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'time' dla języka: en.
+PROPERTY (statements) (617/657): point in time, STATEMENT: Aen, VALUE: during
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'during' dla języka: en.
+PROPERTY (statements) (618/657): point in time, STATEMENT: Aen, VALUE: event date
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'event date' dla języka: en.
+PROPERTY (statements) (619/657): point in time, STATEMENT: Aen, VALUE: on
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'on' dla języka: en.
+PROPERTY (statements) (620/657): point in time, STATEMENT: Aen, VALUE: by date
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'by date' dla języka: en.
+PROPERTY (statements) (621/657): point in time, STATEMENT: Aen, VALUE: pointtime
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'pointtime' dla języka: en.
+PROPERTY (statements) (622/657): point in time, STATEMENT: Aen, VALUE: occurred on
+result SKIP: właściwość: 'P252 (point in time)' już posiada alias: 'occurred on' dla języka: en.
+PROPERTY (statements) (623/657): related properties, STATEMENT: Aen, VALUE: rdfs:seeAlso
+result SKIP: właściwość: 'P162 (related properties)' już posiada alias: 'rdfs:seeAlso' dla języka: en.
+PROPERTY (statements) (624/657): related properties, STATEMENT: Aen, VALUE: related property
+result SKIP: właściwość: 'P162 (related properties)' już posiada alias: 'related property' dla języka: en.
+PROPERTY (statements) (625/657): related properties, STATEMENT: Aen, VALUE: seealso
+result SKIP: właściwość: 'P162 (related properties)' już posiada alias: 'seealso' dla języka: en.
+PROPERTY (statements) (626/657): related properties, STATEMENT: Aen, VALUE: see also
+result SKIP: właściwość: 'P162 (related properties)' już posiada alias: 'see also' dla języka: en.
+PROPERTY (statements) (627/657): related properties, STATEMENT: Apl, VALUE: zobacz też
+result SKIP: właściwość: 'P162 (related properties)' już posiada alias: 'zobacz też' dla języka: pl.
+PROPERTY (statements) (628/657): starts at, STATEMENT: related properties, VALUE: ends at
+result SKIP: właściwość: 'P203' (starts at) already has a statement: 'P162 with value: P204'.
+PROPERTY (statements) (629/657): starts at, STATEMENT: related properties, VALUE: earliest date
+result SKIP: właściwość: 'P203' (starts at) already has a statement: 'P162 with value: P38'.
+PROPERTY (statements) (630/657): starts at, STATEMENT: related properties, VALUE: latest date
+result SKIP: właściwość: 'P203' (starts at) already has a statement: 'P162 with value: P39'.
+PROPERTY (statements) (631/657): starts at, STATEMENT: related properties, VALUE: point in time
+result SKIP: właściwość: 'P203' (starts at) already has a statement: 'P162 with value: P252'.
+PROPERTY (statements) (632/657): ends at, STATEMENT: related properties, VALUE: starts at
+result SKIP: właściwość: 'P204' (ends at) already has a statement: 'P162 with value: P203'.
+PROPERTY (statements) (633/657): ends at, STATEMENT: related properties, VALUE: earliest date
+result SKIP: właściwość: 'P204' (ends at) already has a statement: 'P162 with value: P38'.
+PROPERTY (statements) (634/657): ends at, STATEMENT: related properties, VALUE: latest date
+result SKIP: właściwość: 'P204' (ends at) already has a statement: 'P162 with value: P39'.
+PROPERTY (statements) (635/657): ends at, STATEMENT: related properties, VALUE: point in time
+result SKIP: właściwość: 'P204' (ends at) already has a statement: 'P162 with value: P252'.
+PROPERTY (statements) (636/657): earliest date, STATEMENT: related properties, VALUE: starts at
+result SKIP: właściwość: 'P38' (earliest date) already has a statement: 'P162 with value: P203'.
+PROPERTY (statements) (637/657): earliest date, STATEMENT: related properties, VALUE: ends at
+result SKIP: właściwość: 'P38' (earliest date) already has a statement: 'P162 with value: P204'.
+PROPERTY (statements) (638/657): earliest date, STATEMENT: related properties, VALUE: latest date
+result SKIP: właściwość: 'P38' (earliest date) already has a statement: 'P162 with value: P39'.
+PROPERTY (statements) (639/657): earliest date, STATEMENT: related properties, VALUE: point in time
+result SKIP: właściwość: 'P38' (earliest date) already has a statement: 'P162 with value: P252'.
+PROPERTY (statements) (640/657): latest date, STATEMENT: related properties, VALUE: ends at
+result SKIP: właściwość: 'P39' (latest date) already has a statement: 'P162 with value: P204'.
+PROPERTY (statements) (641/657): latest date, STATEMENT: related properties, VALUE: earliest date
+result SKIP: właściwość: 'P39' (latest date) already has a statement: 'P162 with value: P38'.
+PROPERTY (statements) (642/657): latest date, STATEMENT: related properties, VALUE: starts at
+result SKIP: właściwość: 'P39' (latest date) already has a statement: 'P162 with value: P203'.
+PROPERTY (statements) (643/657): latest date, STATEMENT: related properties, VALUE: point in time
+result SKIP: właściwość: 'P39' (latest date) already has a statement: 'P162 with value: P252'.
+PROPERTY (statements) (644/657): point in time, STATEMENT: related properties, VALUE: ends at
+result SKIP: właściwość: 'P252' (point in time) already has a statement: 'P162 with value: P204'.
+PROPERTY (statements) (645/657): point in time, STATEMENT: related properties, VALUE: earliest date
+result SKIP: właściwość: 'P252' (point in time) already has a statement: 'P162 with value: P38'.
+PROPERTY (statements) (646/657): point in time, STATEMENT: related properties, VALUE: latest date
+result SKIP: właściwość: 'P252' (point in time) already has a statement: 'P162 with value: P39'.
+PROPERTY (statements) (647/657): point in time, STATEMENT: related properties, VALUE: starts at
+result SKIP: właściwość: 'P252' (point in time) already has a statement: 'P162 with value: P203'.
+PROPERTY (statements) (648/657): count, STATEMENT: Aen, VALUE: qty
+result ALIAS ADDED, właściwość: P349 (count): Aen -> qty
+PROPERTY (statements) (649/657): count, STATEMENT: Aen, VALUE: total number
+result ALIAS ADDED, właściwość: P349 (count): Aen -> total number
+PROPERTY (statements) (650/657): count, STATEMENT: Aen, VALUE: number of instances
+result ALIAS ADDED, właściwość: P349 (count): Aen -> number of instances
+PROPERTY (statements) (651/657): count, STATEMENT: Aen, VALUE: number
+result ALIAS ADDED, właściwość: P349 (count): Aen -> number
+PROPERTY (statements) (652/657): count, STATEMENT: Aen, VALUE: amount
+result ALIAS ADDED, właściwość: P349 (count): Aen -> amount
+PROPERTY (statements) (653/657): count, STATEMENT: Aen, VALUE: total
+result ALIAS ADDED, właściwość: P349 (count): Aen -> total
+PROPERTY (statements) (654/657): count, STATEMENT: Aen, VALUE: count
+result ALIAS ADDED, właściwość: P349 (count): Aen -> count
+PROPERTY (statements) (655/657): count, STATEMENT: Aen, VALUE: multiplicity
+result ALIAS ADDED, właściwość: P349 (count): Aen -> multiplicity
+PROPERTY (statements) (656/657): count, STATEMENT: Apl, VALUE: ilość
+result ALIAS ADDED, właściwość: P349 (count): Apl -> ilość
+PROPERTY (statements) (657/657): count, STATEMENT: Apl, VALUE: wielokrotność
+result ALIAS ADDED, właściwość: P349 (count): Apl -> wielokrotność
+ITEM (1/37): religion/religia
+Item: 'religion' already exists: Q71, update mode enabled.
+SKIP: element: Q71 (religion) posiada już dla języka: "en" opis: set of beliefs, practices and traditions for a group or community
+SKIP: element: Q71 (religion) posiada już dla języka: "pl" opis: system wierzeń i praktyk
+SKIP: element Q71 (religion) posiada deklarację: P50 o wartości: Q9174
+ITEM (2/37): confession/wyznanie
+Item: 'confession' already exists: Q79337, update mode enabled.
+SKIP: element: Q79337 (confession) posiada już dla języka: "en" opis: identifiable religious subgroup with a common structure and doctrine
+SKIP: element: Q79337 (confession) posiada już dla języka: "pl" opis: identyfikowalna podgrupa religijna o wspólnej strukturze i doktrynie
+SKIP: element Q79337 (confession) posiada deklarację: P50 o wartości: Q13414953
+ITEM (3/37): rite/ryt
+Item: 'rite' already exists: Q79346, update mode enabled.
+SKIP: element: Q79346 (rite) posiada już dla języka: "en" opis: single established symbolic acts, is a part of ceremony
+SKIP: element: Q79346 (rite) posiada już dla języka: "pl" opis: symboliczne czynności wykonywane tradycyjnie w związku z jakąś uroczystością religijną, rodzinną, społeczną i in.
+SKIP: element Q79346 (rite) posiada deklarację: P50 o wartości: Q628455
+ITEM (4/37): Christian/religia chrześcijańska
+Item: 'Christian' already exists: Q79756, update mode enabled.
+SKIP: element: Q79756 (Christian) posiada już dla języka: "pl" opis: Religia monoteistyczna i uniwersalistyczna, której istotą jest wiara w Jezusa Chrystusa
+SKIP: element Q79756 (Christian) posiada deklarację: P50 o wartości: Q5043
+ITEM (5/37): Jewish/religia mojżeszowa
+Item: 'Jewish' already exists: Q79444, update mode enabled.
+SKIP: element: Q79444 (Jewish) posiada już dla języka: "en" opis: Ethnic religion of the Jewish people
+SKIP: element Q79444 (Jewish) posiada deklarację: P50 o wartości: Q9268
+ITEM (6/37): Armenian rite/obrządek ormiański
+Item: 'Armenian rite' already exists: Q79382, update mode enabled.
+ITEM (7/37): Latin (Roman Catholic)/obrządek łaciński
+Item: 'Latin (Roman Catholic)' already exists: Q79383, update mode enabled.
+ITEM (8/37): Czech Brethren/czesko-braterski
+Item: 'Czech Brethren' already exists: Q79384, update mode enabled.
+ITEM (9/37): Evangelical/ewangelicki
+Item: 'Evangelical' already exists: Q79385, update mode enabled.
+ITEM (10/37): Evangelical Augsburg/ewangelicko-augsburski
+Item: 'Evangelical Augsburg' already exists: Q79386, update mode enabled.
+ITEM (11/37): Evangelical Reformed/ewangelicko-reformowany
+Item: 'Evangelical Reformed' already exists: Q79387, update mode enabled.
+ITEM (12/37): Uniate (Greek-Catholic)/obrządek greckokatolicki
+Item: 'Uniate (Greek-Catholic)' already exists: Q79388, update mode enabled.
+ITEM (13/37): Catholicism/wyznanie katolickie
+Item: 'Catholicism' already exists: Q79389, update mode enabled.
+SKIP: element Q79389 (Catholicism) posiada deklarację: P50 o wartości: Q1841
+ITEM (14/37): Orthodox/wyznanie prawosławne
+Item: 'Orthodox' already exists: Q79390, update mode enabled.
+SKIP: element Q79390 (Orthodox) posiada deklarację: P50 o wartości: Q3333484
+ITEM (15/37): Protenstatism/wyznanie protestanckie
+Item: 'Protenstatism' already exists: Q79391, update mode enabled.
+SKIP: element Q79391 (Protenstatism) posiada deklarację: P50 o wartości: Q23540
+ITEM (16/37): institution/instytucja
+Item: 'institution' already exists: Q79392, update mode enabled.
+SKIP: element: Q79392 (institution) posiada już dla języka: "en" opis: structure or mechanism of social order and cooperation governing the behaviour of a set of individuals within a given community
+SKIP: element: Q79392 (institution) posiada już dla języka: "pl" opis: publiczny ośrodek odpowiedzialny za sprawy w określonym zakresie
+SKIP: element Q79392 (institution) posiada deklarację: P50 o wartości: Q178706
+ITEM (17/37): magazine/czasopismo
+Item: 'magazine' already exists: Q79393, update mode enabled.
+SKIP: element: Q79393 (magazine) posiada już dla języka: "en" opis: publication type
+SKIP: element: Q79393 (magazine) posiada już dla języka: "pl" opis: rodzaj publikacji
+SKIP: element Q79393 (magazine) posiada deklarację: P50 o wartości: Q41298
+ITEM (18/37): human/człowiek
+Item: 'human' already exists: Q32, update mode enabled.
+SKIP: element: Q32 (human) posiada już dla języka: "en" opis: common name of Homo sapiens, unique extant species of the genus Homo
+SKIP: element: Q32 (human) posiada już dla języka: "pl" opis: nazwa zwyczajowa Homo sapiens, unikalny nadal istniejący gatunek rodzaju Homo
+SKIP: element Q32 (human) posiada deklarację: P50 o wartości: Q5
+ITEM (19/37): book/książka
+Item: 'book' already exists: Q79395, update mode enabled.
+SKIP: element: Q79395 (book) posiada już dla języka: "en" opis: written text that can be published in printed or electronic form
+SKIP: element: Q79395 (book) posiada już dla języka: "pl" opis: dokument piśmienniczy w postaci wielostronicowej publikacji
+SKIP: element Q79395 (book) posiada deklarację: P50 o wartości: Q571
+ITEM (20/37): article/artykuł
+Item: 'article' already exists: Q79397, update mode enabled.
+SKIP: element: Q79397 (article) posiada już dla języka: "en" opis: text that forms an independent part of a publication
+SKIP: element: Q79397 (article) posiada już dla języka: "pl" opis: tekst stanowiący samodzielną część publikacji
+SKIP: element Q79397 (article) posiada deklarację: P50 o wartości: Q191067
+ITEM (21/37): chapter/rozdział
+Item: 'chapter' already exists: Q79398, update mode enabled.
+SKIP: element: Q79398 (chapter) posiada już dla języka: "en" opis: section of the text in a book or video game
+SKIP: element: Q79398 (chapter) posiada już dla języka: "pl" opis: jedna z części dzieła literackiego
+SKIP: element Q79398 (chapter) posiada deklarację: P50 o wartości: Q1980247
+ITEM (22/37): legal basis/podstawa prawna
+Item: 'legal basis' already exists: Q79445, update mode enabled.
+SKIP: element: Q79445 (legal basis) posiada już dla języka: "en" opis: the fundamental law or judicial precedent that warrants or supports a subsequent decision or action by any governmental, corporate or private entity
+SKIP: element Q79445 (legal basis) posiada deklarację: P50 o wartości: Q821003
+ITEM (23/37): periodical/periodyk
+Item: 'periodical' already exists: Q79446, update mode enabled.
+SKIP: element: Q79446 (periodical) posiada już dla języka: "en" opis: serial publication that appears in a new edition on a regular schedule
+SKIP: element: Q79446 (periodical) posiada już dla języka: "pl" opis: wydawnictwo publikowane w regularnych odstępach czasu
+SKIP: element Q79446 (periodical) posiada deklarację: P50 o wartości: Q1002697
+ITEM (24/37): source of information/źródło informacji
+Item: 'source of information' already exists: Q79449, update mode enabled.
+ITEM (25/37): middle of/środek
+Item: 'middle of' already exists: Q86528, update mode enabled.
+SKIP: element: Q86528 (middle of) posiada już dla języka: "en" opis: middle of time period
+SKIP: element: Q86528 (middle of) posiada już dla języka: "pl" opis: środek okresu czasu
+SKIP: element Q86528 (middle of) posiada deklarację: P50 o wartości: Q40719748
+ITEM (26/37): beginning of/początek
+Item: 'beginning of' already exists: Q86529, update mode enabled.
+SKIP: element: Q86529 (beginning of) posiada już dla języka: "en" opis: beginning of time period
+SKIP: element: Q86529 (beginning of) posiada już dla języka: "pl" opis: początek okresu czasu
+SKIP: element Q86529 (beginning of) posiada deklarację: P50 o wartości: Q40719727
+ITEM (27/37): end of/koniec
+Item: 'end of' already exists: Q86530, update mode enabled.
+SKIP: element: Q86530 (end of) posiada już dla języka: "en" opis: end of time period
+SKIP: element: Q86530 (end of) posiada już dla języka: "pl" opis: koniec okresu czasu
+SKIP: element Q86530 (end of) posiada deklarację: P50 o wartości: Q40719766
+ITEM (28/37): first half/pierwsza połowa
+Item: 'first half' already exists: Q86531, update mode enabled.
+SKIP: element: Q86531 (first half) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86531 (first half) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86531 (first half) posiada deklarację: P50 o wartości: Q40719687
+ITEM (29/37): second half/druga połowa
+Item: 'second half' already exists: Q86532, update mode enabled.
+SKIP: element: Q86532 (second half) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86532 (second half) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86532 (second half) posiada deklarację: P50 o wartości: Q40719707
+ITEM (30/37): first quarter/pierwsza ćwiartka
+Item: 'first quarter' already exists: Q86533, update mode enabled.
+SKIP: element: Q86533 (first quarter) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86533 (first quarter) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86533 (first quarter) posiada deklarację: P50 o wartości: Q40690303
+ITEM (31/37): second quarter/druga ćwiartka
+Item: 'second quarter' already exists: Q86534, update mode enabled.
+SKIP: element: Q86534 (second quarter) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86534 (second quarter) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86534 (second quarter) posiada deklarację: P50 o wartości: Q40719649
+ITEM (32/37): third quarter/trzecia ćwiartka
+Item: 'third quarter' already exists: Q86535, update mode enabled.
+SKIP: element: Q86535 (third quarter) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86535 (third quarter) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86535 (third quarter) posiada deklarację: P50 o wartości: Q40719662
+ITEM (33/37): fourth quarter/czwarta ćwiartka
+Item: 'fourth quarter' already exists: Q86536, update mode enabled.
+SKIP: element: Q86536 (fourth quarter) posiada już dla języka: "en" opis: should be used to narrow down the period it describes
+SKIP: element: Q86536 (fourth quarter) posiada już dla języka: "pl" opis: służy do zawężania okresu czasu
+SKIP: element Q86536 (fourth quarter) posiada deklarację: P50 o wartości: Q40719674
+ITEM (34/37): official name/nazwa urzędowa
+Item: 'official name' already exists: Q86537, update mode enabled.
+ITEM (35/37): unofficial name/nazwa niestandaryzowana
+Item: 'unofficial name' already exists: Q86538, update mode enabled.
+ITEM (36/37): uncertain/niepewna
+Item: 'uncertain' already exists: Q86539, update mode enabled.
+SKIP: element: Q86539 (uncertain) posiada już dla języka: "en" opis: value allowing to determine the level of uncertainty of information in the qualifier "information status"
+SKIP: element: Q86539 (uncertain) posiada już dla języka: "pl" opis: wartość pozwalająca określić poziom niepewności informacji w kwalifikatorze "status informacji"
+ITEM (37/37): incorrect/błędna
+Item: 'incorrect' already exists: Q86540, update mode enabled.
+SKIP: element: Q86540 (incorrect) posiada już dla języka: "en" opis: value allowing to determine the level of uncertainty of information in the qualifier "information status"
+SKIP: element: Q86540 (incorrect) posiada już dla języka: "pl" opis: wartość pozwalająca określić poziom niepewności informacji w kwalifikatorze "status informacji"
+ITEM (1/95): Christian, STATEMENT: Apl, VALUE: chrześcijaństwo
+SKIP: element: 'Q79756' (Christian) już posiada alias: 'chrześcijaństwo' dla języka: pl.
+ITEM (2/95): Christian, STATEMENT: Aen, VALUE: Christianity
+SKIP: element: 'Q79756' (Christian) już posiada alias: 'Christianity' dla języka: en.
+ITEM (3/95): Christian, STATEMENT: described at URL, VALUE: http://vocab.getty.edu/aat/300073711
+SKIP: element: 'Q79756' (Christian) już posiada deklarację: 'P217' o wartości: http://vocab.getty.edu/aat/300073711.
+ITEM (4/95): Christian, STATEMENT: described at URL, VALUE: https://dbpedia.org/page/Christianity
+SKIP: element: 'Q79756' (Christian) już posiada deklarację: 'P217' o wartości: https://dbpedia.org/page/Christianity.
+ITEM (5/95): Christian, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q5043
+SKIP: element: 'Q79756' (Christian) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q5043.
+ITEM (6/95): Christian, STATEMENT: instance of, VALUE: religion
+SKIP: element: 'Q79756' (Christian) już posiada deklarację: 'P47' o wartości: Q71.
+ITEM (7/95): Christian, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_95
+SKIP: element: 'Q79756' (Christian) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_95.
+ITEM (8/95): Jewish, STATEMENT: Apl, VALUE: Judaizm
+SKIP: element: 'Q79381' (Jewish) już posiada alias: 'Judaizm' dla języka: pl.
+ITEM (9/95): Jewish, STATEMENT: Aen, VALUE: Judaism
+SKIP: element: 'Q79381' (Jewish) już posiada alias: 'Judaism' dla języka: en.
+ITEM (10/95): Jewish, STATEMENT: described at URL, VALUE: http://vocab.getty.edu/aat/300073723
+SKIP: element: 'Q79381' (Jewish) już posiada deklarację: 'P217' o wartości: http://vocab.getty.edu/aat/300073723.
+ITEM (11/95): Jewish, STATEMENT: described at URL, VALUE: https://dbpedia.org/page/Judaism
+SKIP: element: 'Q79381' (Jewish) już posiada deklarację: 'P217' o wartości: https://dbpedia.org/page/Judaism.
+ITEM (12/95): Jewish, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q9268
+SKIP: element: 'Q79381' (Jewish) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q9268.
+ITEM (13/95): Jewish, STATEMENT: instance of, VALUE: religion
+SKIP: element: 'Q79381' (Jewish) już posiada deklarację: 'P47' o wartości: Q71.
+ITEM (14/95): Jewish, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_96
+SKIP: element: 'Q79381' (Jewish) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_96.
+ITEM (15/95): Armenian rite, STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79382' (Armenian rite) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (16/95): Armenian rite, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_111
+SKIP: element: 'Q79382' (Armenian rite) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_111.
+ITEM (17/95): Latin (Roman Catholic), STATEMENT: Aen, VALUE: Latin Rite Catholicism
+SKIP: element: 'Q79383' (Latin (Roman Catholic)) już posiada alias: 'Latin Rite Catholicism' dla języka: en.
+ITEM (18/95): Latin (Roman Catholic), STATEMENT: Aen, VALUE: Latin Rite Roman Catholicism
+SKIP: element: 'Q79383' (Latin (Roman Catholic)) już posiada alias: 'Latin Rite Roman Catholicism' dla języka: en.
+ITEM (19/95): Latin (Roman Catholic), STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79383' (Latin (Roman Catholic)) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (20/95): Latin (Roman Catholic), STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_105
+SKIP: element: 'Q79383' (Latin (Roman Catholic)) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_105.
+ITEM (21/95): Czech Brethren, STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79384' (Czech Brethren) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (22/95): Czech Brethren, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_104
+SKIP: element: 'Q79384' (Czech Brethren) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_104.
+ITEM (23/95): Evangelical, STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79385' (Evangelical) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (24/95): Evangelical, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_102
+SKIP: element: 'Q79385' (Evangelical) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_102.
+ITEM (25/95): Evangelical Augsburg, STATEMENT: Apl, VALUE: luterański
+SKIP: element: 'Q79386' (Evangelical Augsburg) już posiada alias: 'luterański' dla języka: pl.
+ITEM (26/95): Evangelical Augsburg, STATEMENT: Aen, VALUE: Lutheran
+SKIP: element: 'Q79386' (Evangelical Augsburg) już posiada alias: 'Lutheran' dla języka: en.
+ITEM (27/95): Evangelical Augsburg, STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79386' (Evangelical Augsburg) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (28/95): Evangelical Augsburg, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_101
+SKIP: element: 'Q79386' (Evangelical Augsburg) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_101.
+ITEM (29/95): Evangelical Reformed, STATEMENT: Apl, VALUE: kalwiński
+SKIP: element: 'Q79387' (Evangelical Reformed) już posiada alias: 'kalwiński' dla języka: pl.
+ITEM (30/95): Evangelical Reformed, STATEMENT: Aen, VALUE: Calvinist
+SKIP: element: 'Q79387' (Evangelical Reformed) już posiada alias: 'Calvinist' dla języka: en.
+ITEM (31/95): Evangelical Reformed, STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79387' (Evangelical Reformed) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (32/95): Evangelical Reformed, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_103
+SKIP: element: 'Q79387' (Evangelical Reformed) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_103.
+ITEM (33/95): Uniate (Greek-Catholic), STATEMENT: Aen, VALUE: Greek Rite Catholicism
+SKIP: element: 'Q79388' (Uniate (Greek-Catholic)) już posiada alias: 'Greek Rite Catholicism' dla języka: en.
+ITEM (34/95): Uniate (Greek-Catholic), STATEMENT: instance of, VALUE: rite
+SKIP: element: 'Q79388' (Uniate (Greek-Catholic)) już posiada deklarację: 'P47' o wartości: Q79346.
+ITEM (35/95): Uniate (Greek-Catholic), STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_106
+SKIP: element: 'Q79388' (Uniate (Greek-Catholic)) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_106.
+ITEM (36/95): Catholicism, STATEMENT: Aen, VALUE: Roman Catholicism
+SKIP: element: 'Q79389' (Catholicism) już posiada alias: 'Roman Catholicism' dla języka: en.
+ITEM (37/95): Catholicism, STATEMENT: instance of, VALUE: confession
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P47' o wartości: Q79337.
+ITEM (38/95): Catholicism, STATEMENT: described at URL, VALUE: http://vocab.getty.edu/aat/300073730
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P217' o wartości: http://vocab.getty.edu/aat/300073730.
+ITEM (39/95): Catholicism, STATEMENT: described at URL, VALUE: https://dbpedia.org/page/Catholic_Church
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P217' o wartości: https://dbpedia.org/page/Catholic_Church.
+ITEM (40/95): Catholicism, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q1841
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q1841.
+ITEM (41/95): Catholicism, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q9592
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q9592.
+ITEM (42/95): Catholicism, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_98
+SKIP: element: 'Q79389' (Catholicism) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_98.
+ITEM (43/95): Orthodox, STATEMENT: instance of, VALUE: confession
+SKIP: element: 'Q79390' (Orthodox) już posiada deklarację: 'P47' o wartości: Q79337.
+ITEM (44/95): Orthodox, STATEMENT: described at URL, VALUE: http://vocab.getty.edu/aat/300022034
+SKIP: element: 'Q79390' (Orthodox) już posiada deklarację: 'P217' o wartości: http://vocab.getty.edu/aat/300022034.
+ITEM (45/95): Orthodox, STATEMENT: described at URL, VALUE: https://dbpedia.org/page/Orthodoxy
+SKIP: element: 'Q79390' (Orthodox) już posiada deklarację: 'P217' o wartości: https://dbpedia.org/page/Orthodoxy.
+ITEM (46/95): Orthodox, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q3333484
+SKIP: element: 'Q79390' (Orthodox) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q3333484.
+ITEM (47/95): Orthodox, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_99
+SKIP: element: 'Q79390' (Orthodox) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_99.
+ITEM (48/95): Protenstatism, STATEMENT: instance of, VALUE: confession
+SKIP: element: 'Q79391' (Protenstatism) już posiada deklarację: 'P47' o wartości: Q79337.
+ITEM (49/95): Protenstatism, STATEMENT: described at URL, VALUE: http://vocab.getty.edu/aat/300073735
+SKIP: element: 'Q79391' (Protenstatism) już posiada deklarację: 'P217' o wartości: http://vocab.getty.edu/aat/300073735.
+ITEM (50/95): Protenstatism, STATEMENT: described at URL, VALUE: https://dbpedia.org/page/Protestantism
+SKIP: element: 'Q79391' (Protenstatism) już posiada deklarację: 'P217' o wartości: https://dbpedia.org/page/Protestantism.
+ITEM (51/95): Protenstatism, STATEMENT: described at URL, VALUE: https://www.wikidata.org/wiki/Q23540
+SKIP: element: 'Q79391' (Protenstatism) już posiada deklarację: 'P217' o wartości: https://www.wikidata.org/wiki/Q23540.
+ITEM (52/95): Protenstatism, STATEMENT: purl identifier, VALUE: http://purl.org/ontohgis#object_97
+SKIP: element: 'Q79391' (Protenstatism) już posiada deklarację: 'P197' o wartości: http://purl.org/ontohgis#object_97.
+ITEM (53/95): confession, STATEMENT: part of, VALUE: religion
+SKIP: element: 'Q79337' (confession) już posiada deklarację: 'P212' o wartości: Q71.
+ITEM (54/95): rite, STATEMENT: part of, VALUE: confession
+SKIP: element: 'Q79346' (rite) już posiada deklarację: 'P212' o wartości: Q79337.
+ITEM (55/95): institution, STATEMENT: Aen, VALUE: system
+SKIP: element: 'Q467' (institution) już posiada alias: 'system' dla języka: en.
+ITEM (56/95): institution, STATEMENT: Apl, VALUE: instytucja społeczna
+SKIP: element: 'Q467' (institution) już posiada alias: 'instytucja społeczna' dla języka: pl.
+ITEM (57/95): magazine, STATEMENT: Aen, VALUE: glossy
+SKIP: element: 'Q79393' (magazine) już posiada alias: 'glossy' dla języka: en.
+ITEM (58/95): magazine, STATEMENT: Aen, VALUE: serial
+SKIP: element: 'Q79393' (magazine) już posiada alias: 'serial' dla języka: en.
+ITEM (59/95): magazine, STATEMENT: Aen, VALUE: quarterly
+SKIP: element: 'Q79393' (magazine) już posiada alias: 'quarterly' dla języka: en.
+ITEM (60/95): magazine, STATEMENT: Aen, VALUE: journal
+SKIP: element: 'Q79393' (magazine) już posiada alias: 'journal' dla języka: en.
+ITEM (61/95): magazine, STATEMENT: Apl, VALUE: czasopismo ilustrowne
+SKIP: element: 'Q79393' (magazine) już posiada alias: 'czasopismo ilustrowne' dla języka: pl.
+ITEM (62/95): human, STATEMENT: Aen, VALUE: human being
+SKIP: element: 'Q32' (human) już posiada alias: 'human being' dla języka: en.
+ITEM (63/95): human, STATEMENT: Aen, VALUE: humankind
+SKIP: element: 'Q32' (human) już posiada alias: 'humankind' dla języka: en.
+ITEM (64/95): human, STATEMENT: Aen, VALUE: people
+SKIP: element: 'Q32' (human) już posiada alias: 'people' dla języka: en.
+ITEM (65/95): human, STATEMENT: Aen, VALUE: homosapiens
+SKIP: element: 'Q32' (human) już posiada alias: 'homosapiens' dla języka: en.
+ITEM (66/95): human, STATEMENT: Aen, VALUE: person
+SKIP: element: 'Q32' (human) już posiada alias: 'person' dla języka: en.
+ITEM (67/95): human, STATEMENT: Aen, VALUE: mankind
+SKIP: element: 'Q32' (human) już posiada alias: 'mankind' dla języka: en.
+ITEM (68/95): human, STATEMENT: Aen, VALUE: peoplekind
+SKIP: element: 'Q32' (human) już posiada alias: 'peoplekind' dla języka: en.
+ITEM (69/95): human, STATEMENT: Aen, VALUE: personkind
+SKIP: element: 'Q32' (human) już posiada alias: 'personkind' dla języka: en.
+ITEM (70/95): human, STATEMENT: Aen, VALUE: persons
+SKIP: element: 'Q32' (human) już posiada alias: 'persons' dla języka: en.
+ITEM (71/95): human, STATEMENT: Aen, VALUE: humans
+SKIP: element: 'Q32' (human) już posiada alias: 'humans' dla języka: en.
+ITEM (72/95): human, STATEMENT: Aen, VALUE: Human
+SKIP: element: 'Q32' (human) już posiada alias: 'Human' dla języka: en.
+ITEM (73/95): human, STATEMENT: Apl, VALUE: Homo sapiens
+SKIP: element: 'Q32' (human) już posiada alias: 'Homo sapiens' dla języka: pl.
+ITEM (74/95): human, STATEMENT: Apl, VALUE: Homo sapiens sapiens
+SKIP: element: 'Q32' (human) już posiada alias: 'Homo sapiens sapiens' dla języka: pl.
+ITEM (75/95): human, STATEMENT: Apl, VALUE: człowiek rozumny
+SKIP: element: 'Q32' (human) już posiada alias: 'człowiek rozumny' dla języka: pl.
+ITEM (76/95): human, STATEMENT: Apl, VALUE: człowiek współczesny
+SKIP: element: 'Q32' (human) już posiada alias: 'człowiek współczesny' dla języka: pl.
+ITEM (77/95): human, STATEMENT: Apl, VALUE: Człowiek rozumny
+ALIAS ADDED, item Q32 (human): Apl -> Człowiek rozumny
+ITEM (78/95): database, STATEMENT: Aen, VALUE: db
+SKIP: element: 'Q79394' (database) już posiada alias: 'db' dla języka: en.
+ITEM (79/95): database, STATEMENT: Aen, VALUE: DB
+ALIAS ADDED, item Q79394 (database): Aen -> DB
+ITEM (80/95): database, STATEMENT: Aen, VALUE: database, DB
+SKIP: element: 'Q79394' (database) już posiada alias: 'database, DB' dla języka: en.
+ITEM (81/95): book, STATEMENT: Aen, VALUE: books
+SKIP: element: 'Q707' (book) już posiada alias: 'books' dla języka: en.
+ITEM (82/95): book, STATEMENT: Apl, VALUE: Tom
+SKIP: element: 'Q707' (book) już posiada alias: 'Tom' dla języka: pl.
+ITEM (83/95): book, STATEMENT: Apl, VALUE: Tomik
+SKIP: element: 'Q707' (book) już posiada alias: 'Tomik' dla języka: pl.
+ITEM (84/95): document, STATEMENT: Aen, VALUE: doc
+SKIP: element: 'Q79396' (document) już posiada alias: 'doc' dla języka: en.
+ITEM (85/95): document, STATEMENT: Aen, VALUE: record
+SKIP: element: 'Q79396' (document) już posiada alias: 'record' dla języka: en.
+ITEM (86/95): article, STATEMENT: Aen, VALUE: periodical article
+SKIP: element: 'Q79397' (article) już posiada alias: 'periodical article' dla języka: en.
+ITEM (87/95): article, STATEMENT: Aen, VALUE: journal article
+SKIP: element: 'Q79397' (article) już posiada alias: 'journal article' dla języka: en.
+ITEM (88/95): article, STATEMENT: Aen, VALUE: serial article
+SKIP: element: 'Q79397' (article) już posiada alias: 'serial article' dla języka: en.
+ITEM (89/95): article, STATEMENT: Apl, VALUE: artykuł prasowy
+SKIP: element: 'Q79397' (article) już posiada alias: 'artykuł prasowy' dla języka: pl.
+ITEM (90/95): chapter, STATEMENT: Aen, VALUE: book chapter
+SKIP: element: 'Q708' (chapter) już posiada alias: 'book chapter' dla języka: en.
+ITEM (91/95): chapter, STATEMENT: Aen, VALUE: book section
+SKIP: element: 'Q708' (chapter) już posiada alias: 'book section' dla języka: en.
+ITEM (92/95): electronic document, STATEMENT: Apl, VALUE: dokument cyfrowy
+SKIP: element: 'Q79399' (electronic document) już posiada alias: 'dokument cyfrowy' dla języka: pl.
+ITEM (93/95): electronic document, STATEMENT: Apl, VALUE: dokument binarny
+SKIP: element: 'Q79399' (electronic document) już posiada alias: 'dokument binarny' dla języka: pl.
+ITEM (94/95): electronic document, STATEMENT: Apl, VALUE: dokumenty elektroniczne
+SKIP: element: 'Q79399' (electronic document) już posiada alias: 'dokumenty elektroniczne' dla języka: pl.
+ITEM (95/95): legal basis, STATEMENT: described at URL, VALUE: https://www.eionet.europa.eu/gemet/en/concept/4739
+SKIP: element: 'Q79445' (legal basis) już posiada deklarację: 'P217' o wartości: https://www.eionet.europa.eu/gemet/en/concept/4739.
+Czas wykonania programu: 00:07:19 s.

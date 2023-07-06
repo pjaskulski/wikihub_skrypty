@@ -38,7 +38,7 @@ if __name__ == '__main__':
                                       access_token=WIKIDARIAH_ACCESS_TOKEN,
                                       access_secret=WIKIDARIAH_ACCESS_SECRET,
                                       token_renew_period=14400)
-    start_item = 1
+    start_item = 228087
     end_item = 229050
     for i in range(start_item, end_item):
         qid = f'Q{i}'

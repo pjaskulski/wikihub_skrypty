@@ -4,6 +4,8 @@ import os
 import sys
 import time
 import warnings
+import sqlite3
+from sqlite3 import Error
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,6 +15,36 @@ from wikibaseintegrator import wbi_login
 from wikibaseintegrator.wbi_exceptions import (MWApiError)
 from wikidariahtools import element_search_adv, get_properties, get_elements
 from property_import import create_statement_data
+
+
+def create_connection(db_file, with_extension=False):
+    """ tworzy połączenie z bazą SQLite
+        db_file - ścieżka do pliku bazy
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        if with_extension:
+            conn.enable_load_extension(True)
+            conn.load_extension("../fuzzy.so")
+            conn.load_extension("../spellfix.so")
+            conn.load_extension("../unicode.so")
+
+    except Error as sql_error:
+        print(sql_error)
+
+    return conn
+
+
+def field_strip(value:str) -> str:
+    """ funkcja przetwarza wartość pola z bazy/arkusza """
+    if value:
+        value = value.strip()
+    else:
+        value = ''
+
+    return value
+
 
 warnings.filterwarnings("ignore")
 
@@ -57,10 +89,13 @@ if __name__ == '__main__':
                                          access_secret=WIKIDARIAH_ACCESS_SECRET,
                                          token_renew_period=14400)
 
-    file_name = Path('..') / 'data' / 'ahp_parafie_prawoslawne.csv'
+    file_name = Path('..') / 'data' / 'ahp_parafie_prawoslawne2.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
+
+    db_path = Path('..') / 'data' / 'ahp_zbiorcza.sqlite'
+    db = create_connection(db_path, with_extension=False)
 
     # wspólna referencja dla wszystkich deklaracji
     now = datetime.now()
@@ -77,7 +112,25 @@ if __name__ == '__main__':
     instance_of = elements['parish (Orthodox Church)']
 
     for line in lines:
-        parafia = line.strip()
+        tmp = line.strip().split(',')
+        if tmp[1] != '1': # tylko parafie prawosławne
+            continue
+
+        parafia_id = tmp[0].strip()
+        sql = f"""SELECT ahp_zbiorcza_pkt_prng_import.nazwa_16w as nazwa_16w
+                 FROM ahp_zbiorcza_pkt_prng_import
+                 WHERE ahp_zbiorcza_pkt_prng_import.id_miejscowosci = '{parafia_id}'
+        """
+        parafia = ''
+        cur_prng = db.cursor()
+        cur_prng.execute(sql)
+        results = cur_prng.fetchone()
+        if results:
+            parafia = field_strip(results[0])
+
+        if not parafia:
+            print('ERROR: brak parafii dla id:', parafia_id)
+            continue
 
         label_pl = f"parafia prawosławna {parafia}"
         label_en = f"orthodox parish {parafia}"

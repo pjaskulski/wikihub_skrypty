@@ -38,7 +38,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy działanie z zapisem czy tylko testowe
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
  # tworzenie obiektu loggera
 file_log = Path('..') / 'log' / 'import_prezentacja.log'

@@ -34,7 +34,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-# znacznik czy zapisywać zaminy w Wikibase, czy tylko test
+# znacznik czy zapisywać zmiany w Wikibase, czy tylko test
 WIKIBASE_WRITE = True
 
 
@@ -72,19 +72,20 @@ if __name__ == '__main__':
 
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/miejscowosciU_QID.xlsx'
-    wb = openpyxl.load_workbook(xlsx_input)
+    wb = openpyxl.load_workbook(xlsx_input, read_only=False)
     ws = wb["miejscowosciU"]
 
     miejscowosci_path = '../data_prng/miejscowosci_u.sqlite'
     db_m = create_connection(miejscowosci_path)
+
+    raport_path = '../data_prng/miejscowosci_part_of_errors.txt'
 
     # nazwy kolumn w arkuszu
     col_names = {}
@@ -98,6 +99,8 @@ if __name__ == '__main__':
     max_row = ws.max_row
     for row in ws.iter_rows(2, max_row):
         index += 1
+        if index <= 97842:
+            continue
 
         # wczytanie danych z xlsx
         row_qid = row[col_names['QID']].value
@@ -175,11 +178,13 @@ if __name__ == '__main__':
                 data.append(statement)
             # odwrotność
             r_statement = create_statement_data(properties['has part or parts'], row_qid,
-                            None, None, add_ref_dict=references)
+                            None, None, add_ref_dict=references, if_exists='APPEND')
             if r_statement:
                 r_data.append(r_statement)
         else:
             print(f'ERROR: {row_qid} - brak miejscowości nadrzędnej {row_nazwamiejs}')
+            with open(raport_path, 'a', encoding='utf-8') as f_raport:
+                f_raport.write(f'ERROR: {row_qid} - brak miejscowości nadrzędnej {row_nazwamiejs}\n')
 
         # jeżeli nie ma nic do uzupełnienia
         if not data:
@@ -212,6 +217,8 @@ if __name__ == '__main__':
                     sys.exit(1)
         else:
            print(f"{index}/{max_row - 1} Przygotowano uzupełnienie właściwości 'part of' i 'has part or parts'.")
+
+    wb.close()
 
     end_time = time.time()
     elapsed_time = end_time - start_time

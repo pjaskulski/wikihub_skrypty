@@ -2,16 +2,18 @@
 # pylint: disable=logging-fstring-interpolation
 
 import os
+import sys
 import time
 import logging
 import warnings
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
 from wikidariahtools import element_search_adv, get_properties, get_elements
-from wikidariahtools import search_by_unique_id
+from wikidariahtools import search_by_unique_id, find_name_qid
 from property_import import has_statement
 
 warnings.filterwarnings("ignore")
@@ -285,19 +287,53 @@ if __name__ == '__main__':
     #     może to być fragment opisu elementu.
 
     test_rec = [
-                ('STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr', 'STATEMENT','stated as','de:"Neukrug"'),
-                ('STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr', 'ALIAS','de','Neukrug'),
-                ('STATEMENT:AHP id|VALUE:Ogony_rpn_dbr', 'DESCRIPTION','pl','osada historyczna'),
-                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:fulling mill'),
+                ('LABEL:Nowa Karczma@STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr',
+                 'STATEMENT',
+                 'stated as',
+                 'de:"Neukrug"'),
+
+                ('STATEMENT:AHP id|VALUE:Nowa_Karczma_prz_gdn_pmr',
+                 'ALIAS',
+                 'de',
+                 'Neukrug'),
+
+                ('STATEMENT:AHP id|VALUE:Ogony_rpn_dbr',
+                 'DESCRIPTION',
+                 'pl',
+                 'osada historyczna'),
+
+                ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl',
+                 'STATEMENT',
+                 'contains an object type',
+                 'ITEM:fulling mill'),
+
                 ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:tavern'),
                 ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'contains an object type', 'ITEM:mill'),
                 ('STATEMENT:AHP id|VALUE:Augustow_blk_pdl', 'STATEMENT', 'located in the administrative territorial entity', powiat_qid),
                 ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'settlement ownership type', 'ITEM:royal property'),
-                ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'central church functions', parafia),
+
+                ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn',
+                 'STATEMENT',
+                 'central church functions',
+                 'ITEM:the seat of a parish'),
+
                 ('STATEMENT:AHP id|VALUE:Babimost_ksc_pzn', 'STATEMENT', 'ID SHG', '15704'),
-                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', powiat),
-                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', wojewodztwo),
-                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', starostwo_niegrodowe),
+
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr',
+                 'STATEMENT',
+                 'central state functions',
+                 'ITEM:the capital of a county'),
+
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr',
+                 'STATEMENT',
+                 'central state functions',
+                 'ITEM:the capital of the province'),
+
+                ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr',
+                 'STATEMENT',
+                 'central state functions',
+                 'ITEM:seat of the non-garden starost (tenutarius)'),
+
                 ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central state functions', kasztelania),
                 ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central church functions', parafia),
                 ('STATEMENT:AHP id|VALUE:Dobrzyn_dbr_dbr','STATEMENT','central church functions', archidiakonat),
@@ -316,7 +352,8 @@ if __name__ == '__main__':
     logger.info('Uruchomienie testów...')
 
     for identyfikator, cmd_type, cmd_prop, cmd_value in test_rec:
-        # identyfikator - służy do wyszukania elementu do sprawdzenia
+        # identyfikator - służy do wyszukania elementu do sprawdzenia, identyfikatorem elementu
+        #                 może być etykieta i/lub seria deklaracji
         # cmd_type - rodzaj danych do sprawdzenia: STATEMENT, ALIAS, DESCRIPTION
         # cmp_prop - właściwość (dla STATEMENT), kod języka (dla ALIAS, DESCRIPTION)
         # cmd_value - wartość do sprawdzenia, dla STATEMENT może to być wskazanie na item
@@ -324,30 +361,63 @@ if __name__ == '__main__':
         # obecnie obsługa tylko identyfikatorów w formie jednoznacznie
         # identyfikującej deklaracji np. 'AHP id' = 'Czechowo_gzn_kls'
 
-        property_id = value_id = ''
-        t_identyfikator = identyfikator.split('|')
-        typ_id = t_identyfikator[0].strip()
-        if typ_id.split(':')[0].strip() == 'STATEMENT':
-            property_id = typ_id.split(':')[1].strip()
-        value_id = t_identyfikator[1].strip()
-        if value_id.split(':')[0].strip() == 'VALUE':
-            value_id = value_id.split(':')[1].strip()
+        label_en = ''
+        parameters = []
+        t_parametry = identyfikator.split('@')
+        for parametr in t_parametry:
+            if parametr.startswith('LABEL:'):
+                label = parametr.split(':')[1].strip()
+            elif parametr.startswith('STATEMENT:'):
+                property_id = value_id = ''
+                t_identyfikator = parametr.split('|')
+                typ_id = t_identyfikator[0].strip()
+                if typ_id.split(':')[0].strip() == 'STATEMENT':
+                    property_id = typ_id.split(':')[1].strip()
+                value_id = t_identyfikator[1].strip()
+                if value_id.split(':')[0].strip() == 'VALUE':
+                    value_id = value_id.split(':')[1].strip()
 
-        if not property_id or not value_id:
-            logger.error(f'ERROR: nieprawidłowa definicja danych testowych {identyfikator}')
-            continue
+                if not property_id or not value_id:
+                    logger.error(f'ERROR: nieprawidłowa definicja danych testowych {parametr}')
+                    sys.exit(1)
+                else:
+                    parameters.append((property_id, value_id))
 
-        ok, element_qid = search_by_unique_id(properties[property_id], value_id)
-        if not ok:
-            logger.error(f'ERROR: nie znaleziono elementu dla identyfikatora: {identyfikator}')
-            continue
+        # jeżeli nie ma label a tylko jeden statement to zakładamy, że jest to
+        # jednoznaczny identyfikator
+        if not label_en and len(parameters) == 1:
+            ok, element_qid = search_by_unique_id(properties[property_id], value_id)
+            if not ok:
+                logger.error(f'ERROR: nie znaleziono elementu dla identyfikatora: {identyfikator}')
+                continue
+        elif label_en:
+            # jeżeli jest podana co najmniej etykieta to wyszukiwanie przez etykietę ang.
+            # oraz ewentualnie parametry deklaracja=wartość
+            ok, element_qid = element_search_adv(label_en, 'en', parameters)
+            if not ok:
+                logger.error(f'ERROR: nie znaleziono elementu dla identyfikatora: {identyfikator}')
+                continue
+        else:
+            # jeżeli nie ma etykiety a są parametry - brak obsługi takiej sytuacji
+            logger.error('ERROR: należy podać jedną deklarację jednoznacznie identyfikującą element lub etykietę angielską i serię deklaracji.')
+            sys.exit(1)
 
         wb_item = wbi_core.ItemEngine(item_id=element_qid)
 
         if cmd_type == 'STATEMENT':
             if cmd_value.startswith('ITEM:'):
                 cmd_value_text = f"('{cmd_value[5:]}')"
-                cmd_value = elements[cmd_value[5:]]
+                # czy podano po prostu QID?
+                pattern = r'Q\d{1,7}'
+                match = re.search(pattern, cmd_value[5:])
+                if match:
+                    cmd_value = match.group()
+                # jeżeli nie QID to szukanie po etykiecie, z założeniem że unikalna
+                else:
+                    ok, cmd_value = find_name_qid(cmd_value[5:], 'item', strict=True)
+                    if not ok:
+                        logger.error(f'ERROR: nie znaleziono elementu dla: {cmd_value}')
+                        continue
             else:
                 cmd_value_text = ''
 

@@ -38,8 +38,8 @@ if __name__ == '__main__':
                                       access_token=WIKIDARIAH_ACCESS_TOKEN,
                                       access_secret=WIKIDARIAH_ACCESS_SECRET,
                                       token_renew_period=14400)
-    start_item = 397
-    end_item = 398
+    start_item = 251
+    end_item = 400
 
     # właściwości których nie chcemy usunąć
     wyjatki = [187, 188]

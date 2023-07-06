@@ -32,15 +32,16 @@ if __name__ == "__main__":
 
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-    start = 223391
-    stop = 223451
+    start = 369537
+    stop = 369914
 
     for i in range(start, stop + 1):
         item = f'Q{i}'
         if element_exists(item):
             wb_item = wbi_core.ItemEngine(item_id=item)
             label_pl = wb_item.get_label('pl')
-            print(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item} {label_pl}]')
+            label_en = wb_item.get_label('en')
+            print(f'# [https://prunus-208.man.poznan.pl/wiki/Item:{item} {label_en}/{label_pl}]')
 
     end_time = time.time()
     elapsed_time = end_time - start_time

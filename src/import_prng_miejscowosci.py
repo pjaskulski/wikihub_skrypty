@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from wikibaseintegrator import wbi_core
 from wikibaseintegrator.wbi_config import config as wbi_config
 from wikibaseintegrator import wbi_login
-from wikidariahtools import find_name_qid, element_search_adv, get_coord
+from wikidariahtools import find_name_qid, element_search_adv, get_coord, write_or_exit
 from property_import import create_statement_data
 
 
@@ -30,7 +30,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # standardowe właściwości i elementy
 ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
@@ -132,6 +132,7 @@ references[p_retrieved] = '2022-09-14'
 qualifiers = {}
 qualifiers[p_point_in_time] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
+
 def get_label_en(qid: str) -> str:
     """ zwraca angielską etykietę dla podanego QID """
 
@@ -166,8 +167,14 @@ if __name__ == '__main__':
         col_names[column[0].value] = nr_col
         nr_col += 1
 
-    for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
+    index = 0
+    #for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
+    for row in ws.iter_rows(2, ws.max_row):
+        index += 1
         # wczytanie danych z xlsx
+        if index not in (50, 68):
+            continue
+
         nazwa = row[col_names['nazwaGlown']].value
         if not nazwa:
             continue
@@ -193,12 +200,14 @@ if __name__ == '__main__':
         polozenie_t_en = row[col_names['polozenieT_autotranslacja']].value
         wsp_geo = row[col_names['wspGeograf']].value
 
-        description_pl = 'miejscowość, osiedle ludzkie'
+        description_pl = 'miejscowość'
         description_en = 'human settlement'
 
         # wyszukiwanie po etykiecie
         parameters = [(p_instance_of, q_human_settlement)]
-        ok, item_id = element_search_adv(label_en, 'en', parameters, f'{description_en} ({polozenie_t_en}) {inform_dod_en}')
+        ok, item_id = element_search_adv(label_en, 'en',
+                                         parameters,
+                                         f'{description_en} ({polozenie_t_en}) {inform_dod_en} [{wsp_geo}]')
 
         if not ok:
             # przygotowanie struktur wikibase
@@ -332,17 +341,16 @@ if __name__ == '__main__':
 
             # description musi się różnić, gdyż mogą być identyczne jednostki
             # administracyjne w różnych państwach
-            # w ang. wersji także z polozenie_t - w sumie i tak nie ma angielskich tłumaczeń...
-            # gdyby były to można by pobrać ze zmiennej name_description
-            wb_item.set_description(f'{description_en} ({polozenie_t_en}) {inform_dod_en}', 'en')
-            wb_item.set_description(f'{description_pl} ({polozenie_t}) {inform_dod}', 'pl')
+            wb_item.set_description(f'{description_en} ({polozenie_t_en}) {inform_dod_en} [{wsp_geo}]', 'en')
+            wb_item.set_description(f'{description_pl} ({polozenie_t}) {inform_dod} [{wsp_geo}]', 'pl')
 
             if aliasy:
                 for value_alias in aliasy:
                     wb_item.set_aliases(value_alias, 'pl')
 
             if WIKIBASE_WRITE:
-                new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
+                new_id = write_or_exit(login_instance, wb_item, None)
+                #new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
                 if new_id:
                     print(f'{index}/{ws.max_row - 1} Dodano nowy element: {label_en} / {label_pl} = {new_id}')
             else:

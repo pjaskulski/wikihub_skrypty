@@ -40,7 +40,10 @@ if not ok:
 references = {}
 references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
 
-q_country = 'Q86557'
+ok, q_country = find_name_qid('country', 'item', strict=True)
+if not ok:
+    print("ERROR: brak elementu 'country' w instancji Wikibase")
+    sys.exit(1)
 
 WIKIBASE_WRITE = True
 
@@ -61,7 +64,7 @@ if __name__ == "__main__":
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
     # wczytanie danych z XLSX
-    xlsx_input = '../data_prng/PRNG_egzonimy_region_source.xlsx'
+    xlsx_input = '/home/piotr/ihpan/wikihub_skrypty/data_prng/PRNG_egzonimy_region_source.xlsx'
 
     wb = openpyxl.load_workbook(xlsx_input)
 
@@ -91,8 +94,8 @@ if __name__ == "__main__":
             pol_t[nazwa] = polozenie_t
 
     # uzpełniane danych dla regionów - kraje z pola informDod
-    start = 86628
-    stop = 87091
+    start = 361960
+    stop = 362422
 
     for i in range(start, stop + 1):
         item = f'Q{i}'

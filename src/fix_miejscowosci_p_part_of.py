@@ -72,12 +72,11 @@ if __name__ == '__main__':
     references[properties['retrieved']] = '2022-09-23'
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     xlsx_input = '../data_prng/miejscowosciP_QID.xlsx'
     wb = openpyxl.load_workbook(xlsx_input)
@@ -85,6 +84,10 @@ if __name__ == '__main__':
 
     miejscowosci_path = '../data_prng/miejscowosci_wspolna.sqlite'
     db_m = create_connection(miejscowosci_path)
+
+    # jeżeli pojawią się miejscowości pozostałe dla których nie zostanie znaleziona
+    # miejscowość nadrzędna
+    raport_path = '../data_prng/miejscowosci_p_part_of_errors.txt'
 
     #  nazwy kolumn w arkuszu
     col_names = {}
@@ -98,6 +101,10 @@ if __name__ == '__main__':
     max_row = ws.max_row
     for row in ws.iter_rows(2, max_row):
         index += 1
+
+        if index<= 10251:
+            continue
+
         # wczytanie danych z xlsx
         row_qid = row[col_names['QID']].value
         row_nazwamiejs = row[col_names['NAZWAMIEJS']].value
@@ -217,6 +224,8 @@ if __name__ == '__main__':
                 r_data.append(r_statement)
         else:
             print(f'{index}/{max_row - 1} ERROR: {row_qid} ({row_rodzaj}) - brak miejscowości nadrzędnej: {row_nazwamiejs}')
+            with open(raport_path, 'a', encoding='utf-8') as f_raport:
+                f_raport.write(f'ERROR: {row_qid} - brak miejscowości nadrzędnej {row_nazwamiejs}\n')
 
         # jeżeli nie ma nic do uzupełnienia
         if not data:

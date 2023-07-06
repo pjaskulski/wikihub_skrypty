@@ -56,7 +56,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     c_handler = logging.StreamHandler()
     f_handler = logging.FileHandler(file_log)
-    log_format = logging.Formatter('%(asctime)s - %(message)s')
+    log_format = logging.Formatter('%(message)s')
     c_handler.setFormatter(log_format)
     f_handler.setFormatter(log_format)
     c_handler.setLevel(logging.DEBUG)
@@ -75,6 +75,7 @@ if __name__ == '__main__':
         line_number +=1
         print('LINE:', line_number)
         t_line = line.split('@')
+        id_miejscowosci = t_line[0].strip()
         zbiorcza_prng = t_line[22].strip()
 
         # szukanie w wiki po identyfikatorze prng
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         if zbiorcza_prng:
             ok_prng, element_qid = search_by_unique_id(properties['prng id'], zbiorcza_prng)
             if not ok_prng:
-                logger.error(f'ERROR: Nie znaleziono elementu dla PRNG {zbiorcza_prng}, {element_qid}')
+                logger.error(f'{id_miejscowosci},{zbiorcza_prng}')
                 continue
             else:
                 with open(Path('..') / 'data' / 'prng_qid.csv', 'a', encoding='utf-8') as fm:

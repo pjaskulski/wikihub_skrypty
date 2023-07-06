@@ -54,7 +54,7 @@ if not ok:
     sys.exit(1)
 
 # czy zapsywać do wikibase, czy tylko test
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 # --------------------------------- MAIN ---------------------------------------
@@ -99,9 +99,11 @@ if __name__ == "__main__":
         if polozenie_t:
             pol_t[nazwa] = polozenie_t
 
-    # uzpełniane danych dla regionów - kraje z pola informDod
-    start = 86628
-    stop = 87091
+    # uzupełniane danych dla regionów - kraje z pola informDod
+    # pętla po zakresie nr QID, to dość głupie, ale skuteczne
+    # można zmienić na pętlę po wynikach zapytania SPARQL
+    start = 361960
+    stop = 362422
     licznik = 0
 
     # pętla po dodanych uprzednio elementach regionów
@@ -126,11 +128,14 @@ if __name__ == "__main__":
                 parameters = [(p_instance_of ,q_country)]
                 tmp_tab_item = tmp_tab_item.strip()
                 # czy istnieje w wikibase element o takiej nazwie będący instancją 'country'?
-                ok, item_id = element_search_adv(tmp_tab_item, 'pl', parameters)
+                if tmp_tab_item not in ['Svalbard','Sahara Zachodnia', 'Grenlandia']:
+                    ok, item_id = element_search_adv(tmp_tab_item, 'pl', parameters)
+                else:
+                    ok = False
 
                 #jeżeli to country:
                 if ok:
-                    # tylko jeżeli jeszcze nie ma tego kraju (np.  pola informDod)
+                    # tylko jeżeli jeszcze nie ma tego kraju (np. z pola informDod)
                     if not has_statement(item, p_located_in_country, item_id):
                         statement = create_statement_data(p_located_in_country, item_id, None, None, add_ref_dict=references, if_exists='APPEND')
                         if statement:
