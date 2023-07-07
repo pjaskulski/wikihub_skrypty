@@ -17,12 +17,19 @@ from wikibaseintegrator.wbi_exceptions import MWApiError
 from dotenv import load_dotenv
 from wikidariahtools import element_search, search_by_purl, get_property_type, statement_value_fix
 
+# brak ustawienia wartości 'PROPERTY_CONSTRAINT_PID' i 'DISTINCT_VALUES_CONSTRAINT_QID'
+# w testowej wikibase powoduje ostrzeżenia, ale skrypt działa
 warnings.filterwarnings("ignore")
 
-# adresy dla API Wikibase
+# adresy dla API Wikibase (instacja testowa)
 wbi_config["MEDIAWIKI_API_URL"] = "https://prunus-208.man.poznan.pl/api.php"
 wbi_config["SPARQL_ENDPOINT_URL"] = "https://prunus-208.man.poznan.pl/bigdata/sparql"
 wbi_config["WIKIBASE_URL"] = "https://prunus-208.man.poznan.pl"
+
+# adresy dla API Wikibase (instancja docelowa)
+#wbi_config['MEDIAWIKI_API_URL'] = 'https://wikihum.lab.dariah.pl/api.php'
+#wbi_config['SPARQL_ENDPOINT_URL'] = 'https://wikihum.lab.dariah.pl/bigdata/sparql'
+#wbi_config['WIKIBASE_URL'] = 'https://wikihum.lab.dariah.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
@@ -35,7 +42,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --- klasy ---
 class BasicProp:
@@ -2910,8 +2917,12 @@ if __name__ == "__main__":
     # pomiar czasu wykonania
     start_time = time.time()
 
-    # login i hasło ze zmiennych środowiskowych
+    # login i hasło ze zmiennych środowiskowych - instancja testowa
     env_path = Path(".") / ".env"
+
+    # login i hasło ze zmiennych środowiskowych - instancja docelowa
+    # env_path = Path(".") / ".env_wikihum"
+
     load_dotenv(dotenv_path=env_path)
 
     # OAuth
