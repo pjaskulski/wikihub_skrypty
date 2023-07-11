@@ -37,7 +37,7 @@ WIKIBASE_WRITE = True
 # standardowe właściwości
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                             'id SDI', 'part of', 'has part or parts', 'TERYT', 'commune type',
-                            'stated in'])
+                            'stated in', 'point in time'])
 
 # elementy definicyjne
 elements = get_elements(['administrative unit',
@@ -94,6 +94,10 @@ if __name__ == '__main__':
     references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries'
     references[properties['retrieved']] = '2022-09-05'
 
+    # kwalifikator z punktem czasowym
+    qualifiers = {}
+    qualifiers[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
+
     # wspólna referencja dla wszystkich deklaracji z ontohgis
     onto_references = {}
     onto_references[properties['stated in']] = 'Q233549'
@@ -143,31 +147,49 @@ if __name__ == '__main__':
 
         # instance of
         q_gmina = elements['onto.kul.pl/ontohgis/administrative_type_45']
-        statement = create_statement_data(properties['instance of'], q_gmina, None, None, add_ref_dict=onto_references)
+        statement = create_statement_data(prop=properties['instance of'],
+                                          value=q_gmina,
+                                          reference_dict=None,
+                                          qualifier_dict=None,
+                                          add_ref_dict=onto_references)
         if statement:
             data.append(statement)
 
         # id SDI
         if idiip:
-            statement = create_statement_data(properties['id SDI'], idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['id SDI'],
+                                              value=idiip,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # TERYT
         if teryt:
-            statement = create_statement_data(properties['TERYT'], teryt, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['TERYT'],
+                                              value=teryt,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # JPT_NAZWA_
-        statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, None, add_ref_dict=references)
+        statement = create_statement_data(prop=properties['stated as'],
+                                          value=f'pl:"{nazwa}"',
+                                          reference_dict=None,
+                                          qualifier_dict=qualifiers,
+                                          add_ref_dict=references)
         if statement:
             data.append(statement)
 
         # typ gminy
         if typ_gm:
-            statement = create_statement_data(properties['commune type'], typ_gminy_element[typ_gm],
-                                              None, None,
+            statement = create_statement_data(prop=properties['commune type'],
+                                              value=typ_gminy_element[typ_gm],
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
                                               add_ref_dict=references)
             if statement:
                 data.append(statement)
@@ -175,7 +197,11 @@ if __name__ == '__main__':
         # part of i has part or parts
         ok, pow_qid = search_by_purl(properties['TERYT'], part_of)
         if ok:
-            statement = create_statement_data(properties['part of'], pow_qid, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['part of'],
+                                              value=pow_qid,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
         else:
@@ -259,7 +285,12 @@ if __name__ == '__main__':
             for part_qid in part_qids:
                 if not has_statement(item_qid, properties['has part or parts'], part_qid):
                     if WIKIBASE_WRITE:
-                        statement = create_statement_data(properties['has part or parts'], part_qid, references, None, if_exists='APPEND')
+                        statement = create_statement_data(prop=properties['has part or parts'],
+                                                          value=part_qid,
+                                                          reference_dict=references,
+                                                          qualifier_dict=qualifiers,
+                                                          add_ref_dict=None,
+                                                          if_exists='APPEND')
                         if statement:
                             data.append(statement)
                     else:

@@ -33,11 +33,12 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 start_time = time.time()
 
 # czy zapis w wikibase czy tylko test
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # standardowe właściwości
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                            'id SDI', 'part of', 'has part or parts', 'TERYT', 'stated in'])
+                            'id SDI', 'part of', 'has part or parts', 'TERYT',
+                            'stated in', 'point in time'])
 
 # elementy definicyjne (purl to voivodship (The Republic of Poland (1999-2016))
 elements = get_elements(['administrative unit', 'onto.kul.pl/ontohgis/administrative_type_47'])
@@ -47,9 +48,13 @@ references = {}
 references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries'
 references[properties['retrieved']] = '2022-09-05'
 
-# wspólna referencja dla wszystkich deklaracji z PRG
+# wspólna referencja do onto (poprawić Q w docelowej!)
 onto_references = {}
 onto_references[properties['stated in']] = 'Q233549'
+
+# kwalifikator z punktem czasowym
+qualifiers = {}
+qualifiers[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
 
 def get_label_en(qid: str) -> str:
@@ -114,13 +119,21 @@ if __name__ == '__main__':
 
         # id SDI
         if idiip:
-            statement = create_statement_data(properties['id SDI'], idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['id SDI'],
+                                              value=idiip,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # TERYT
         if teryt:
-            statement = create_statement_data(properties['TERYT'], teryt, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['TERYT'],
+                                              teryt,
+                                              None,
+                                              None,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 

@@ -36,7 +36,8 @@ WIKIBASE_WRITE = True
 
 # standardowe właściwości
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                            'id SDI', 'part of', 'has part or parts', 'TERYT', 'stated in'])
+                            'id SDI', 'part of', 'has part or parts', 'TERYT',
+                            'stated in', 'point in time'])
 
 # elementy definicyjne
 elements = get_elements(['administrative unit', 'onto.kul.pl/ontohgis/administrative_type_46'])
@@ -54,6 +55,11 @@ if __name__ == '__main__':
     # wspólna referencja dla wszystkich deklaracji z ontohgis
     onto_references = {}
     onto_references[properties['stated in']] = 'Q233549'
+
+    # kwalifikator z punktem czasowym
+    qualifiers = {}
+    qualifiers[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
+
 
     # logowanie do instancji wikibase
     login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
@@ -106,25 +112,41 @@ if __name__ == '__main__':
 
         # id SDI
         if idiip:
-            statement = create_statement_data(properties['id SDI'], idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['id SDI'],
+                                              value=idiip,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # TERYT
         if teryt:
-            statement = create_statement_data(properties['TERYT'], teryt, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['TERYT'],
+                                              value=teryt,
+                                              reference_dict=None,
+                                              qualifier_dict=qualifiers,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # JPT_NAZWA_
-        statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, None, add_ref_dict=references)
+        statement = create_statement_data(prop=properties['stated as'],
+                                          value=f'pl:"{nazwa}"',
+                                          reference_dict=None,
+                                          qualifier_dict=None,
+                                          add_ref_dict=references)
         if statement:
             data.append(statement)
 
         # part of i has part or parts
         ok, woj_qid = search_by_purl(properties['TERYT'], part_of)
         if ok:
-            statement = create_statement_data(properties['part of'], woj_qid, None, None, add_ref_dict=references)
+            statement = create_statement_data(prop=properties['part of'],
+                                              value=woj_qid,
+                                              reference_dict=None,
+                                              qualifier_dict=None,
+                                              add_ref_dict=references)
             if statement:
                 data.append(statement)
         else:
@@ -198,7 +220,12 @@ if __name__ == '__main__':
                 if not has_statement(item_qid, properties['has part or parts'], part_qid):
                     if WIKIBASE_WRITE:
                         data = []
-                        statement = create_statement_data(properties['has part or parts'], part_qid, references, None, if_exists='APPEND')
+                        statement = create_statement_data(prop=properties['has part or parts'],
+                                                          value=part_qid,
+                                                          reference_dict=references,
+                                                          qualifier_dict=qualifiers,
+                                                          add_ref_dict=None,
+                                                          if_exists='APPEND')
                         if statement:
                             data.append(statement)
                     else:
