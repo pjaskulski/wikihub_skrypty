@@ -42,7 +42,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # --- klasy ---
 class BasicProp:
@@ -1304,6 +1304,7 @@ class WDHStatementItem:
             "Asv",
             "Afi",
             "Ahe",
+            "Abe",
             "Aund"
         ):
             try:
@@ -1409,6 +1410,7 @@ class WDHStatementItem:
             "Lsv",
             "Lfi",
             "Lhe",
+            "Lbe"
         ):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
@@ -1459,6 +1461,7 @@ class WDHStatementItem:
             "Dsv",
             "Dfi",
             "Dhe",
+            "Dbe"
         ):
             try:
                 wd_item = wbi_core.ItemEngine(item_id=p_id)
