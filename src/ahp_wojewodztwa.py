@@ -35,14 +35,12 @@ WIKIBASE_WRITE = True
 
 # standardowe właściwości i elementy
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                             'point in time', 'part of', 'has part or parts'
+                             'point in time', 'part of', 'has part or parts', 'stated in',
+                             'refine date'
                             ])
 
-elements = get_elements(['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])
-
-# wspólna referencja dla wszystkich deklaracji
-references = {}
-references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
+elements = get_elements(['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
+                         'second half'])
 
 
 # ------------------------------------MAIN -------------------------------------
@@ -50,12 +48,11 @@ references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polski
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                     consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                     access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                     access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                     token_renew_period=14400)
 
     file_name = Path('..') / 'data' / 'ahp_wojewodztwa.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
@@ -63,9 +60,12 @@ if __name__ == '__main__':
     lines = [line.strip() for line in lines]
 
     references = {}
-    references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
+    references[properties['stated in']] = 'Q234031' # referencja do elementu AHP w instancji testowej!
+    references[properties['retrieved']] = '2023-06-15'
+
     qualifiers = {}
-    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
+    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
+    qualifiers[properties['refine date']] = elements['second half']     # druga połowa
 
     for line in lines:
         label_pl = f"województwo {line}"
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 while True:
                     try:
                         new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                        print(f'Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        print(f'Dodano: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en} / {label_pl}]')
                         break
                     except MWApiError as wb_error:
                         err_code = wb_error.error_msg['error']['code']
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                         sys.exit(1)
             else:
                 new_id = 'TEST'
-                print(f"Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"Przygotowano dodanie: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en} / {label_pl}]")
         else:
-            print(f'Element: {label_en} / {label_pl} już istnieje: {item_id}')
+            print(f'Element: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en} / {label_pl}] już istnieje')
 
