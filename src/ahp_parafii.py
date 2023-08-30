@@ -34,21 +34,20 @@ start_time = time.time()
 WIKIBASE_WRITE = True
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
-properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
-                             'point in time', 'part of', 'has part or parts', 'coordinate location'
+properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved', 'stated in',
+                             'point in time', 'part of', 'has part or parts', 'coordinate location',
+                             'refine date', 'information status'
                             ])
 
-elements = get_elements(['deanery (Roman Catholic Church)',
-                         'deaconry (Roman Catholic Church)',
-                         'provostship (Roman Catholic Church)',
-                         'archdeaconry (Roman Catholic Church)',
-                         'territory (Roman Catholic Church)',
-                         'diocese (Roman Catholic Church)',
-                         'parish (Roman Catholic Church)'])
-
-# wspólna referencja dla wszystkich deklaracji
-references = {}
-references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
+elements = get_elements(['deanery (Latin Church)',
+                         'deaconry (Latin Church)',
+                         'provostship (Latin Church)',
+                         'archdeaconry (Latin Church)',
+                         'territory (Latin Church)',
+                         'diocese (Latin Church)',
+                         'parish (Latin Church)',
+                         'second half',
+                         'uncertain'])
 
 
 # ------------------------------------MAIN -------------------------------------
@@ -56,40 +55,60 @@ references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polski
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                        consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                        access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                        access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                        token_renew_period=14400)
 
-    file_name = Path('..') / 'data' / 'ahp_granice_koscielne.csv'
+    file_name = Path('..') / 'data' / 'ahp_parafie.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
 
-    references = {}
-    references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
-    qualifiers = {}
-    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/9'
+    # słownik dekanatów
+    dekanaty = {}
+    dekanaty_file_name = Path('..') / 'data' / 'ahp_dekanaty.csv'
+    with open(dekanaty_file_name, 'r', encoding='utf-8') as f:
+        dekanaty_lines = f.readlines()
+        for d_line in dekanaty_lines:
+            tmp = d_line.split(',')
+            dekanaty[tmp[0]] = tmp[1]
 
-    instance_of = elements['parish (Roman Catholic Church)']
+    references = {}
+    references[properties['stated in']] = 'Q234031' # referencja do elementu AHP w instancji testowej!
+    references[properties['retrieved']] = '2023-06-15'
+
+    qualifiers = {}
+    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
+    qualifiers[properties['refine date']] = elements['second half']     # druga połowa
+
+    instance_of = elements['parish (Latin Church)']
 
     for line in lines:
         t_line = line.split('@')
         parafia_zbiorcza = t_line[0].strip()
-        parafia_label = t_line[1].strip()
-        g_dekanat = t_line[2].strip()
-        dekanat_label = t_line[3].strip()
+        label_pl = t_line[1].strip()
+        label_en = t_line[2].strip()
+        g_dekanat = t_line[3].strip()
+        # etykieta dekanatu ze słownika (różni się dla Gniezna i Tarnowa od g_dekanat)
+        # jeżeli mamy 2 dekanaty to oba trafiają do etykiety
+        if ' lub ' not in g_dekanat:
+            if g_dekanat:
+                dekanat_label = dekanaty[g_dekanat]
+            else:
+                dekanat_label = ''
+        else:
+            dekanat_label = g_dekanat
+
         g_archidia = t_line[4].strip()
         g_diecezja = t_line[5].strip()
-        wgs84 = t_line[6].strip()
+        latitude = t_line[6].strip()
+        longitude = t_line[7].strip()
 
-        label_pl = f"parafia {parafia_label}"
-        label_en = f"parish {parafia_label}"
         if dekanat_label:
             description_pl = f"parafia [dekanat {dekanat_label}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = f"parish [deanery {dekanat_label}](unit in the religious administrative system: Roman Catholic Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+            description_en = f"parish [deanery {dekanat_label}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
         else:
             if g_archidia:
                 if g_archidia == 'Kielce Dz':
@@ -109,12 +128,11 @@ if __name__ == '__main__':
                     label_archidiakonat_pl = f"archidiakonat {g_archidia}"
 
                 description_pl = f"parafia [{label_archidiakonat_pl}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = f"parish [{label_archidiakonat_en}](unit in the religious administrative system: Roman Catholic Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_en = f"parish [{label_archidiakonat_en}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
 
             elif g_diecezja:
                 description_pl = f"parafia [diecezja {g_diecezja}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = f"parish [diocese {g_diecezja}](unit in the religious administrative system: Roman Catholic Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
-
+                description_en = f"parish [diocese {g_diecezja}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
 
         # przygotowanie struktur wikibase
         data = []
@@ -134,52 +152,70 @@ if __name__ == '__main__':
             data.append(statement)
 
         master_qid = ''
+        master_qid2 = ''
+        ok2 = None
+        uncertainty = False
+        if ' lub ' in dekanat_label:
+            uncertainty = True
         # part of (dekanat, archidiakonat lub diecezja)
-        if dekanat_label:
-            parameters = [(properties['instance of'], elements['deanery (Roman Catholic Church)'])]
+        if dekanat_label and not ' lub ' in dekanat_label:
+            parameters = [(properties['instance of'], elements['deanery (Latin Church)'])]
             ok, master_qid = element_search_adv(f'deanery {dekanat_label}', 'en', parameters)
+        # jedna z parafii ma przypisane 2 dekanaty...
+        elif dekanat_label and ' lub ' in dekanat_label:
+            tmp_dekanat = dekanat_label.split(' lub ')
+            parameters = [(properties['instance of'], elements['deanery (Latin Church)'])]
+            ok, master_qid = element_search_adv(f'deanery {tmp_dekanat[0]}', 'en', parameters)
+            ok2, master_qid2 = element_search_adv(f'deanery {tmp_dekanat[1]}', 'en', parameters)
         # może nadrzędną jednostką jest archidiakonat?
         elif g_archidia:
             # może to deaconry, provostship, territory
             if g_archidia == 'Kielce Dz':
                 label_archidiakonat = 'deaconry Kielce'
-                element_archidiakonat = elements['deaconry (Roman Catholic Church)']
+                element_archidiakonat = elements['deaconry (Latin Church)']
             elif g_archidia == 'Kielce Pr':
                 label_archidiakonat = 'provostship Kielce'
-                element_archidiakonat = elements['provostship (Roman Catholic Church)']
+                element_archidiakonat = elements['provostship (Latin Church)']
             elif g_archidia == 'Tarnów Pr':
                 label_archidiakonat = 'provostship Tarnów'
-                element_archidiakonat = elements['provostship (Roman Catholic Church)']
+                element_archidiakonat = elements['provostship (Latin Church)']
             elif g_archidia == 'Wieluń Ter':
                 label_archidiakonat = 'territory Wieluń'
-                element_archidiakonat = elements['territory (Roman Catholic Church)']
+                element_archidiakonat = elements['territory (Latin Church)']
             else:
                 label_archidiakonat = f"archdeaconry {g_archidia}"
-                element_archidiakonat = elements['archdeaconry (Roman Catholic Church)']
+                element_archidiakonat = elements['archdeaconry (Latin Church)']
 
             parameters = [(properties['instance of'], element_archidiakonat)]
             ok, master_qid = element_search_adv(label_archidiakonat, 'en', parameters)
         elif g_diecezja:
             # może jednak diecezja
-            parameters = [(properties['instance of'], elements['diocese (Roman Catholic Church)'])]
+            parameters = [(properties['instance of'], elements['diocese (Latin Church)'])]
             ok, master_qid = element_search_adv(f'diocese {g_diecezja}', 'en', parameters)
         else:
-            print('ERROR: nie znaleziono nadrzędnej jednostki dla' , parafia_label)
+            print('ERROR: nie znaleziono nadrzędnej jednostki dla' , label_pl)
             sys.exit(1)
+
+        p_qualifiers = qualifiers.copy()
+        if uncertainty:
+            p_qualifiers[properties['information status']] = elements['uncertain']
 
         if ok:
             statement = create_statement_data(properties['part of'],
                                               master_qid,
-                                              None, qualifier_dict=qualifiers, add_ref_dict=references)
+                                              None, qualifier_dict=p_qualifiers, add_ref_dict=references)
+            if statement:
+                data.append(statement)
+
+        if ok2:
+            statement = create_statement_data(properties['part of'],
+                                              master_qid2,
+                                              None, qualifier_dict=p_qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # współrzędne parafii - - Point (23.29833332 52.68194448)
-        if wgs84:
-            wgs84 = wgs84.replace('Point', '').replace('(', '').replace(')','').strip()
-            tmp = wgs84.split(' ')
-            longitude = tmp[0]
-            latitude = tmp[1]
+        if latitude and longitude:
             coordinate = f'{latitude},{longitude}'
             statement = create_statement_data(properties['coordinate location'],
                                               coordinate, None, None, add_ref_dict=references)
@@ -204,7 +240,7 @@ if __name__ == '__main__':
                 while True:
                     try:
                         new_id = wb_item.write(login_instance, bot_account=True, entity_type='item')
-                        print(f'Dodano nowy element: {label_en} / {label_pl} = {new_id}')
+                        print(f'Dodano: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en} / {label_pl}]')
 
                         # uzupełnienie dekanatu, archidiakonatu lub diecezji
                         if master_qid != 'NOT FOUND':
@@ -219,6 +255,21 @@ if __name__ == '__main__':
                             wb_item_update = wbi_core.ItemEngine(item_id=master_qid, data=update_data, debug=False)
                             wb_item_update.write(login_instance, entity_type='item')
                             print(f"Dodano do elementu {master_qid} deklarację: 'has part or parts' -> {new_id}")
+
+                        # poprawka na szybko bo wcześniej nie przewidywano 'lub' w dekanatach
+                        if master_qid2 != 'NOT FOUND' and master_qid2 != '':
+                            update_data = []
+                            # has part or parts (może być wiele, stąd parametr if_exists!)
+                            statement = create_statement_data(properties['has part or parts'],
+                                                                new_id,
+                                                                None, qualifier_dict=qualifiers,
+                                                                add_ref_dict=references, if_exists='APPEND')
+                            if statement:
+                                update_data.append(statement)
+                            wb_item_update = wbi_core.ItemEngine(item_id=master_qid2, data=update_data, debug=False)
+                            wb_item_update.write(login_instance, entity_type='item')
+                            print(f"Dodano do elementu {master_qid2} deklarację: 'has part or parts' -> {new_id}")
+
 
                         break
                     except MWApiError as wb_error:
@@ -236,6 +287,8 @@ if __name__ == '__main__':
                         sys.exit(1)
             else:
                 new_id = 'TEST'
-                print(f"Przygotowano dodanie elementu - {label_en} / {label_pl}  = {new_id}")
+                print(f"Przygotowano dodanie: # [https://prunus-208.man.poznan.pl/wiki/Item:{new_id} {label_en} / {label_pl}]")
+
+            #sys.exit(1)
         else:
-            print(f'Element: {label_en} / {label_pl} już istnieje: {item_id}')
+            print(f'Element: # [https://prunus-208.man.poznan.pl/wiki/Item:{item_id} {label_en} / {label_pl}] już istnieje.')
