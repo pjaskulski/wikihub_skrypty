@@ -31,7 +31,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',

@@ -71,7 +71,7 @@ if __name__ == '__main__':
         label_pl = f"diecezja {line}"
         label_en = f"diocese {line}"
         description_pl = "diecezja (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-        description_en = "diocese (unit in the religious administrative system: Roman Catholic Church, according to the Historical Atlas of Poland, as of the 2nd half of the 16th century)"
+        description_en = "diocese (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the 16th century)"
 
         # przygotowanie struktur wikibase
         data = []
