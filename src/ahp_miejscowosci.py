@@ -39,7 +39,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 def get_palatinate(value: str):
@@ -51,7 +51,7 @@ def get_palatinate(value: str):
         palatinate_parameters = [(properties['instance of'], elements['land (The Polish-Lithuanian Commonwealth (1569-1795))'])]
     elif value == 'księstwo siewierskie':
         label = 'The Duchy of Siewierz'
-        palatinate_parameters = [(properties['instance of'], elements['duchy (The Duchy of Siewierz (1443-1790))'])]
+        palatinate_parameters = [(properties['instance of'], elements['county (The Duchy of Siewierz (1443-1790))'])]
     else:
         label = f"palatinate {value}"
         palatinate_parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
@@ -66,7 +66,7 @@ def get_palatinate(value: str):
 
 
  # tworzenie obiektu loggera
-file_log = Path('..') / 'log' / 'ahp_zbiorcza_pkt_prng.log'
+file_log = Path('..') / 'log' / 'ahp_miejscowosci.log'
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 log_format = logging.Formatter('%(asctime)s - %(message)s')
@@ -86,15 +86,15 @@ print('Przygotowanie słownika właściwości...')
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts', 'coordinate location',
                              'settlement type', 'settlement ownership type', 'prng id',
-                             'contains an object type', 'type of location',
-                             'central state functions', 'central church functions',
-                             'SIMC place ID', 'Wikidata ID', 'AHP id',
+                             'has facility', 'type of location',
+                             'central state function', 'central church function',
+                             'SIMC place ID', 'Wikidata item identifier', 'AHP ID',
                              'located in the administrative territorial entity',
-                             'count', 'ID SHG', 'refine date'
+                             'count', 'refine date', 'stated in'
                             ])
 
 print('Przygotowanie słownika elementów definicyjnych...')
-elements = get_elements(['human settlement', 'demesne settlement',
+elements = get_elements(['human settlement',
                          'manor', 'demesne', 'castle', 'glassworks', 'mining settlement',
                          'city/town', 'abbey', 'inn', 'ironworks',
                          'mill settlement', 'tar pitch', 'ostrov', 'suburb', 'suburb or village',
@@ -107,21 +107,21 @@ elements = get_elements(['human settlement', 'demesne settlement',
                          'furnace', 'saw', 'ore', 'groats mortar', 'sawmill',
                          'windmill', 'rental windmill', 'hereditary windmill', 'wyszynk',
                          'location unknown', 'approximate location',
-                         'the capital of an archdeaconry', 'the capital of a deanery',
-                         'the seat of a parish', 'the capital of a diocese',
-                         'the seat of an abbey/ monastery',
+                         'capital of an archdeaconry', 'capital of a deanery',
+                         'seat of a parish', 'capital of a diocese',
+                         'seat of an abbey/ monastery',
                          "castellan's residence", 'capital of the duchy',
-                         'seat of the town starost', 'the place where the knighthood was held',
-                         'the capital of a county', 'venue of the general assembly',
-                         'place of meeting of the local assembly', 'the seat of the crown tribunal',
+                         'seat of the town starost', 'place where the knighthood was held',
+                         'capital of a county', 'venue of the general assembly',
+                         'place of meeting of the local assembly', 'seat of the crown tribunal',
                          'seat of the non-garden starost (tenutarius)', 'capital of the state',
-                         'the capital of the province', 'general starosty of Małopolska',
-                         'the capital of the land',
+                         'capital of the province', 'general starosty of Małopolska',
+                         'capital of the land',
                          'district (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
-                         'parish (Roman Catholic Church)',
+                         'parish (Latin Church)',
                          'land (The Polish-Lithuanian Commonwealth (1569-1795))',
-                         'duchy (The Duchy of Siewierz (1443-1790))',
+                         'county (The Duchy of Siewierz (1443-1790))',
                          'second half', 'parish (Orthodox Church)'
                          ])
 
@@ -134,7 +134,7 @@ s_type_map['huta szkła'] = 'glassworks'
 s_type_map['kopalnia'] = 'mining settlement'
 s_type_map['miasto'] = 'city/town'
 s_type_map['opactwo'] = 'abbey'
-s_type_map['osada folwarczna'] = 'demesne settlement'
+s_type_map['osada folwarczna'] = 'demesne'
 s_type_map['osada karczemna'] = 'inn'
 s_type_map['osada kuźnicza'] = 'ironworks'
 s_type_map['osada młyńska'] = 'mill settlement'
@@ -216,25 +216,25 @@ fun_centaralne_panstw['kasztelania'] = elements["castellan's residence"]
 fun_centaralne_panstw['księstwo'] = elements['capital of the duchy']
 fun_centaralne_panstw['starostwo grodowe'] = elements['seat of the town starost']
 fun_centaralne_panstw['starostwo grodowo'] = elements['seat of the town starost']
-fun_centaralne_panstw['miejsce popisu rycerstwa'] = elements['the place where the knighthood was held']
-fun_centaralne_panstw['okazowanie rycerstwa'] = elements['the place where the knighthood was held']
-fun_centaralne_panstw['powiat'] = elements['the capital of a county']
+fun_centaralne_panstw['miejsce popisu rycerstwa'] = elements['place where the knighthood was held']
+fun_centaralne_panstw['okazowanie rycerstwa'] = elements['place where the knighthood was held']
+fun_centaralne_panstw['powiat'] = elements['capital of a county']
 fun_centaralne_panstw['sejmik generalny'] = elements['venue of the general assembly']
 fun_centaralne_panstw['sejmik partykularny'] = elements['place of meeting of the local assembly']
-fun_centaralne_panstw['trybunał koronny'] = elements['the seat of the crown tribunal']
+fun_centaralne_panstw['trybunał koronny'] = elements['seat of the crown tribunal']
 fun_centaralne_panstw['starostwo niegrodowe'] = elements['seat of the non-garden starost (tenutarius)']
 fun_centaralne_panstw['stolica państwa'] = elements['capital of the state']
-fun_centaralne_panstw['województwo'] = elements['the capital of the province']
+fun_centaralne_panstw['województwo'] = elements['capital of the province']
 fun_centaralne_panstw['starostwo generalne Małopolski'] = elements['general starosty of Małopolska']
-fun_centaralne_panstw['ziemia'] = elements['the capital of the land']
+fun_centaralne_panstw['ziemia'] = elements['capital of the land']
 
 # słownik mapujący funkcje kościelne na identyfikatory QID
 fun_centralne_koscielne = {}
-fun_centralne_koscielne['archidiakonat'] = elements['the capital of an archdeaconry']
-fun_centralne_koscielne['dekanat'] = elements['the capital of a deanery']
-fun_centralne_koscielne['parafia'] = elements['the seat of a parish']
-fun_centralne_koscielne['diecezja'] = elements['the capital of a diocese']
-fun_centralne_koscielne['opactwo'] = elements['the seat of an abbey/ monastery']
+fun_centralne_koscielne['archidiakonat'] = elements['capital of an archdeaconry']
+fun_centralne_koscielne['dekanat'] = elements['capital of a deanery']
+fun_centralne_koscielne['parafia'] = elements['seat of a parish']
+fun_centralne_koscielne['diecezja'] = elements['capital of a diocese']
+fun_centralne_koscielne['opactwo'] = elements['seat of an abbey/ monastery']
 
 # województwa - słownik identyfikatorów QID dla województw, ziemi i księstw
 palatinates = {}
@@ -252,10 +252,8 @@ palatinates['podlaskie'] = get_palatinate('podlaskie')
 palatinates['pomorskie'] = get_palatinate('pomorskie')
 palatinates['poznańskie'] = get_palatinate('poznańskie')
 palatinates['rawskie'] = get_palatinate('rawskie')
-palatinates['ruskie'] = get_palatinate('ruskie')
 palatinates['sandomierskie'] = get_palatinate('sandomierskie')
 palatinates['sieradzkie'] = get_palatinate('sieradzkie')
-palatinates['trockie'] = get_palatinate('trockie')
 palatinates['ziemia dobrzyńska'] = get_palatinate('ziemia dobrzyńska')
 palatinates['księstwo siewierskie'] = get_palatinate('księstwo siewierskie')
 
@@ -305,19 +303,18 @@ prng_qid_map = {}
 if __name__ == '__main__':
 
     # logowanie do instancji wikibase
-    if WIKIBASE_WRITE:
-        login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
-                                         consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
-                                         access_token=WIKIDARIAH_ACCESS_TOKEN,
-                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
-                                         token_renew_period=14400)
+    login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
+                                        consumer_secret=WIKIDARIAH_CONSUMER_SECRET,
+                                        access_token=WIKIDARIAH_ACCESS_TOKEN,
+                                        access_secret=WIKIDARIAH_ACCESS_SECRET,
+                                        token_renew_period=14400)
 
     # plik pomocniczy z indeksem nr lini -> QID
-    file_index = Path('..') / 'data' / 'ahp_line_qid.csv'
+    file_index = Path('..') / 'data' / 'ahp_miejscowosci_line_qid.csv'
 
     logger.info('POCZĄTEK IMPORTU')
 
-    # wczytanie słownika z mapowaniem prng -> qid
+    # wczytanie słownika z mapowaniem prng -> qid ??
     file_map = Path('..') / 'data' / 'prng_qid.csv'
     with open(file_map, 'r', encoding='utf-8') as fm:
         map_lines = fm.readlines()
@@ -327,22 +324,18 @@ if __name__ == '__main__':
         prng_qid_map[t_line[0].strip()] = t_line[1].strip()
 
     # wczytanie głównych danych
-    file_name = Path('..') / 'data' / 'ahp_zbiorcza_pkt_prng.csv'
+    file_name = Path('..') / 'data' / 'ahp_miejscowosci.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
 
-    # referencje globalne
-    now = datetime.now()
-    retrieved = now.strftime("%Y-%m-%d")
     references = {}
-    references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
-    references[properties['retrieved']] = retrieved
+    references[properties['stated in']] = 'Q234031' # referencja do elementu AHP w instancji testowej!
+    references[properties['retrieved']] = '2023-06-15'
 
-    # kwalifikator z punktem czasowym
     qualifiers = {}
-    qualifiers[properties['point in time']] = '+1501-00-00T00:00:00Z/7' # XVI wiek
-    qualifiers[properties['refine date']] = elements['second half'] # XVI wiek
+    qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
+    qualifiers[properties['refine date']] = elements['second half']     # druga połowa
 
     # czy to pierwsze ładowanie danych? - wówczas bez dodatkowej weryfikacji
     first_load = True
@@ -351,27 +344,8 @@ if __name__ == '__main__':
     for line in lines:
         line_number +=1
 
-        if line_number <= 12822: # pierwszych 31 miejscowości było już zaimportowanych
-            continue
-
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
-
-        # tylko testowe, w docelowym imporcie zakomentować!
-        # test_rec = [
-                    # 'Nowa_Karczma_prz_gdn_pmr',
-                    # 'Ogony_rpn_dbr',
-                    # 'Augustow_blk_pdl',
-                    # 'Babimost_ksc_pzn',
-                    # 'Dobrzyn_dbr_dbr',
-                    # 'Szpetal_Dolny_dbr_dbr',
-                    #'Czaple_Jarki_drh_pdl',
-                    # 'Bielony_Borysy_drh_pdl',
-                    # 'Czechowo_gzn_kls'
-                    # ]
-
-        #if id_miejscowosci not in test_rec:
-        #    continue
 
         nazwa_slownikowa = t_line[1].strip()
         nazwa_wspolczesna = t_line[2].strip()
@@ -390,11 +364,12 @@ if __name__ == '__main__':
         woj_p = t_line[15].strip()
         wielkosc_karto = t_line[16].strip()
         klasa_obiektow = t_line[17].strip()
-        simc = t_line[18].strip()
-        wikidata = t_line[19].strip()
-        ahp_pkt_WGS84 = t_line[20].strip()
-        zbiorcza_sgh_id = t_line[21].strip()
-        zbiorcza_prng = t_line[22].strip()
+        zbiorcza_prng = t_line[18].strip()
+        simc = t_line[19].strip()
+        wikidata = t_line[20].strip()
+        latitude = t_line[21].strip()
+        longitude = t_line[22].strip()
+
 
         # modyfikacja niektórych wartości
         if rodzaj_lokalizacji == 'przybliżona':
@@ -506,14 +481,14 @@ if __name__ == '__main__':
                     aliasy['pl'].append(nazwa_slownikowa)
                 else:
                     aliasy['pl'] = [nazwa_slownikowa]
-                shg_references = {}
-                if zbiorcza_sgh_id:
-                    shg_references[properties['reference URL']] = f'http://www.slownik.ihpan.edu.pl/search.php?id={zbiorcza_sgh_id}'
-                else:
-                    shg_references[properties['reference URL']] = 'http://www.slownik.ihpan.edu.pl/'
-                statement = create_statement_data(properties['stated as'],
-                                                  f'pl:"{nazwa_slownikowa}"',
-                                                  shg_references, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
+                #shg_references = {}
+                #if zbiorcza_sgh_id:
+                #    shg_references[properties['reference URL']] = f'http://www.slownik.ihpan.edu.pl/search.php?id={zbiorcza_sgh_id}'
+                #else:
+                #    shg_references[properties['reference URL']] = 'http://www.slownik.ihpan.edu.pl/'
+                #statement = create_statement_data(properties['stated as'],
+                #                                  f'pl:"{nazwa_slownikowa}"',
+                #                                  shg_references, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
@@ -570,7 +545,7 @@ if __name__ == '__main__':
                         if statement:
                             data.append(statement)
 
-        # ===== contains an object type =====
+        # ===== has facility =====
         if obiekty_gospodarcze:
             if ',' in obiekty_gospodarcze:
                 obiekty_gospodarcze = obiekty_gospodarcze.replace(',',';')
@@ -608,8 +583,8 @@ if __name__ == '__main__':
                 # dodanie kwalifikatora 'count'
                 ob_qualifiers = copy.deepcopy(qualifiers)
                 ob_qualifiers[properties['count']] = liczba
-                if not element_qid or first_load or not has_statement(element_qid, properties['contains an object type'], obiekty[t_ob]):
-                    statement = create_statement_data(properties['contains an object type'],
+                if not element_qid or first_load or not has_statement(element_qid, properties['has facility'], obiekty[t_ob]):
+                    statement = create_statement_data(properties['has facility'],
                                                 obiekty[t_ob],
                                                 None, qualifier_dict=ob_qualifiers, add_ref_dict=references, if_exists='APPEND')
                     if statement:
@@ -633,8 +608,8 @@ if __name__ == '__main__':
                 t_fun = t_fun.strip()
                 if t_fun in fun_centaralne_panstw:
                     funkcja_panstwowa = fun_centaralne_panstw[t_fun]
-                    if not element_qid or first_load or not has_statement(element_qid, properties['central state functions'], funkcja_panstwowa):
-                        statement = create_statement_data(properties['central state functions'],
+                    if not element_qid or first_load or not has_statement(element_qid, properties['central state function'], funkcja_panstwowa):
+                        statement = create_statement_data(properties['central state function'],
                                                 funkcja_panstwowa,
                                                 None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                         if statement:
@@ -651,8 +626,8 @@ if __name__ == '__main__':
                 t_fun = t_fun.strip()
                 if t_fun in fun_centralne_koscielne:
                     funkcja_koscielna = fun_centralne_koscielne[t_fun]
-                    if not element_qid or first_load or not has_statement(element_qid, properties['central church functions'], funkcja_koscielna):
-                        statement = create_statement_data(properties['central church functions'],
+                    if not element_qid or first_load or not has_statement(element_qid, properties['central church function'], funkcja_koscielna):
+                        statement = create_statement_data(properties['central church function'],
                                                 funkcja_koscielna,
                                                 None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
                         if statement:
@@ -662,11 +637,7 @@ if __name__ == '__main__':
 
         # ===== współrzędne miejscowości =====
         # np. Point (23.29833332 52.68194448)
-        if ahp_pkt_WGS84:
-            wgs84 = ahp_pkt_WGS84.replace('Point', '').replace('(', '').replace(')','').strip()
-            tmp = wgs84.split(' ')
-            longitude = tmp[0]
-            latitude = tmp[1]
+        if latitude and longitude:
             coordinate = f'{latitude},{longitude}'
             if not element_qid or first_load or not has_statement(element_qid, properties['coordinate location'], coordinate):
                 statement = create_statement_data(properties['coordinate location'],
@@ -687,29 +658,29 @@ if __name__ == '__main__':
         # np. http://www.wikidata.org/entity/Q7848867
         if wikidata:
             q_wikidata = wikidata.replace('http://www.wikidata.org/entity/','').strip()
-            if not element_qid or first_load or not has_statement(element_qid, properties['Wikidata ID'], q_wikidata):
+            if not element_qid or first_load or not has_statement(element_qid, properties['Wikidata item identifier'], q_wikidata):
                 wiki_ref = {}
                 wiki_ref[properties['reference URL']] = wikidata
-                statement = create_statement_data(properties['Wikidata ID'],
+                statement = create_statement_data(properties['Wikidata item identifier'],
                                                   q_wikidata, wiki_ref, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== AHP id =====
         if id_miejscowosci:
-            if not element_qid or first_load or not has_statement(element_qid, properties['AHP id'], id_miejscowosci):
-                statement = create_statement_data(properties['AHP id'],
+            if not element_qid or first_load or not has_statement(element_qid, properties['AHP ID'], id_miejscowosci):
+                statement = create_statement_data(properties['AHP ID'],
                                                   id_miejscowosci, None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
         # ===== shg_id =====
-        if zbiorcza_sgh_id:
-            if not element_qid or first_load or not has_statement(element_qid, properties['ID SHG'], zbiorcza_sgh_id):
-                statement = create_statement_data(properties['ID SHG'],
-                                                  zbiorcza_sgh_id, None, None, add_ref_dict=references, if_exists='APPEND')
-                if statement:
-                    data.append(statement)
+        # if zbiorcza_sgh_id:
+        #     if not element_qid or first_load or not has_statement(element_qid, properties['ID SHG'], zbiorcza_sgh_id):
+        #         statement = create_statement_data(properties['ID SHG'],
+        #                                           zbiorcza_sgh_id, None, None, add_ref_dict=references, if_exists='APPEND')
+        #         if statement:
+        #             data.append(statement)
 
         # ===== located in the administrative territorial entity =====
         if powiat_p and powiat_p != 'księstwo siewierskie':
@@ -786,7 +757,7 @@ if __name__ == '__main__':
                     parameters = [(properties['instance of'], elements['parish (Orthodox Church)'])]
                     label_to_search = f"orthodox parish {t_parafia}"
                 else:
-                    parameters = [(properties['instance of'], elements['parish (Roman Catholic Church)'])]
+                    parameters = [(properties['instance of'], elements['parish (Latin Church)'])]
                     label_to_search = f"parish {t_parafia}"
 
                 ok, parafia_qid = element_search_adv(label_to_search, 'en', parameters)
@@ -829,9 +800,9 @@ if __name__ == '__main__':
             element_qid = write_or_exit(login_instance, wb_item, logger)
 
             if new_element:
-                message = f'({line_number}, {id_miejscowosci}) Dodano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
+                message = f'({line_number}, {id_miejscowosci}) Dodano: # [https://prunus-208.man.poznan.pl/wiki/Item:{element_qid} {label_pl}]'
             else:
-                message = f'({line_number}, {id_miejscowosci}) Zaktualizowano element: {label_pl} ({id_miejscowosci}) = {element_qid}'
+                message = f'({line_number}, {id_miejscowosci}) Zaktualizowano: # [https://prunus-208.man.poznan.pl/wiki/Item:{element_qid} {label_pl}]'
 
             logger.info(message)
 
@@ -843,7 +814,7 @@ if __name__ == '__main__':
         else:
             if not element_qid:
                 element_qid = 'TEST'
-            logger.info(f"({line_number}, {id_miejscowosci}) Przygotowano dodanie/uzupełnienie - {label_en} / {label_pl}  = {element_qid}")
+            logger.info(f"({line_number}, {id_miejscowosci}) Przygotowano dodanie/uzupełnienie: # [https://prunus-208.man.poznan.pl/wiki/Item:{element_qid} {label_pl}]")
 
     end_time = time.time()
     elapsed_time = end_time - start_time

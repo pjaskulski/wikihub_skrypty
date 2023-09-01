@@ -55,15 +55,6 @@ if __name__ == '__main__':
                                         access_secret=WIKIDARIAH_ACCESS_SECRET,
                                         token_renew_period=14400)
 
-    parafie = []
-    file_name = Path('..') / 'data' / 'ahp_parafie_prawoslawne.csv'
-    with open(file_name, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        lines = [line.strip() for line in lines]
-        for line in lines:
-            tmp = line.split('@')
-            parafie.append(tmp[1].strip())
-
     references = {}
     references[properties['stated in']] = 'Q234031' # referencja do elementu AHP w instancji testowej!
     references[properties['retrieved']] = '2023-06-15'
@@ -72,13 +63,35 @@ if __name__ == '__main__':
     qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
     qualifiers[properties['refine date']] = elements['second half']     # druga połowa
 
-    instance_of = elements['parish (Orthodox Church)']
 
-    for parafia in parafie:
-        label_pl = f"parafia prawosławna {parafia}"
-        label_en = f"orthodox parish {parafia}"
-        description_pl = "parafia prawosławna (jednostka w systemie administracji kościelnej: Kościół prawosławny, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-        description_en = "orthodox parish (unit in the religious administrative system: Orthodox Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+    file_name = Path('..') / 'data' / 'ahp_parafie_prawoslawne.csv'
+    with open(file_name, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        lines = [line.strip() for line in lines]
+
+    for line in lines:
+        tmp = line.split('@')
+        id_miejscowosci = tmp[0].strip()
+        nazwa_16w = tmp[1].strip()
+        parafia_nazwa = tmp[2].strip() # to chyba nazwa katolickiej parafii, do pominięcia
+        varia = tmp[3].strip()         # to pomijamy
+        powiat_p = tmp[4].strip()      # to pomijamy - z wyj. parafi Czarna
+        kraj = tmp[5].strip()          # to pomijamy
+        latitude = tmp[6].strip()
+        longitude = tmp[7].strip()
+
+        instance_of = elements['parish (Orthodox Church)']
+
+        label_pl = f"parafia prawosławna {nazwa_16w}"
+        label_en = f"orthodox parish {nazwa_16w}"
+
+        # jeden wyjątek - parafia Czarna występuje 2x - w różnych powiatach
+        if nazwa_16w == 'Czarna':
+            description_pl = f"parafia prawosławna [powiat {powiat_p}] (jednostka w systemie administracji kościelnej: Kościół prawosławny, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
+            description_en = f"orthodox parish [district {powiat_p}] (unit in the religious administrative system: Orthodox Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+        else:
+            description_pl = "parafia prawosławna (jednostka w systemie administracji kościelnej: Kościół prawosławny, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
+            description_en = "orthodox parish (unit in the religious administrative system: Orthodox Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
 
         # przygotowanie struktur wikibase
         data = []
@@ -90,6 +103,14 @@ if __name__ == '__main__':
         if statement:
             data.append(statement)
 
+        # współrzędne parafii
+        if latitude and longitude:
+            coordinate = f'{latitude},{longitude}'
+            statement = create_statement_data(properties['coordinate location'],
+                                              coordinate, None, None, add_ref_dict=references)
+            if statement:
+                data.append(statement)
+
         # etykiety, description
         wb_item = wbi_core.ItemEngine(new_item=True, data=data)
         wb_item.set_label(label_en, lang='en')
@@ -100,7 +121,7 @@ if __name__ == '__main__':
 
         # wyszukiwanie po etykiecie
         parameters = [(properties['instance of'], instance_of)]
-        ok, item_id = element_search_adv(label_en, 'en', parameters)
+        ok, item_id = element_search_adv(label_en, 'en', parameters, description=description_en)
         if not ok:
             if WIKIBASE_WRITE:
                 test = 1
