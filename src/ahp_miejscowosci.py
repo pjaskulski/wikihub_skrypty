@@ -39,7 +39,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 def get_palatinate(value: str):
@@ -75,7 +75,7 @@ c_handler.setFormatter(log_format)
 c_handler.setLevel(logging.DEBUG)
 logger.addHandler(c_handler)
 # zapis logów do pliku tylko jeżeli uruchomiono z zapisem do wiki
-if WIKIBASE_WRITE:
+if WIKIBASE_WRITE or 1:
     f_handler = logging.FileHandler(file_log)
     f_handler.setFormatter(log_format)
     f_handler.setLevel(logging.INFO)
@@ -259,39 +259,39 @@ palatinates['księstwo siewierskie'] = get_palatinate('księstwo siewierskie')
 
 # mapowanie skrótowych nazw parafii na nazwy pełne
 wyjatki_parafie = {}
-wyjatki_parafie['Sandomierz - Paweł Ap'] = 'Sandomierz - pod wezwaniem Pawła Apostoła'
-wyjatki_parafie['Ostrów - NMP'] = 'Ostrów - pod wezwaniem Najświętszej Maryi Panny'
-wyjatki_parafie['Łęgonice - Jan Ch'] = 'Łęgonice - pod wezwaniem Jana Chrzciciela'
-wyjatki_parafie['Rokitno - Wojciech Bp'] = 'Rokitno - pod wezwaniem Wojciecha Biskupa'
-wyjatki_parafie['Kraków - Szczepan M'] = 'Kraków - pod wezwaniem Szczepana Męczennika'
-wyjatki_parafie['Łowicz - NMP'] = 'Łowicz - pod wezwaniem Najświętszej Maryi Panny'
+wyjatki_parafie['Sandomierz - Paweł Ap'] = 'Sandomierz - under the invocation of St. Paul the Apostle'
+wyjatki_parafie['Ostrów - NMP'] = 'Ostrów - under invocation of the Blessed Virgin Mary'
+wyjatki_parafie['Łęgonice - Jan Ch'] = 'Łęgonice - under the invocation of John the Baptist'
+wyjatki_parafie['Rokitno - Wojciech Bp'] = 'Rokitno - under the invocation of St. Adalbert the Bishop'
+wyjatki_parafie['Kraków - Szczepan M'] = 'Kraków - under the invocation of St. Stephen the Martyr'
+wyjatki_parafie['Łowicz - NMP'] = 'Łowicz - under the invocation of the Blessed Virgin Mary'
 wyjatki_parafie['Czemierniki - town'] = 'Czemierniki'
-wyjatki_parafie['Kazimierz - Stanisław Bp, Michał A'] = 'Kazimierz - pod wezwaniem Stanisława Biskupa i Michała Archanioła'
-wyjatki_parafie['Gniezno - Piotr Ap'] = 'Gniezno - pod wezwaniem św. Piotra Apostoła'
-wyjatki_parafie['Kazimierz - Jakub W Ap'] = 'Kazimierz - pod wezwaniem Jakuba Większego Apostoła'
-wyjatki_parafie['Sandomierz - Piotr Ap'] = 'Sandomierz - pod wezwaniem Piotra Apostoła'
-wyjatki_parafie['Łowicz - Św. Duch'] = 'Łowicz - pod wezwaniem Św. Ducha'
-wyjatki_parafie['Kraków - NMP'] = 'Kraków - pod wezwaniem Najświętszej Maryi Panny'
-wyjatki_parafie['Poznań - Mikołaj Bp'] = 'Poznań -  pod wezwaniem Mikołaja Biskupa'
-wyjatki_parafie['Rokitno - Jakub W Ap'] = 'Rokitno - pod wezwaniem Jakuba Większego Apostoła'
-wyjatki_parafie['Kalisz - Mikołaj Bp'] = 'Kalisz - pod wezwaniem Mikołaja Biskupa'
-wyjatki_parafie['Gniezno - Michał A'] = 'Gniezno - pod wezwaniem Michała Archanioła'
-wyjatki_parafie['Kraków - Mikołaj Bp'] = 'Kraków - pod wezwaniem Mikołaja Biskupa'
-wyjatki_parafie['Gniezno - Św. Trójca'] = 'Gniezno - pod wezwaniem Św. Trójcy'
-wyjatki_parafie['Kalisz - NMP'] = 'Kalisz -  pod wezwaniem Najświętszej Maryi Panny'
-wyjatki_parafie['Gniezno - Wawrzyniec M'] = 'Gniezno - pod wezwaniem Wawrzyńca Męczennika'
-wyjatki_parafie['Ostrów - Jan Ch'] = 'Ostrów - pod wezwaniem Jana Chrzciciela'
-wyjatki_parafie['Żerków - Stanisław Bp'] = 'Żerków - pod wezwaniem Stanisława Biskupa'
-wyjatki_parafie['Żerków - Mikołaj Bp'] = 'Żerków - pod wezwaniem Mikołaja Biskupa'
-wyjatki_parafie['Poznań - Jan Ch'] = 'Poznań - pod wezwaniem Jana Chrzciciela'
-wyjatki_parafie['Poznań - Marcin Bp'] = 'Poznań - pod wezwaniem Marcina Biskupa'
-wyjatki_parafie['Poznań - Wojciech Bp'] = 'Poznań -  pod wezwaniem Wojciecha Biskupa'
-wyjatki_parafie['Kraków - Wszyscy Św'] = 'Kraków - pod wezwaniem Wszystkich Świętych'
-wyjatki_parafie['Poznań - Maria Magdalena'] = 'Poznań - pod wezwaniem Marii Magdaleny'
-wyjatki_parafie['Kraków - Św. Krzyż'] = 'Kraków - pod wezwaniem św. Krzyża'
-wyjatki_parafie['Kraków - Anna'] = 'Kraków - pod wezwaniem św. Anny'
-wyjatki_parafie['Łęgonice - Maria Magdalena'] = 'Łęgonice - pod wezwaniem Marii Magdaleny'
-wyjatki_parafie['Kazimierz - Boże Ciało'] = 'Kazimierz - pod wezwaniem Bożego Ciała'
+wyjatki_parafie['Kazimierz - Stanisław Bp, Michał A'] = 'Kazimierz - under the invocation of St. Stanislaus the Bishop and St. Michael the Archangel'
+wyjatki_parafie['Gniezno - Piotr Ap'] = 'Gniezno - under the invocation of St. Peter the Apostle'
+wyjatki_parafie['Kazimierz - Jakub W Ap'] = 'Kazimierz - under the invocation of St. James the Greater Apostle'
+wyjatki_parafie['Sandomierz - Piotr Ap'] = 'Sandomierz - under the invocation of Peter the Apostle'
+wyjatki_parafie['Łowicz - Św. Duch'] = 'Łowicz - under the invocation of the Holy Spirit'
+wyjatki_parafie['Kraków - NMP'] = 'Krakow - under the invocation of the Blessed Virgin Mary'
+wyjatki_parafie['Poznań - Mikołaj Bp'] = 'Poznań - under the invocation of St. Nicolas the Bishop'
+wyjatki_parafie['Rokitno - Jakub W Ap'] = 'Rokitno - under the invocation of St James the Greater Apostle'
+wyjatki_parafie['Kalisz - Mikołaj Bp'] = 'Kalisz - under the invocation of St. Nicolas the Bishop'
+wyjatki_parafie['Gniezno - Michał A'] = 'Gniezno - under the invocation of St. Michael the Archangel'
+wyjatki_parafie['Kraków - Mikołaj Bp'] = 'Krakow - under the invocation of St. Nicolas the Bishop'
+wyjatki_parafie['Gniezno - Św. Trójca'] = 'Gniezno - under the invocation of St. Trinity'
+wyjatki_parafie['Kalisz - NMP'] = 'Kalisz - under the invocation of the Blessed Virgin Mary'
+wyjatki_parafie['Gniezno - Wawrzyniec M'] = 'Gniezno -under the invocation of St. Laurence the Martyr'
+wyjatki_parafie['Ostrów - Jan Ch'] = 'Ostrów - under the invocation of St. John the Baptist'
+wyjatki_parafie['Żerków - Stanisław Bp'] = 'Żerków - under the invocation of St. Stanislaus the Bishop'
+wyjatki_parafie['Żerków - Mikołaj Bp'] = 'Żerków - under the invocation of Mikołaj Biskupa'
+wyjatki_parafie['Poznań - Jan Ch'] = 'Poznań - under the invocation of Saint John the Baptist'
+wyjatki_parafie['Poznań - Marcin Bp'] = 'Poznań - under the invocation of Martin the Bishop'
+wyjatki_parafie['Poznań - Wojciech Bp'] = 'Poznań - under the invocation of St. Adalbert the Bishop'
+wyjatki_parafie['Kraków - Wszyscy Św'] = 'Kraków - under the invocation of All Saints'
+wyjatki_parafie['Poznań - Maria Magdalena'] = 'Poznań - under the invocation of Mary Magdalene'
+wyjatki_parafie['Kraków - Św. Krzyż'] = 'Kraków - under the invocation of St. Cross'
+wyjatki_parafie['Kraków - Anna'] = 'Krakow - under the invocation of St. Anne'
+wyjatki_parafie['Łęgonice - Maria Magdalena'] = 'Łęgonice - under the invocation of Mary Magdalene'
+wyjatki_parafie['Kazimierz - Boże Ciało'] = 'Kazimierz - under the invocation of Corpus Christi'
 
 
 unikalne = []
@@ -314,7 +314,8 @@ if __name__ == '__main__':
 
     logger.info('POCZĄTEK IMPORTU')
 
-    # wczytanie słownika z mapowaniem prng -> qid ??
+    # wczytanie słownika z mapowaniem prng -> qid  - ten plik trzeba przygotować dla docelowej wiki
+    # gdyż tam będą inne symbole QID
     file_map = Path('..') / 'data' / 'prng_qid.csv'
     with open(file_map, 'r', encoding='utf-8') as fm:
         map_lines = fm.readlines()
@@ -343,6 +344,9 @@ if __name__ == '__main__':
     line_number = 0
     for line in lines:
         line_number +=1
+
+        # if line_number < 875:
+        #     continue
 
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
@@ -659,10 +663,8 @@ if __name__ == '__main__':
         if wikidata:
             q_wikidata = wikidata.replace('http://www.wikidata.org/entity/','').strip()
             if not element_qid or first_load or not has_statement(element_qid, properties['Wikidata item identifier'], q_wikidata):
-                wiki_ref = {}
-                wiki_ref[properties['reference URL']] = wikidata
                 statement = create_statement_data(properties['Wikidata item identifier'],
-                                                  q_wikidata, wiki_ref, None, add_ref_dict=references, if_exists='APPEND')
+                                                  q_wikidata, None, None, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
@@ -756,6 +758,7 @@ if __name__ == '__main__':
                 if 'prawosławna' in t_parafia:
                     parameters = [(properties['instance of'], elements['parish (Orthodox Church)'])]
                     label_to_search = f"orthodox parish {t_parafia}"
+                    label_to_search = label_to_search.replace('(prawosławna)','').strip()
                 else:
                     parameters = [(properties['instance of'], elements['parish (Latin Church)'])]
                     label_to_search = f"parish {t_parafia}"
