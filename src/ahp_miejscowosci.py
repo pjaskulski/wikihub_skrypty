@@ -345,9 +345,6 @@ if __name__ == '__main__':
     for line in lines:
         line_number +=1
 
-        # if line_number < 875:
-        #     continue
-
         t_line = line.split('@')
         id_miejscowosci = t_line[0].strip()
 

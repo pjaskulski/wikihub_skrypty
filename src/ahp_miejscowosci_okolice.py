@@ -55,21 +55,17 @@ if WIKIBASE_WRITE:
 # standardowe właściwości
 logger.info('Przygotowanie właściwości...')
 properties = get_properties(['neighborhood with', 'point in time', 'reference URL',
-                             'retrieved', 'AHP id', 'refine date'])
+                             'retrieved', 'AHP ID', 'refine date', 'stated in'])
 
 logger.info('Przygotowanie elementów definicyjnych...')
 elements = get_elements(['second half'])
 
-# wspólna referencja dla wszystkich deklaracji
-now = datetime.now()
-retrieved = now.strftime("%Y-%m-%d")
 references = {}
-references[properties['reference URL']] = 'https://atlasfontium.pl/ziemie-polskie-korony/'
-references[properties['retrieved']] = retrieved
+references[properties['stated in']] = 'Q234031' # referencja do elementu AHP w instancji testowej!
+references[properties['retrieved']] = '2023-06-15'
 
-# kwalifikator z punktem w czasie
 qualifiers = {}
-qualifiers[properties['point in time']] = '+1501-00-00T00:00:00Z/7' # XVI wiek
+qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
 qualifiers[properties['refine date']] = elements['second half']     # druga połowa
 
 # ------------------------------------MAIN -------------------------------------
@@ -95,7 +91,7 @@ if __name__ == '__main__':
     cur.execute(sql)
 
     # wczytanie tabeli zbiorczej AHP
-    file_name = Path('..') / 'data' / 'ahp_zbiorcza_pkt_prng.csv'
+    file_name = Path('..') / 'data' / 'ahp_miejscowosci.csv'
     with open(file_name, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
@@ -125,7 +121,7 @@ if __name__ == '__main__':
             if not result:
                 continue
 
-            ok, element_qid = search_by_unique_id(properties['AHP id'], id_miejscowosci)
+            ok, element_qid = search_by_unique_id(properties['AHP ID'], id_miejscowosci)
             if not ok:
                 logger.info(f'ERROR: nie znaleziono elementu dla id_ahp: {id_miejscowosci}')
                 continue
@@ -134,7 +130,7 @@ if __name__ == '__main__':
                 okolica_id = item[0].strip()
 
                 # wyszukanie elementu miejscowości należącej do okolicy z bieżącą miejscowością
-                ok, okolica_qid = search_by_unique_id(properties['AHP id'], okolica_id)
+                ok, okolica_qid = search_by_unique_id(properties['AHP ID'], okolica_id)
                 if ok:
                     data = []
                     statement = create_statement_data(properties['neighborhood with'],
