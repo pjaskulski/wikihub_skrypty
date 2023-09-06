@@ -1,8 +1,8 @@
 """ Tworzenie xlsx do importu na podstawie xlsx z danymi z PRNG (Kraina, region)  """
 import openpyxl
 
-# stałe
-Q_REGION = 'Q86556'
+# stałe - zmienić dla docelowej!!!
+Q_REGION = 'Q233971'
 P_STATED_AS = 'P195'
 P_INFLECTIONAL_FORM = 'P282'
 P_LOCATIVE_FORM = 'P281'
@@ -12,6 +12,7 @@ P_LOCATED_IN_COUNTRY = 'P292'
 P_COORDINATE_LOCATION = 'P48'
 P_ID_SDI = 'P289'
 P_REFERENCE_URL = 'P182'
+P_POINT_IN_TIME = 'P485'
 
 reference_value = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
 
@@ -75,10 +76,14 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
         statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa}"',
                           P_INFLECTIONAL_FORM, odmiana_ngd,
                           P_REFERENCE_URL, reference_value]
+        q_statement.append(statement_item)
+        # point in time
+        statement_item = ['', '', '', P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9', '', '']
+        q_statement.append(statement_item)
     else:
-        statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa}"', '', '',
+        statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa}"', P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9',
                           P_REFERENCE_URL, reference_value]
-    q_statement.append(statement_item)
+        q_statement.append(statement_item)
 
     # locative form
     if odmiana_ngm:
@@ -98,6 +103,9 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
             statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa_obocz}"', P_INFLECTIONAL_FORM, odmiana_nod,
                               P_REFERENCE_URL, reference_value]
             q_statement.append(statement_item)
+            # point in time
+            statement_item = ['', '', '', P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9', '', '']
+            q_statement.append(statement_item)
 
         # locative form
         if odmiana_nom:
@@ -109,9 +117,10 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
             q_statement.append(statement_item)
 
     if nazwa_hist:
-        statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa_hist}"', '', '',
+        statement_item = [nazwa_main, P_STATED_AS, f'pl:"{nazwa_hist}"', P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9',
                           P_REFERENCE_URL, reference_value]
         q_statement.append(statement_item)
+
         statement_item = [nazwa_main, 'Apl', nazwa_hist, '', '', '', '']
         q_statement.append(statement_item)
 
@@ -121,9 +130,10 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
         for tmp_tab_item in tmp_tab:
             tmp_tab_item = tmp_tab_item.strip()
             if tmp_tab_item:
-                statement_item = [nazwa_main, P_STATED_AS, f'pl:"{tmp_tab_item}"', '', '',
+                statement_item = [nazwa_main, P_STATED_AS, f'pl:"{tmp_tab_item}"', P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9',
                             P_REFERENCE_URL, reference_value]
                 q_statement.append(statement_item)
+
                 statement_item = [nazwa_main, 'Apl', tmp_tab_item, '', '', '', '']
                 q_statement.append(statement_item)
 
@@ -149,13 +159,14 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
         longitude = str(stopnie + minuty)
 
         coordinate = f'{latitude},{longitude}'
-        statement_item = [nazwa_main, P_COORDINATE_LOCATION, coordinate, '', '',
+        statement_item = [nazwa_main, P_COORDINATE_LOCATION, coordinate, P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9',
                           P_REFERENCE_URL, reference_value]
         q_statement.append(statement_item)
 
     if idiip:
-        statement_item = [nazwa_main, P_ID_SDI, idiip, '', '', '', '']
+        statement_item = [nazwa_main, P_ID_SDI, idiip, P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9', '', '']
         q_statement.append(statement_item)
+
 
 # zapis do wyjściowego arkusza
 q_list_sheet = wb_out['Q_list']

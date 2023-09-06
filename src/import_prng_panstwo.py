@@ -46,6 +46,10 @@ elements = get_elements(['country'])
 references = {}
 references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
 
+# kwalifikator z punktem czasowym
+qualifiers_time = {}
+qualifiers_time[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
+
 
 # ----------------------------------- MAIN -------------------------------------
 
@@ -111,20 +115,20 @@ if __name__ == '__main__':
         aliasy = []
 
         # instance of
-        statement = create_statement_data(properties['instance of'], elements['country'], None, None, add_ref_dict=None)
+        statement = create_statement_data(properties['instance of'], elements['country'], None, qualifier_dict=qualifiers_time, add_ref_dict=None)
         if statement:
             data.append(statement)
 
         # współrzędne geograficzne
         if wsp_geo:
             coordinate = get_coord(wsp_geo)
-            statement = create_statement_data(properties['coordinate location'], coordinate, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['coordinate location'], coordinate, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # id SDI
         if idiip:
-            statement = create_statement_data(properties['id SDI'], idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['id SDI'], idiip, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
@@ -136,6 +140,7 @@ if __name__ == '__main__':
             qualifiers[properties['locative form']] = odmiana_ngm
         if odmiana_ngp:
             qualifiers[properties['adjective form']] = odmiana_ngp
+        qualifiers.update(qualifiers_time)
         statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, qualifiers, add_ref_dict=references)
         if statement:
             data.append(statement)
@@ -150,6 +155,7 @@ if __name__ == '__main__':
                 qualifiers[properties['locative form']] = odmiana_ndm
             if odmiana_ndp:
                 qualifiers[properties['adjective form']] = odmiana_ndp
+            qualifiers.update(qualifiers_time)
             statement = create_statement_data(properties['stated as'], f'pl:"{nazwa_dlug}"', None, qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
@@ -164,6 +170,7 @@ if __name__ == '__main__':
                 qualifiers[properties['locative form']] = odmiana_nom
             if odmiana_nop:
                 qualifiers[properties['adjective form']] = odmiana_nop
+            qualifiers.update(qualifiers_time)
             statement = create_statement_data(properties['stated as'], f'pl:"{nazwa_obocz}"', None, qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
@@ -177,7 +184,7 @@ if __name__ == '__main__':
 
         # polozenieT
         if polozenie_t:
-            statement = create_statement_data(properties['located in (string)'], polozenie_t, None, None, add_ref_dict=references)
+            statement = create_statement_data(properties['located in (string)'], polozenie_t, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
