@@ -35,10 +35,18 @@ ok, p_reference_url = find_name_qid('reference URL', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
     sys.exit(1)
+ok, p_point_in_time = find_name_qid('point in time', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'point in time' w instancji Wikibase")
+    sys.exit(1)
 
 # wspólna referencja dla wszystkich deklaracji z PRNG
 references = {}
 references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
+
+# kwalifikator z punktem czasowym
+qualifiers_time = {}
+qualifiers_time[p_point_in_time] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
 ok, q_country = find_name_qid('country', 'item', strict=True)
 if not ok:
@@ -63,7 +71,7 @@ if __name__ == "__main__":
 
     login_instance = wbi_login.Login(user=BOT_LOGIN, pwd=BOT_PASSWORD)
 
-    # wczytanie danych z XLSX
+    # wczytanie danych z XLSX - uwaga ścieżka bezwzględna...
     xlsx_input = '/home/piotr/ihpan/wikihub_skrypty/data_prng/PRNG_egzonimy_region_source.xlsx'
 
     wb = openpyxl.load_workbook(xlsx_input)
@@ -94,6 +102,7 @@ if __name__ == "__main__":
             pol_t[nazwa] = polozenie_t
 
     # uzpełniane danych dla regionów - kraje z pola informDod
+    # tu numery QID z właściwej instancji wiki!!!
     start = 361960
     stop = 362422
 
@@ -118,7 +127,7 @@ if __name__ == "__main__":
                 if not ok:
                     continue
 
-                statement = create_statement_data(p_located_in_country, item_id, None, None, add_ref_dict=references, if_exists='APPEND')
+                statement = create_statement_data(p_located_in_country, item_id, None, qualifier_dict=qualifiers_time, add_ref_dict=references, if_exists='APPEND')
                 if statement:
                     data.append(statement)
 
