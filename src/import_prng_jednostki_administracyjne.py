@@ -77,6 +77,10 @@ ok, p_id_sdi = find_name_qid('id SDI', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'id SDI' w instancji Wikibase")
     sys.exit(1)
+ok, p_point_in_time = find_name_qid('point in time', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'point in time' w instancji Wikibase")
+    sys.exit(1)
 
 # elementy definicyjne
 # symbol QID elementu definicyjnego 'administrative unit', w wersji testowej: 'Q79096'
@@ -106,6 +110,10 @@ if not ok:
 # wspólna referencja dla wszystkich deklaracji z PRNG
 references = {}
 references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
+
+# kwalifikator z punktem czasowym
+qualifiers_time = {}
+qualifiers_time[p_point_in_time] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
 
 def get_coord(value: str) -> str:
@@ -204,20 +212,20 @@ if __name__ == '__main__':
         aliasy = []
 
         # instance of
-        statement = create_statement_data(p_instance_of, q_administrative_unit, None, None, add_ref_dict=None)
+        statement = create_statement_data(p_instance_of, q_administrative_unit, None, qualifier_dict=qualifiers_time, add_ref_dict=None)
         if statement:
             data.append(statement)
 
         # współrzędne geograficzne
         if wsp_geo:
             coordinate = get_coord(wsp_geo)
-            statement = create_statement_data(p_coordinate, coordinate, None, None, add_ref_dict=references)
+            statement = create_statement_data(p_coordinate, coordinate, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # id SDI
         if idiip:
-            statement = create_statement_data(p_id_sdi, idiip, None, None, add_ref_dict=references)
+            statement = create_statement_data(p_id_sdi, idiip, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
@@ -229,6 +237,7 @@ if __name__ == '__main__':
             qualifiers[p_locative_form] = odmiana_ngm
         if odmiana_ngp:
             qualifiers[p_adjective_form] = odmiana_ngp
+        qualifiers.update(qualifiers_time)
         statement = create_statement_data(p_stated_as, f'pl:"{nazwa}"', None, qualifiers, add_ref_dict=references)
         if statement:
             data.append(statement)
@@ -242,6 +251,7 @@ if __name__ == '__main__':
                 qualifiers[p_locative_form] = odmiana_ndm
             if odmiana_ndp:
                 qualifiers[p_adjective_form] = odmiana_ndp
+            qualifiers.update(qualifiers_time)
             statement = create_statement_data(p_stated_as, f'pl:"{nazwa_dlug}"', None, qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
@@ -255,6 +265,7 @@ if __name__ == '__main__':
                 qualifiers[p_locative_form] = odmiana_nom
             if odmiana_nop:
                 qualifiers[p_adjective_form] = odmiana_nop
+            qualifiers.update(qualifiers_time)
             statement = create_statement_data(p_stated_as, f'pl:"{nazwa_obocz}"', None, qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
@@ -264,7 +275,7 @@ if __name__ == '__main__':
             if element_roz != nazwa:
                 aliasy.append(element_roz)
             if element_roz not in (nazwa, nazwa_dlug, nazwa_obocz):
-                statement = create_statement_data(p_stated_as, f'pl:"{element_roz}"', None, None, add_ref_dict=references)
+                statement = create_statement_data(p_stated_as, f'pl:"{element_roz}"', None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                 if statement:
                     data.append(statement)
 
@@ -276,7 +287,7 @@ if __name__ == '__main__':
             ok, country_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
             if country_qid:
                 #name_description = get_label_en(country_qid)
-                statement = create_statement_data(p_located_in_country, country_qid, None, None, add_ref_dict=references)
+                statement = create_statement_data(p_located_in_country, country_qid, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                 if statement:
                     data.append(statement)
             else:
@@ -285,7 +296,7 @@ if __name__ == '__main__':
                 ok, dependent_territory_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
                 if dependent_territory_qid:
                     #name_description = get_label_en(dependent_territory_qid)
-                    statement = create_statement_data(p_located_in, dependent_territory_qid, None, None, add_ref_dict=references)
+                    statement = create_statement_data(p_located_in, dependent_territory_qid, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                     if statement:
                         data.append(statement)
                 else:
@@ -294,14 +305,14 @@ if __name__ == '__main__':
                     ok, region_qid = element_search_adv(polozenie_t, 'pl', parameters, max_results_to_verify=5)
                     if region_qid:
                         #name_description = get_label_en(region_qid)
-                        statement = create_statement_data(p_located_in, dependent_territory_qid, None, None, add_ref_dict=references)
+                        statement = create_statement_data(p_located_in, dependent_territory_qid, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                         if statement:
                             data.append(statement)
                     else:
                         # jeżeli ani country, ani dependent territory an region to zapisujemy
                         # we właściwości 'located_in_(string)'
                         #name_description = polozenie_t
-                        statement = create_statement_data(p_located_in_string, polozenie_t, None, None, add_ref_dict=references)
+                        statement = create_statement_data(p_located_in_string, polozenie_t, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                         if statement:
                             data.append(statement)
 
