@@ -43,9 +43,19 @@ if not ok:
     print("ERROR: brak właściwości 'reference URL' w instancji Wikibase")
     sys.exit(1)
 
+ok, p_point_in_time = find_name_qid('point in time', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'point in time' w instancji Wikibase")
+    sys.exit(1)
+
 # wspólna referencja dla wszystkich deklaracji z PRNG
 references = {}
 references[p_reference_url] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
+
+
+# kwalifikator z punktem czasowym
+qualifiers_time = {}
+qualifiers_time[p_point_in_time] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
 # symbol QID elementu definicyjnego 'country', w wersji testowej: 'Q86557'
 ok, q_country = find_name_qid('country', 'item', strict=True)
@@ -137,12 +147,12 @@ if __name__ == "__main__":
                 if ok:
                     # tylko jeżeli jeszcze nie ma tego kraju (np. z pola informDod)
                     if not has_statement(item, p_located_in_country, item_id):
-                        statement = create_statement_data(p_located_in_country, item_id, None, None, add_ref_dict=references, if_exists='APPEND')
+                        statement = create_statement_data(p_located_in_country, item_id, None, qualifier_dict=qualifiers_time, add_ref_dict=references, if_exists='APPEND')
                         if statement:
                             data.append(statement)
                 # jeżeli nie to inna właściwość: 'located in (string)'
                 else:
-                    statement = create_statement_data(p_located_in_string, tmp_tab_item, None, None, add_ref_dict=references, if_exists='APPEND')
+                    statement = create_statement_data(p_located_in_string, tmp_tab_item, None, qualifier_dict=qualifiers_time, add_ref_dict=references, if_exists='APPEND')
                     if statement:
                         data.append(statement)
 
