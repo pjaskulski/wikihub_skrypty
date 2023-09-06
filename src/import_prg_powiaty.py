@@ -134,7 +134,7 @@ if __name__ == '__main__':
         statement = create_statement_data(prop=properties['stated as'],
                                           value=f'pl:"{nazwa}"',
                                           reference_dict=None,
-                                          qualifier_dict=None,
+                                          qualifier_dict=qualifiers,
                                           add_ref_dict=references)
         if statement:
             data.append(statement)
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             statement = create_statement_data(prop=properties['part of'],
                                               value=woj_qid,
                                               reference_dict=None,
-                                              qualifier_dict=None,
+                                              qualifier_dict=qualifiers,
                                               add_ref_dict=references)
             if statement:
                 data.append(statement)

@@ -132,14 +132,14 @@ if __name__ == '__main__':
             statement = create_statement_data(properties['TERYT'],
                                               teryt,
                                               None,
-                                              None,
+                                              qualifier_dict=qualifiers,
                                               add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # JPT_NAZWA_
         aliasy.append(nazwa)
-        statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, None, add_ref_dict=references)
+        statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None, qualifier_dict=qualifiers, add_ref_dict=references)
         if statement:
             data.append(statement)
 

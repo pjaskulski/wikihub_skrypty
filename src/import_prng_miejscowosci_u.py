@@ -36,6 +36,7 @@ start_time = time.time()
 # czy zapis do wikibase czy tylko test
 WIKIBASE_WRITE = True
 
+
 # ----------------------------------- MAIN -------------------------------------
 
 if __name__ == '__main__':
@@ -46,7 +47,7 @@ if __name__ == '__main__':
                                 'coordinate location', 'located in the administrative territorial entity',
                                 'name status', 'inflectional ending', 'adjective form',
                                 'located in the administrative territorial entity', 'prng id',
-                                'SIMC place ID'
+                                'SIMC place ID', 'point in time'
                                 ])
 
     # elementy definicyjne
@@ -90,6 +91,10 @@ if __name__ == '__main__':
     references = {}
     references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
     references[properties['retrieved']] = '2022-09-23'
+
+    # wspólny kwalifikator z punktem czasowym
+    qualifiers_time = {}
+    qualifiers_time[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
 
     # logowanie do instancji wikibase
     login_instance = wbi_login.Login(consumer_key=WIKIDARIAH_CONSUMER_TOKEN,
@@ -181,7 +186,7 @@ if __name__ == '__main__':
             latitude = tmp[1]
             coordinate = f'{latitude},{longitude}'
             statement = create_statement_data(properties['coordinate location'], coordinate,
-                None, None, add_ref_dict=references)
+                None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
@@ -200,7 +205,7 @@ if __name__ == '__main__':
 
         # instance of
         statement = create_statement_data(properties['instance of'], elements['human settlement'],
-                                          None, None, add_ref_dict=None)
+                                          None, qualifier_dict=qualifiers_time, add_ref_dict=None)
         if statement:
             data.append(statement)
 
@@ -211,6 +216,8 @@ if __name__ == '__main__':
         if przymiotni:
             qualifiers[properties['adjective form']] = przymiotni
         qualifiers[properties['name status']] = elements['official name']
+        # uzupełnienie o wspólny kwalifikator point in time
+        qualifiers.update(qualifiers_time)
 
         statement = create_statement_data(properties['stated as'], f'pl:"{nazwa}"', None,
                                           qualifiers, add_ref_dict=references)
@@ -227,14 +234,14 @@ if __name__ == '__main__':
                 else:
                     aliasy['pl'] = [tmp_item]
                 statement = create_statement_data(properties['stated as'], f'pl:"{tmp_item}"',
-                    None, None, add_ref_dict=references)
+                    None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                 if statement:
                     data.append(statement)
 
         # NAZWYDODAT
         if nazwy_dodat:
             statement = create_statement_data(properties['stated as'], f'{nd_jezyk}:"{nazwy_dodat}"',
-                None, None, add_ref_dict=references)
+                None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
             if nd_jezyk in aliasy:
@@ -252,7 +259,7 @@ if __name__ == '__main__':
                 else:
                     aliasy['pl'] = [tmp_item]
                 statement = create_statement_data(properties['stated as'], f'pl:"{tmp_item}"',
-                    None, None, add_ref_dict=references)
+                    None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                 if statement:
                     data.append(statement)
 
@@ -268,21 +275,21 @@ if __name__ == '__main__':
             ok, gmina_qid = element_search_adv('commune' + ' ' + gmina, 'en', parameters)
             if ok:
                 statement = create_statement_data(properties['located in the administrative territorial entity'],
-                    gmina_qid, None, None, add_ref_dict=references)
+                    gmina_qid, None, qualifier_dict=qualifiers_time, add_ref_dict=references)
                 if statement:
                     data.append(statement)
 
         # identyfikator PRNG
         if row_prng:
             statement = create_statement_data(properties['prng id'], row_prng,
-                None, None, add_ref_dict=references)
+                None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 
         # identyfikator SIMC
         if row_simc:
             statement = create_statement_data(properties['SIMC place ID'], row_simc,
-                None, None, add_ref_dict=references)
+                None, qualifier_dict=qualifiers_time, add_ref_dict=references)
             if statement:
                 data.append(statement)
 

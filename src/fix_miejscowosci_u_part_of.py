@@ -52,6 +52,10 @@ if __name__ == '__main__':
     references[properties['reference URL']] = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
     references[properties['retrieved']] = '2022-09-23'
 
+    # kwalifikator z punktem czasowym
+    qualifiers = {}
+    qualifiers[properties['point in time']] = '+2022-00-00T00:00:00Z/9' # rok 2022
+
     # mapowanie rodzajów
     rodzaje = {}
     rodzaje['część kolonii'] = 'kolonia'
@@ -173,12 +177,12 @@ if __name__ == '__main__':
         # utworzenie deklaracji
         if part_of_qid:
             statement = create_statement_data(properties['part of'], part_of_qid,
-                             None, None, add_ref_dict=references)
+                             None, qualifier_dict=qualifiers, add_ref_dict=references)
             if statement:
                 data.append(statement)
             # odwrotność
             r_statement = create_statement_data(properties['has part or parts'], row_qid,
-                            None, None, add_ref_dict=references, if_exists='APPEND')
+                            None, qualifier_dict=qualifiers, add_ref_dict=references, if_exists='APPEND')
             if r_statement:
                 r_data.append(r_statement)
         else:
