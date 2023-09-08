@@ -367,11 +367,16 @@ def search_by_purl(purl_prop_id:str, purl_value: str) -> tuple:
 
     # wynik to lista adresów http://prunus-208.man.poznan.pl/entity/Q357
     #                     lub https://prunus-208.man.poznan.pl/entity/Q95773
+    # a w wersji docelowej https://wikihum.lab.dariah.pl/entity/Q691
     if len(output) == 1:
-        if 'https' in output[0].strip():
-            search_result = output[0].strip().replace('https://prunus-208.man.poznan.pl/entity/', '')
-        else:
-            search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
+        tmp_result = str(output[0].strip())
+        pos = tmp_result.rfind(r'/')
+        search_result = tmp_result[pos+1:]
+
+        # if 'https' in output[0].strip():
+        #     search_result = output[0].strip().replace('https://prunus-208.man.poznan.pl/entity/', '')
+        # else:
+        #     search_result = output[0].strip().replace('http://prunus-208.man.poznan.pl/entity/', '')
         return True, search_result
 
     return False, f'ERROR: brak wyniku lub niejednoznaczny wynik wyszukiwania elementu z identyfikatorem Purl (znaleziono: {len(output)}).'
