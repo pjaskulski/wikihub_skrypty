@@ -53,8 +53,12 @@ ok, p_ends_at = find_name_qid('ends at', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'ends at' w instancji Wikibase")
     sys.exit(1)
+ok, p_instance_of = find_name_qid('instance of', 'property', strict=True)
+if not ok:
+    print("ERROR: brak właściwości 'instance of' w instancji Wikibase")
+    sys.exit(1)
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 def get_token(my_login) -> str:
@@ -84,6 +88,7 @@ def get_token(my_login) -> str:
 def add_reference(my_login, p_token: str, p_claim_id: str, prop_nr: str, prop_value: str) -> bool:
     """dodaje odnośnik do deklaracji"""
     add_result = False
+    prop_value_numeric = int(prop_value[1:])
 
     snak_type = "value"
     snak = {
@@ -91,7 +96,9 @@ def add_reference(my_login, p_token: str, p_claim_id: str, prop_nr: str, prop_va
             {
                 "snaktype": snak_type,
                 "property": prop_nr,
-                "datavalue": {"type": "string", "value": prop_value},
+                "datavalue": {"type": "wikibase-entityid",
+                              "value": {"entity-type": "item", "numeric-id": prop_value_numeric, "id": prop_value}
+                              },
             }
         ]
     }
@@ -144,7 +151,7 @@ if __name__ == "__main__":
     g_ref_value = 'Q364'
 
     properties = [p_part_of, p_has_part_or_parts, p_subclass_of, p_superclass_of,
-                  p_starts_at, p_ends_at]
+                  p_starts_at, p_ends_at, p_instance_of]
 
     # # lista systemów administracyjnych
     systems_items = []
