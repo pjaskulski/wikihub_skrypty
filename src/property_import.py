@@ -22,14 +22,14 @@ from wikidariahtools import element_search, search_by_purl, get_property_type, s
 warnings.filterwarnings("ignore")
 
 # adresy dla API Wikibase (instacja testowa)
-wbi_config["MEDIAWIKI_API_URL"] = "https://prunus-208.man.poznan.pl/api.php"
-wbi_config["SPARQL_ENDPOINT_URL"] = "https://prunus-208.man.poznan.pl/bigdata/sparql"
-wbi_config["WIKIBASE_URL"] = "https://prunus-208.man.poznan.pl"
+# wbi_config["MEDIAWIKI_API_URL"] = "https://prunus-208.man.poznan.pl/api.php"
+# wbi_config["SPARQL_ENDPOINT_URL"] = "https://prunus-208.man.poznan.pl/bigdata/sparql"
+# wbi_config["WIKIBASE_URL"] = "https://prunus-208.man.poznan.pl"
 
 # adresy dla API Wikibase (instancja docelowa)
-#wbi_config['MEDIAWIKI_API_URL'] = 'https://wikihum.lab.dariah.pl/api.php'
-#wbi_config['SPARQL_ENDPOINT_URL'] = 'https://wikihum.lab.dariah.pl/bigdata/sparql'
-#wbi_config['WIKIBASE_URL'] = 'https://wikihum.lab.dariah.pl'
+wbi_config['MEDIAWIKI_API_URL'] = 'https://wikihum.lab.dariah.pl/api.php'
+wbi_config['SPARQL_ENDPOINT_URL'] = 'https://wikihum.lab.dariah.pl/bigdata/sparql'
+wbi_config['WIKIBASE_URL'] = 'https://wikihum.lab.dariah.pl'
 
 # słownik globalnych referencji dla arkuszy (z deklaracjami)
 GLOBAL_REFERENCE = {}
@@ -42,7 +42,7 @@ GLOBAL_ITEM = {}
 
 # parametr globalny czy zapisywać dane do wikibase, jeżeli = False dla nowych
 # właściwości i elementów zwraca QID = TEST
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 # --- klasy ---
 class BasicProp:
@@ -50,15 +50,20 @@ class BasicProp:
 
     def __init__(self):
         self.wiki_id = ""
+        self.wiki_property_id = ""
         self.wiki_url = ""
         self.inverse = ""
 
     def get_wiki_properties(self):
         """funkcja ustala nr podstawowych property związanych z wikidata.org"""
         if self.wiki_id == "":
-            search_result, pid = element_search("Wikidata ID", "property", "en")
+            search_result, pid = element_search("Wikidata item identifier", "property", "en")
             if search_result:
                 self.wiki_id = pid
+        if self.wiki_property_id == "":
+            search_result, pid = element_search("Wikidata property identifier", "property", "en")
+            if search_result:
+                self.wiki_property_id = pid
         if self.wiki_url == "":
             search_result, pid = element_search("reference URL", "property", "en")
             if search_result:
@@ -980,18 +985,18 @@ class WDHItem:
 
             if not skip_wiki_id:
                 item_is_changed = True
-                url = f"https://www.wikidata.org/wiki/{self.wiki_id}"
-                references = [
-                    [
-                        wbi_datatype.Url(
-                            value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True
-                        )
-                    ]
-                ]
+                #url = f"https://www.wikidata.org/wiki/{self.wiki_id}"
+                #references = [
+                #    [
+                #        wbi_datatype.Url(
+                #            value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True
+                #        )
+                #    ]
+                #]
                 wiki_dane = wbi_datatype.ExternalID(
                     value=self.wiki_id,
                     prop_nr=wikibase_prop.wiki_id,
-                    references=references,
+                    references=None,
                 )
 
         # obsługa opcjonalnych kolumn StatsAt, EndsAt, Instance of, Purl_identifier
@@ -1697,32 +1702,32 @@ def add_property(p_dane: WDHProperty) -> tuple:
         if p_dane.description_pl:
             wd_item.set_description(p_dane.description_pl, lang="pl")
 
-    # Wikidata ID i Wikidata URL (reference URL)
+    # Wikidata property ID
     wiki_dane = None
     if p_dane.wiki_id:
-        if wikibase_prop.wiki_id == "" or wikibase_prop.wiki_url == "":
+        if wikibase_prop.wiki_property_id == "" or wikibase_prop.wiki_url == "":
             wikibase_prop.get_wiki_properties()
 
         if search_property and has_statement(
-            search_id, wikibase_prop.wiki_id, p_dane.wiki_id
+            search_id, wikibase_prop.wiki_property_id, p_dane.wiki_id
         ):
             print(
-                f"SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już deklarację: {wikibase_prop.wiki_id} o wartości: {p_dane.wiki_id}"
+                f"SKIP: właściwość: {search_id} ({p_dane.label_en}) posiada już deklarację: {wikibase_prop.wiki_property_id} o wartości: {p_dane.wiki_id}"
             )
         else:
             aktualizacja = True
-            url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
-            references = [
-                [
-                    wbi_datatype.Url(
-                        value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True
-                    )
-                ]
-            ]
+            #url = f"https://www.wikidata.org/wiki/Property:{p_dane.wiki_id}"
+            #references = [
+            #    [
+            #        wbi_datatype.Url(
+            #            value=url, prop_nr=wikibase_prop.wiki_url, is_reference=True
+            #        )
+            #    ]
+            #]
             wiki_dane = wbi_datatype.ExternalID(
                 value=p_dane.wiki_id,
-                prop_nr=wikibase_prop.wiki_id,
-                references=references,
+                prop_nr=wikibase_prop.wiki_property_id,
+                references=None,
             )
 
     # odwrotność właściwości
@@ -2921,10 +2926,10 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # login i hasło ze zmiennych środowiskowych - instancja testowa
-    env_path = Path(".") / ".env"
+    #env_path = Path(".") / ".env"
 
     # login i hasło ze zmiennych środowiskowych - instancja docelowa
-    # env_path = Path(".") / ".env_wikihum"
+    env_path = Path(".") / ".env_wikihum"
 
     load_dotenv(dotenv_path=env_path)
 
