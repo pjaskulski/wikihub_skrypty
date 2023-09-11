@@ -54,7 +54,7 @@ if not ok:
     print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
     sys.exit(1)
 
-WIKIBASE_WRITE = False
+WIKIBASE_WRITE = True
 
 
 def get_token(my_login) -> str:
@@ -84,6 +84,7 @@ def get_token(my_login) -> str:
 def add_reference(my_login, p_token: str, p_claim_id: str, prop_nr: str, prop_value: str) -> bool:
     """dodaje odnośnik do deklaracji"""
     add_result = False
+    prop_value_numeric = int(prop_value[1:])
 
     snak_type = "value"
     snak = {
@@ -91,7 +92,8 @@ def add_reference(my_login, p_token: str, p_claim_id: str, prop_nr: str, prop_va
             {
                 "snaktype": snak_type,
                 "property": prop_nr,
-                "datavalue": {"type": "string", "value": prop_value},
+                "datavalue": {"type": "wikibase-entityid",
+                              "value": {"entity-type": "item", "numeric-id": prop_value_numeric, "id": prop_value}},
             }
         ]
     }
