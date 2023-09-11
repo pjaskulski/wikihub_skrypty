@@ -1,5 +1,5 @@
 """ skrypt dodaje referencję typu 'reference URL' do właściwości
-    'part of' dla elementów będących typami jednostek administracyjnych
+    'part of', subclass of itp. dla systemów administracyjnych
 """
 
 import os
@@ -45,13 +45,13 @@ ok, p_superclass_of = find_name_qid('superclass of', 'property', strict=True)
 if not ok:
     print("ERROR: brak właściwości 'superclass of' w instancji Wikibase")
     sys.exit(1)
-ok, p_contains_adm_type = find_name_qid('contains administrative unit type', 'property', strict=True)
+ok, p_starts_at = find_name_qid('starts at', 'property', strict=True)
 if not ok:
-    print("ERROR: brak właściwości 'contains administrative unit type' w instancji Wikibase")
+    print("ERROR: brak właściwości 'starts at' w instancji Wikibase")
     sys.exit(1)
-ok, p_belongs_to_adm_sys = find_name_qid('belongs to administrative system', 'property', strict=True)
+ok, p_ends_at = find_name_qid('ends at', 'property', strict=True)
 if not ok:
-    print("ERROR: brak właściwości 'belongs to administrative system' w instancji Wikibase")
+    print("ERROR: brak właściwości 'ends at' w instancji Wikibase")
     sys.exit(1)
 
 WIKIBASE_WRITE = False
@@ -144,19 +144,19 @@ if __name__ == "__main__":
     g_ref_value = 'Q364'
 
     properties = [p_part_of, p_has_part_or_parts, p_subclass_of, p_superclass_of,
-                  p_belongs_to_adm_sys, p_contains_adm_type]
+                  p_starts_at, p_ends_at]
 
-    # lista typów jednostek administracyjnych
-    administrative_types = []
-    query = 'SELECT ?item WHERE {{ ?item wdt:P27 wd:Q36 . }}'
+    # # lista systemów administracyjnych
+    systems_items = []
+    query = 'SELECT ?item WHERE { ?item wdt:P27 wd:Q4 . }'
     results = execute_sparql_query(query)
     for result in results["results"]["bindings"]:
         tmp = str(result["item"]["value"]).strip()
         pos = tmp.rfind(r'/')
         search_result = tmp[pos+1:]
-        administrative_types.append(search_result)
+        systems_items.append(search_result)
 
-    for item in administrative_types:
+    for item in systems_items:
         print(f"Item: {item}")
         if not element_exists(item):
             continue
