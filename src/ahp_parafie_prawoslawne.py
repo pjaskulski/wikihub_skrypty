@@ -87,11 +87,11 @@ if __name__ == '__main__':
 
         # jeden wyjątek - parafia Czarna występuje 2x - w różnych powiatach
         if nazwa_16w == 'Czarna':
-            description_pl = f"parafia prawosławna [powiat {powiat_p}] (jednostka w systemie administracji kościelnej: Kościół prawosławny, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = f"orthodox parish [district {powiat_p}] (unit in the religious administrative system: Orthodox Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+            description_pl = f"parafia prawosławna [powiat {powiat_p}] (jednostka w systemie administracji kościelnej: Kościół prawosławny, stan na 2 poł. XVI wieku)"
+            description_en = f"orthodox parish [district {powiat_p}] (unit in the religious administrative system: Orthodox Church, status in the 2nd half of the 16th century)"
         else:
-            description_pl = "parafia prawosławna (jednostka w systemie administracji kościelnej: Kościół prawosławny, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = "orthodox parish (unit in the religious administrative system: Orthodox Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+            description_pl = "parafia prawosławna (jednostka w systemie administracji kościelnej: Kościół prawosławny, stan na 2 poł. XVI wieku)"
+            description_en = "orthodox parish (unit in the religious administrative system: Orthodox Church, status in the 2nd half of the 16th century)"
 
         # przygotowanie struktur wikibase
         data = []

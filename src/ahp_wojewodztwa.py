@@ -70,8 +70,8 @@ if __name__ == '__main__':
     for line in lines:
         label_pl = f"województwo {line}"
         label_en = f"palatinate {line}"
-        description_pl = "województwo (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795) wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-        description_en = "palatinate (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795) from Historical Atlas of Poland, status in the 2nd half of the 16th century)"
+        description_pl = "województwo (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795), stan na 2 poł. XVI wieku)"
+        description_en = "palatinate (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795), status in the 2nd half of the 16th century)"
 
         # przygotowanie struktur wikibase
         data = []

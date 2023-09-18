@@ -107,8 +107,8 @@ if __name__ == '__main__':
         longitude = t_line[7].strip()
 
         if dekanat_label:
-            description_pl = f"parafia [dekanat {dekanat_label}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = f"parish [deanery {dekanat_label}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+            description_pl = f"parafia [dekanat {dekanat_label}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+            description_en = f"parish [deanery {dekanat_label}](unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
         else:
             if g_archidia:
                 if g_archidia == 'Kielce Dz':
@@ -127,12 +127,12 @@ if __name__ == '__main__':
                     label_archidiakonat_en = f"archdeaconry {g_archidia}"
                     label_archidiakonat_pl = f"archidiakonat {g_archidia}"
 
-                description_pl = f"parafia [{label_archidiakonat_pl}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = f"parish [{label_archidiakonat_en}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = f"parafia [{label_archidiakonat_pl}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = f"parish [{label_archidiakonat_en}](unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
 
             elif g_diecezja:
-                description_pl = f"parafia [diecezja {g_diecezja}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = f"parish [diocese {g_diecezja}](unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = f"parafia [diecezja {g_diecezja}] (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = f"parish [diocese {g_diecezja}](unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
 
         # przygotowanie struktur wikibase
         data = []

@@ -85,8 +85,8 @@ if __name__ == '__main__':
 
         label_pl = f"dekanat {dekanat_label}"
         label_en = f"deanery {dekanat_label}"
-        description_pl = "dekanat (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-        description_en = "deanery (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+        description_pl = "dekanat (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+        description_en = "deanery (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
 
         # przygotowanie struktur wikibase
         data = []

@@ -85,36 +85,36 @@ if __name__ == '__main__':
             if archidiakonat == 'Kielce Dz':
                 label_pl = "dziekania Kielce"
                 label_en = "deaconry Kielce"
-                description_pl = "dziekania (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = "deaconry (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = "dziekania (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = "deaconry (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
                 instance_of = elements['deaconry (Latin Church)']
                 stated_as = 'Kielce Dz'
             elif archidiakonat == 'Kielce Pr':
                 label_pl = "prepozytura Kielce"
                 label_en = "provostship Kielce"
-                description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = "provostship (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = "provostship (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
                 instance_of = elements['provostship (Latin Church)']
                 stated_as = 'Kielce Pr'
             elif archidiakonat == 'Tarnów Pr':
                 label_pl = "prepozytura Tarnów"
                 label_en = "provostship Tarnów"
-                description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = "provostship (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = "provostship (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
                 instance_of = elements['provostship (Latin Church)']
                 stated_as = 'Tarnów Pr'
             elif archidiakonat == 'Wieluń Ter':
                 label_pl = "terytorium Wieluń"
                 label_en = "territory Wieluń"
-                description_pl = "terytorium (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-                description_en = "territory (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+                description_pl = "terytorium (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+                description_en = "territory (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
                 instance_of = elements['territory (Latin Church)']
                 stated_as = 'Wieluń Ter'
         else:
             label_pl = f"archidiakonat {archidiakonat}"
             label_en = f"archdeaconry {archidiakonat}"
-            description_pl = "archidiakonat (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = "archdeaconry (unit in the religious administrative system: Latin Church, according to the Historical Atlas of Poland, as of the 2nd half of the XVIth century)"
+            description_pl = "archidiakonat (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
+            description_en = "archdeaconry (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
             instance_of = elements['archdeaconry (Latin Church)']
             stated_as = archidiakonat
 

@@ -404,7 +404,7 @@ if __name__ == '__main__':
                 parameters = [(properties['instance of'], elements['human settlement']),
                               (properties['stated as'], f'pl:"{nazwa_16w}"')]
                 ok, element_qid = element_search_adv(f"{nazwa_16w}", 'en', parameters,
-                                    description=f"historical settlement from the Historical Atlas of Poland (parish {parafia}, district {powiat_p}, palatinate {woj_p})")
+                                    description=f"historical settlement (parish {parafia}, district {powiat_p}, palatinate {woj_p}, status in the 2nd half of the 16th century)")
 
             # jeżeli nie ma w wikibase to przygotowanie etykiet i description do dodania
             # w szczególnych przypadkach dodać własność do description?
@@ -429,8 +429,8 @@ if __name__ == '__main__':
                         desc_add_en.append(f"palatinate {woj_p}")
 
                 label_pl = label_en = nazwa_16w
-                description_pl = f"osada historyczna z Atlasu Historycznego Polski ({', '.join(desc_add_pl)})"
-                description_en = f"historical settlement from the Historical Atlas of Poland ({', '.join(desc_add_en)})"
+                description_pl = f"osada historyczna ({', '.join(desc_add_pl)}, stan na 2 poł. XVI wieku)"
+                description_en = f"historical settlement ({', '.join(desc_add_en)}, status in the 2nd half of the 16th century)"
 
                 # testowanie unikalności pary label-description
                 identyfikator = label_en + ' : ' + description_en

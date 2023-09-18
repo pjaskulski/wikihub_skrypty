@@ -80,11 +80,11 @@ if __name__ == '__main__':
         label_pl = f"powiat {powiat}"
         label_en = f"district {powiat}"
         if label_en != 'district bielski':
-            description_pl = "powiat (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795) wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = "district (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795) from Historical Atlas of Poland, status in the 2nd half of the 16th century"
+            description_pl = "powiat (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795), stan na 2 poł. XVI wieku)"
+            description_en = "district (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795), status in the 2nd half of the 16th century"
         else:
-            description_pl = f"powiat [{woj_description_pl}] (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795) wg Atlasu Historycznego Polski, stan na 2 poł. XVI wieku)"
-            description_en = f"district [{woj_description_en}] (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795) from Historical Atlas of Poland, status in the 2nd half of the 16th century"
+            description_pl = f"powiat [{woj_description_pl}] (jednostka w systemie administracyjnym: Rzeczpospolita Obojga Narodów (1569-1795), stan na 2 poł. XVI wieku)"
+            description_en = f"district [{woj_description_en}] (administrative unit of the secular administration system: The Polish-Lithuanian Commonwealth (1569-1795), status in the 2nd half of the 16th century"
 
         # przygotowanie struktur wikibase
         data = []
