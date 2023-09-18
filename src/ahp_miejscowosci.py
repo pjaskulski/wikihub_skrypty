@@ -8,7 +8,6 @@ import re
 import copy
 import logging
 import warnings
-from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from langdetect import detect
@@ -26,6 +25,11 @@ wbi_config['MEDIAWIKI_API_URL'] = 'https://prunus-208.man.poznan.pl/api.php'
 wbi_config['SPARQL_ENDPOINT_URL'] = 'https://prunus-208.man.poznan.pl/bigdata/sparql'
 wbi_config['WIKIBASE_URL'] = 'https://prunus-208.man.poznan.pl'
 
+# adresy dla API Wikibase (instancja docelowa)
+#wbi_config['MEDIAWIKI_API_URL'] = 'https://wikihum.lab.dariah.pl/api.php'
+#wbi_config['SPARQL_ENDPOINT_URL'] = 'https://wikihum.lab.dariah.pl/bigdata/sparql'
+#wbi_config['WIKIBASE_URL'] = 'https://wikihum.lab.dariah.pl'
+
 # login i hasło ze zmiennych środowiskowych
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -39,7 +43,7 @@ WIKIDARIAH_ACCESS_SECRET = os.environ.get('WIKIDARIAH_ACCESS_SECRET')
 # pomiar czasu wykonania
 start_time = time.time()
 
-WIKIBASE_WRITE = True
+WIKIBASE_WRITE = False
 
 
 def get_palatinate(value: str):
@@ -90,6 +94,7 @@ properties = get_properties(['instance of', 'stated as', 'reference URL', 'retri
                              'central state function', 'central church function',
                              'SIMC place ID', 'Wikidata item identifier', 'AHP ID',
                              'located in the administrative territorial entity',
+                             'located in a church administrative unit',
                              'count', 'refine date', 'stated in'
                             ])
 
@@ -729,7 +734,7 @@ if __name__ == '__main__':
                 if statement:
                     data.append(statement)
 
-        # ===== located in the administrative territorial entity =====
+        # ===== located in a church administrative unit =====
         if parafia and parafia != '[nieznana]':
             if ';' in parafia:
                 t_parafie = parafia.split(';')
@@ -762,9 +767,9 @@ if __name__ == '__main__':
 
                 ok, parafia_qid = element_search_adv(label_to_search, 'en', parameters)
                 if ok:
-                    if not element_qid or first_load or not has_statement(element_qid, properties['located in the administrative territorial entity'], parafia_qid):
+                    if not element_qid or first_load or not has_statement(element_qid, properties['located in a church administrative unit'], parafia_qid):
 
-                        statement = create_statement_data(properties['located in the administrative territorial entity'],
+                        statement = create_statement_data(properties['located in a church administrative unit'],
                                                     parafia_qid, None, qualifier_dict=qualifiers_parafia, add_ref_dict=references, if_exists='APPEND')
                         if statement:
                             data.append(statement)
