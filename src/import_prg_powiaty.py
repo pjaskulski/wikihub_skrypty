@@ -110,6 +110,13 @@ if __name__ == '__main__':
         if statement:
             data.append(statement)
 
+        # instance of 'administrative unit'
+        statement = create_statement_data(properties['instance of'],
+                                          elements['administrative unit'],
+                                          None, None, add_ref_dict=None)
+        if statement:
+            data.append(statement)
+
         # id SDI
         if idiip:
             statement = create_statement_data(prop=properties['id SDI'],
