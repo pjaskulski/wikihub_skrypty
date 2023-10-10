@@ -36,10 +36,11 @@ WIKIBASE_WRITE = True
 # standardowe właściwości i elementy
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts',
-                             'refine date', 'stated in'
+                             'refine date', 'stated in', 'administrative unit type'
                             ])
 
 elements = get_elements(['diocese (Latin Church)',
+                         'administrative unit'
                          'second half'])
 
 
@@ -78,6 +79,13 @@ if __name__ == '__main__':
 
         # instance of
         statement = create_statement_data(properties['instance of'],
+                                          elements['administrative unit'],
+                                          None, None, add_ref_dict=references)
+        if statement:
+            data.append(statement)
+
+        # administrative unit type
+        statement = create_statement_data(properties['administrative unit type'],
                                           elements['diocese (Latin Church)'],
                                           None, None, add_ref_dict=references)
         if statement:
@@ -99,7 +107,7 @@ if __name__ == '__main__':
         wb_item.set_description(description_pl, 'pl')
 
         # wyszukiwanie po etykiecie
-        parameters = [(properties['instance of'], elements['diocese (Latin Church)'])]
+        parameters = [(properties['administrative unit type'], elements['diocese (Latin Church)'])]
         ok, item_id = element_search_adv(label_en, 'en', parameters)
         if not ok:
             if WIKIBASE_WRITE:

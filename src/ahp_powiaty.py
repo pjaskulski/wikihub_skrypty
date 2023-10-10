@@ -36,13 +36,14 @@ WIKIBASE_WRITE = True
 # standardowe właściwości i elementy
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts', 'stated in',
-                             'refine date'
+                             'refine date', 'administrative unit type'
                             ])
 
 elements = get_elements(['district (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
                          'land (The Polish-Lithuanian Commonwealth (1569-1795))',
-                         'second half'])
+                         'administrative unit', 'second half'
+                         ])
 
 
 # ------------------------------------MAIN -------------------------------------
@@ -91,6 +92,13 @@ if __name__ == '__main__':
 
         # instance of
         statement = create_statement_data(properties['instance of'],
+                                          elements['administrative unit'],
+                                          None, None, add_ref_dict=references)
+        if statement:
+            data.append(statement)
+
+        # administrative unit type
+        statement = create_statement_data(properties['administrative unit type'],
                                           elements['district (The Polish-Lithuanian Commonwealth (1569-1795))'],
                                           None, None, add_ref_dict=references)
         if statement:
@@ -105,7 +113,7 @@ if __name__ == '__main__':
 
         # part of
         if wojewodztwo != 'ziemia dobrzyńska':
-            parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+            parameters = [(properties['administrative unit type'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
             ok, palatinate_qid = element_search_adv(f'palatinate {wojewodztwo}', 'en', parameters)
             if ok:
                 statement = create_statement_data(properties['part of'],
@@ -117,7 +125,7 @@ if __name__ == '__main__':
                 print('ERROR: nie znaleziono województwa ', wojewodztwo)
                 sys.exit(1)
         else:
-            parameters = [(properties['instance of'], elements['land (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+            parameters = [(properties['administrative unit type'], elements['land (The Polish-Lithuanian Commonwealth (1569-1795))'])]
             ok, palatinate_qid = element_search_adv('land dobrzyńska', 'en', parameters)
             if ok:
                 statement = create_statement_data(properties['part of'],

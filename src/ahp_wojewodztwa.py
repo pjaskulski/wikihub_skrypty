@@ -36,11 +36,11 @@ WIKIBASE_WRITE = True
 # standardowe właściwości i elementy
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts', 'stated in',
-                             'refine date'
+                             'refine date', 'administrative unit type'
                             ])
 
 elements = get_elements(['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))',
-                         'second half'])
+                         'second half', 'administrative unit'])
 
 
 # ------------------------------------MAIN -------------------------------------
@@ -78,6 +78,13 @@ if __name__ == '__main__':
 
         # instance of
         statement = create_statement_data(properties['instance of'],
+                                          elements['administrative unit'],
+                                          None, None, add_ref_dict=references)
+        if statement:
+            data.append(statement)
+
+        # administrative unit type
+        statement = create_statement_data(properties['administrative unit type'],
                                           elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'],
                                           None, None, add_ref_dict=references)
         if statement:
@@ -99,7 +106,7 @@ if __name__ == '__main__':
         wb_item.set_description(description_pl, 'pl')
 
         # wyszukiwanie po etykiecie
-        parameters = [(properties['instance of'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
+        parameters = [(properties['administrative unit type'], elements['palatinate (The Polish-Lithuanian Commonwealth (1569-1795))'])]
         ok, item_id = element_search_adv(label_en, 'en', parameters)
         if not ok:
             if WIKIBASE_WRITE:

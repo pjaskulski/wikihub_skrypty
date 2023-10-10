@@ -36,7 +36,7 @@ WIKIBASE_WRITE = True
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts',
-                             'refine date', 'stated in'
+                             'refine date', 'stated in', 'administrative unit type'
                             ])
 
 elements = get_elements(['deaconry (Latin Church)',
@@ -44,6 +44,7 @@ elements = get_elements(['deaconry (Latin Church)',
                          'archdeaconry (Latin Church)',
                          'territory (Latin Church)',
                          'diocese (Latin Church)',
+                         'administrative unit',
                          'second half'])
 
 
@@ -87,43 +88,51 @@ if __name__ == '__main__':
                 label_en = "deaconry Kielce"
                 description_pl = "dziekania (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
                 description_en = "deaconry (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
-                instance_of = elements['deaconry (Latin Church)']
+                administrative_unit_type = elements['deaconry (Latin Church)']
                 stated_as = 'Kielce Dz'
             elif archidiakonat == 'Kielce Pr':
                 label_pl = "prepozytura Kielce"
                 label_en = "provostship Kielce"
                 description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
                 description_en = "provostship (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
-                instance_of = elements['provostship (Latin Church)']
+                administrative_unit_type = elements['provostship (Latin Church)']
                 stated_as = 'Kielce Pr'
             elif archidiakonat == 'Tarnów Pr':
                 label_pl = "prepozytura Tarnów"
                 label_en = "provostship Tarnów"
                 description_pl = "prepozytura (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
                 description_en = "provostship (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
-                instance_of = elements['provostship (Latin Church)']
+                administrative_unit_type = elements['provostship (Latin Church)']
                 stated_as = 'Tarnów Pr'
             elif archidiakonat == 'Wieluń Ter':
                 label_pl = "terytorium Wieluń"
                 label_en = "territory Wieluń"
                 description_pl = "terytorium (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
                 description_en = "territory (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
-                instance_of = elements['territory (Latin Church)']
+                administrative_unit_type = elements['territory (Latin Church)']
                 stated_as = 'Wieluń Ter'
         else:
             label_pl = f"archidiakonat {archidiakonat}"
             label_en = f"archdeaconry {archidiakonat}"
             description_pl = "archidiakonat (jednostka w systemie administracji kościelnej: Kościół katolicki ob. łacińskiego, stan na 2 poł. XVI wieku)"
             description_en = "archdeaconry (unit in the religious administrative system: Latin Church, status in the 2nd half of the 16th century)"
-            instance_of = elements['archdeaconry (Latin Church)']
+            administrative_unit_type = elements['archdeaconry (Latin Church)']
             stated_as = archidiakonat
 
         # przygotowanie struktur wikibase
         data = []
 
         # instance of
+        instance_of = elements['administrative unit']
         statement = create_statement_data(properties['instance of'],
                                           instance_of,
+                                          None, None, add_ref_dict=references)
+        if statement:
+            data.append(statement)
+
+        # administrative unit type
+        statement = create_statement_data(properties['administrative unit type'],
+                                          administrative_unit_type,
                                           None, None, add_ref_dict=references)
         if statement:
             data.append(statement)

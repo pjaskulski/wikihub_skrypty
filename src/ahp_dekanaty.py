@@ -36,7 +36,7 @@ WIKIBASE_WRITE = True
 # standardowe właściwości i elementy (P i Q wyszukiwane w wikibase raz i trzymane w słownikach)
 properties = get_properties(['instance of', 'stated as', 'reference URL', 'retrieved',
                              'point in time', 'part of', 'has part or parts',
-                             'refine date', 'stated in'
+                             'refine date', 'stated in', 'administrative unit type'
                             ])
 
 elements = get_elements(['deanery (Latin Church)',
@@ -45,8 +45,8 @@ elements = get_elements(['deanery (Latin Church)',
                          'archdeaconry (Latin Church)',
                          'territory (Latin Church)',
                          'diocese (Latin Church)',
+                         'administrative unit',
                          'second half'])
-
 
 
 
@@ -74,7 +74,8 @@ if __name__ == '__main__':
     qualifiers[properties['point in time']] = '+1600-00-00T00:00:00Z/7' # XVI wiek
     qualifiers[properties['refine date']] = elements['second half']     # druga połowa
 
-    instance_of = elements['deanery (Latin Church)']
+    instance_of = elements['administrative unit']
+    administrative_unit_type = elements['deanery (Latin Church)']
 
     for line in lines:
         t_line = line.split(',')
@@ -98,6 +99,13 @@ if __name__ == '__main__':
         if statement:
             data.append(statement)
 
+        # administrative unit type
+        statement = create_statement_data(properties['administrative unit type'],
+                                          administrative_unit_type,
+                                          None, None, add_ref_dict=references)
+        if statement:
+            data.append(statement)
+
         # stated as
         statement = create_statement_data(properties['stated as'],
                                           f'pl:"{g_dekanat}"',
@@ -107,7 +115,7 @@ if __name__ == '__main__':
 
         # part of (archidiakonat lub diecezja)
         if archidiakonat:
-            parameters = [(properties['instance of'], elements['archdeaconry (Latin Church)'])]
+            parameters = [(properties['administrative unit type'], elements['archdeaconry (Latin Church)'])]
             ok, master_qid = element_search_adv(f'archdeaconry {archidiakonat}', 'en', parameters)
 
             # może to deaconry, provostship, territory
@@ -127,10 +135,10 @@ if __name__ == '__main__':
                 else:
                     print('ERROR: nie znaleziono jednostki nadrzędnej:', g_dekanat, archidiakonat, diecezja)
 
-                parameters = [(properties['instance of'], element_archidiakonat)]
+                parameters = [(properties['administrative unit type'], element_archidiakonat)]
                 ok, master_qid = element_search_adv(label_archidiakonat, 'en', parameters)
         else:
-            parameters = [(properties['instance of'], elements['diocese (Latin Church)'])]
+            parameters = [(properties['administrative unit type'], elements['diocese (Latin Church)'])]
             ok, master_qid = element_search_adv(f'diocese {diecezja}', 'en', parameters)
 
         if ok:
@@ -152,7 +160,7 @@ if __name__ == '__main__':
         wb_item.set_description(description_pl, 'pl')
 
         # wyszukiwanie po etykiecie
-        parameters = [(properties['instance of'], instance_of),
+        parameters = [(properties['administrative unit type'], administrative_unit_type),
                       (properties['part of'], master_qid)]
         ok, item_id = element_search_adv(label_en, 'en', parameters)
         if not ok:
