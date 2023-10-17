@@ -230,6 +230,8 @@ class WDHSpreadsheet:
                 value = "globe-coordinate"
             elif value == "point in time":
                 value = "time"
+            elif value == "commons media file":
+                value = "commonsMedia"
 
         return t_datatype
 
@@ -561,6 +563,8 @@ class WDHProperty:
                 value = "globe-coordinate"
             elif value == "point in time":
                 value = "time"
+            elif value == "commons media file":
+                value = "commonsMedia"
 
             self._datatype = value.strip()
         else:
@@ -2048,6 +2052,19 @@ def create_statement(
                 )
             else:
                 print(f"ERROR: invalid value for time type: {value}.")
+        elif property_type == "commonsMedia":
+            if snak_type != "value":
+                value = None
+            statement = wbi_datatype.CommonsMedia(
+                value,
+                prop_nr=property_nr,
+                is_reference=is_ref,
+                references=refs,
+                is_qualifier=is_qlf,
+                qualifiers=qlfs,
+                if_exists=if_exists,
+                snak_type=snak_type,
+            )
         elif property_type == "geo-shape":
             # to chyba oczekuje nazwy pliku mapy w wikimedia commons, nam się nie przyda?
             if snak_type != "value":
@@ -2926,7 +2943,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # login i hasło ze zmiennych środowiskowych - instancja testowa
-    #env_path = Path(".") / ".env"
+    # env_path = Path(".") / ".env"
 
     # login i hasło ze zmiennych środowiskowych - instancja docelowa
     env_path = Path(".") / ".env_wikihum"
