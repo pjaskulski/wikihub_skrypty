@@ -1,17 +1,19 @@
 """ Tworzenie xlsx do importu na podstawie xlsx z danymi z PRNG (Kraina, region)  """
 import openpyxl
+from wikidariahtools import get_coord
+
 
 # stałe - zmienić dla docelowej!!!
 Q_REGION = 'Q233971'
-P_STATED_AS = 'P195'
-P_INFLECTIONAL_FORM = 'P282'
-P_LOCATIVE_FORM = 'P281'
-P_ADJECTIVE_FORM = 'P280'
-P_LOCATED_IN = 'P291'
-P_LOCATED_IN_COUNTRY = 'P292'
-P_COORDINATE_LOCATION = 'P48'
-P_ID_SDI = 'P289'
-P_REFERENCE_URL = 'P182'
+P_STATED_AS = 'P505'
+P_INFLECTIONAL_FORM = 'P457'
+P_LOCATIVE_FORM = 'P471'
+P_ADJECTIVE_FORM = 'P401'
+P_LOCATED_IN = 'P467'
+P_LOCATED_IN_COUNTRY = 'P469'
+P_COORDINATE_LOCATION = 'P420'
+P_ID_SDI = 'P454'
+P_REFERENCE_URL = 'P399'
 P_POINT_IN_TIME = 'P485'
 
 reference_value = 'https://mapy.geoportal.gov.pl/wss/service/PZGiK/PRNG/WFS/GeographicalNames'
@@ -145,20 +147,8 @@ for index, row in enumerate(ws.iter_rows(2, ws.max_row), start=1):
 
     if wsp_geo:
         # 56°30'00" N, 23°30'00" E
-        tmp_tab = wsp_geo.split(',')
-        char = "'"
-        latitude = tmp_tab[0].split(char)[0].replace('°','.')
-        stopnie = float(latitude.split('.')[0])
-        minuty = float(latitude.split('.')[1])/60.0
-        latitude = str(stopnie + minuty)
+        coordinate = get_coord(wsp_geo)
 
-        tmp_tab[1] = tmp_tab[1].strip()
-        longitude = tmp_tab[1].split(char)[0].replace('°','.')
-        stopnie = float(longitude.split('.')[0])
-        minuty = float(longitude.split('.')[1])/60.0
-        longitude = str(stopnie + minuty)
-
-        coordinate = f'{latitude},{longitude}'
         statement_item = [nazwa_main, P_COORDINATE_LOCATION, coordinate, P_POINT_IN_TIME, '+2022-00-00T00:00:00Z/9',
                           P_REFERENCE_URL, reference_value]
         q_statement.append(statement_item)
